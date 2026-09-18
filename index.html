@@ -2353,8 +2353,8 @@ var qrcode = function() {
 <script>
 'use strict';
 // SADECE BU İKİ DEĞERİ DOLDURUN. Secret/service_role anahtarını buraya ASLA yazmayın.
-const SUPABASE_URL = "";
-const SUPABASE_PUBLISHABLE_KEY = "";
+const SUPABASE_URL = "https://qacmubkcierbpxmdtsph.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_RU5vtZxlqK2dMD-LWuwUaA_Eak6b9cj";
 const $=s=>document.querySelector(s), esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const configured=Boolean(SUPABASE_URL&&SUPABASE_PUBLISHABLE_KEY);let db=null,initError='';
 try{if(configured){if(!window.supabase)throw Error('Bağlantı kütüphanesi yüklenemedi. İnternet bağlantınızı kontrol edin.');db=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY)}}catch(e){initError=e.message}
