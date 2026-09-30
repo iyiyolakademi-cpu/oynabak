@@ -1064,6 +1064,80 @@ body.customer-mode #app{
 .menu-admin{display:grid;gap:13px}.menu-admin-cat{border:1px solid #e1e6ed;border-radius:16px;background:#f8fafc;padding:14px}.menu-admin-cat-head{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end}.menu-admin-items{display:grid;gap:9px;margin-top:10px}.menu-admin-item{display:grid;grid-template-columns:1.2fr .65fr auto;gap:8px;align-items:end;padding:11px;border:1px solid #e2e6ec;background:#fff;border-radius:13px}.menu-admin-item .desc,.menu-admin-item .image-upload{grid-column:1/-1}.menu-admin-item label,.menu-admin-cat label{font-size:10px;font-weight:850;color:#667085}.menu-admin-item input,.menu-admin-cat input{margin-top:4px}.menu-admin-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.menu-admin .danger{border:1px solid #f0c9c5;background:#fff;color:#a5281c;border-radius:9px;padding:8px 10px;font-weight:800}.menu-admin .mini{border:1px solid #d9e0e9;background:#fff;border-radius:9px;padding:8px 10px;font-weight:800}.menu-image-upload{display:flex;align-items:center;gap:10px;margin-top:5px;padding:9px;border:1px solid #dfe4eb;border-radius:11px;background:#f8fafc}.menu-image-preview{width:62px;height:62px;border-radius:10px;overflow:hidden;background:#eceff3;display:grid;place-items:center;flex:none;color:#7b8796;font-size:9px;text-align:center}.menu-image-preview img{width:100%;height:100%;object-fit:cover;display:block}.menu-image-controls{display:flex;gap:7px;flex-wrap:wrap;align-items:center}.menu-image-file{display:inline-flex;align-items:center;justify-content:center;min-height:34px;padding:7px 10px;border-radius:9px;background:#17263c;color:#fff;font-size:10px;font-weight:900;cursor:pointer}.menu-image-file input{display:none}.menu-image-remove{border:1px solid #d9e0e9;background:#fff;border-radius:9px;padding:7px 10px;font-size:10px;font-weight:850}.menu-image-note{display:block;margin-top:5px;color:#8792a2;font-size:9px;line-height:1.4}
 @media(max-width:640px){.menu-screen{padding-left:13px;padding-right:13px}.menu-cat-nav{margin-left:-13px;margin-right:-13px;padding-left:13px;padding-right:13px}.menu-admin-item{grid-template-columns:1fr 105px auto}.menu-admin-item .desc,.menu-admin-item .image-upload{grid-column:1/-1}.menu-photo{width:76px;height:76px}.menu-item.has-image{grid-template-columns:minmax(0,1fr) 76px}.menu-item.has-image .menu-price{right:88px}}
 
+
+/* ===== Premium menu redesign · category cards + app-like product list ===== */
+#modal.menu-full{background:#0d0d10!important;color:#fff!important}
+#modal.menu-full .dialog-head{display:none!important}
+#modal.menu-full .dialog-body{background:linear-gradient(180deg,#0e0e11,#16161a)!important;overflow:auto!important;padding:0!important}
+.menu-app{width:min(100%,860px);margin:0 auto;padding:max(18px,env(safe-area-inset-top)) 16px max(28px,env(safe-area-inset-bottom));color:#fff}
+.menu-intro{padding:6px 2px 18px}
+.menu-kicker{display:block;color:#a4a4ae;font-size:10px;font-weight:900;letter-spacing:1.6px;text-transform:uppercase}
+.menu-intro h2{margin:8px 0 8px;font-size:clamp(34px,8.2vw,52px);line-height:.96;letter-spacing:-2.3px;color:#fff}
+.menu-intro p{margin:0;max-width:520px;color:#b8b8c0;font-size:13px;line-height:1.6}
+.menu-category-stack{display:grid;gap:12px;margin-top:8px}
+.menu-cat-card{position:relative;display:grid;grid-template-columns:64px minmax(0,1fr) auto;align-items:center;gap:14px;width:100%;min-height:102px;padding:14px 16px;border:1px solid rgba(255,255,255,.14);border-radius:24px;background:#121216;color:#fff;text-align:left;overflow:hidden;box-shadow:0 12px 30px rgba(0,0,0,.28)}
+.menu-cat-card:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(10,10,10,.92),rgba(17,12,9,.84) 52%,rgba(20,12,8,.55) 100%);z-index:1}
+.menu-cat-card-media{position:absolute;inset:0;z-index:0;background:linear-gradient(135deg,#181818,#2b170f)}
+.menu-cat-card-media img{width:100%;height:100%;object-fit:cover;display:block;filter:saturate(1.02)}
+.menu-cat-card > *{position:relative;z-index:2}
+.menu-cat-icon{width:54px;height:54px;border-radius:18px;background:rgba(255,245,234,.16);border:1px solid rgba(255,255,255,.09);display:grid;place-items:center;font-size:23px;backdrop-filter:blur(4px)}
+.menu-cat-copy{min-width:0}
+.menu-cat-copy strong{display:block;color:#fff;font-size:30px;line-height:1.04;letter-spacing:-1.1px;font-weight:950}
+.menu-cat-copy span{display:block;margin-top:7px;color:#d5d0cd;font-size:11px;font-weight:700;line-height:1.45;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.menu-cat-arrow{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);font-size:24px;color:#e9e9ec}
+.menu-note{margin-top:18px;padding:14px 16px;border-radius:18px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:#b6b6be;font-size:11px;line-height:1.55}
+.menu-empty-premium{margin-top:18px;padding:42px 20px;text-align:center;border-radius:22px;border:1px dashed rgba(255,255,255,.14);background:rgba(255,255,255,.04);color:#d7d7de}
+.menu-empty-premium b{display:block;font-size:20px;color:#fff;margin-bottom:8px}
+.menu-detail-shell{width:min(100%,860px);margin:0 auto;padding:0 0 max(30px,env(safe-area-inset-bottom));color:#111;background:#f5f5f7;min-height:100dvh}
+.menu-detail-hero{position:relative;min-height:238px;padding:18px 16px 22px;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;background:linear-gradient(135deg,#111,#24160f);color:#fff}
+.menu-detail-hero:before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.38),rgba(0,0,0,.7));z-index:1}
+.menu-detail-media{position:absolute;inset:0;z-index:0;background:linear-gradient(135deg,#111,#24160f)}
+.menu-detail-media img{width:100%;height:100%;object-fit:cover;display:block}
+.menu-detail-hero > *{position:relative;z-index:2}
+.menu-back-btn{display:inline-flex;align-items:center;gap:8px;align-self:flex-start;min-height:40px;padding:10px 14px;border:1px solid rgba(255,255,255,.15);border-radius:999px;background:rgba(255,255,255,.08);color:#fff;font-size:12px;font-weight:900;backdrop-filter:blur(4px)}
+.menu-back-btn span{font-size:16px;line-height:1}
+.menu-detail-copy small{display:block;color:#dbd6d2;font-size:10px;font-weight:900;letter-spacing:1.2px;text-transform:uppercase}
+.menu-detail-copy h2{margin:9px 0 7px;font-size:clamp(34px,9vw,54px);line-height:.95;letter-spacing:-2px;color:#fff}
+.menu-detail-copy p{margin:0;max-width:560px;color:#ece8e5;font-size:12px;line-height:1.55}
+.menu-list-shell{padding:14px 14px 24px;display:grid;gap:12px;margin-top:-18px;position:relative;z-index:3}
+.menu-product-card{display:grid;grid-template-columns:minmax(0,1fr) 98px;gap:12px;align-items:start;padding:14px;border-radius:22px;background:#fff;border:1px solid #ececef;box-shadow:0 10px 30px rgba(18,18,21,.06)}
+.menu-product-card.no-photo{grid-template-columns:1fr}
+.menu-product-copy{min-width:0}
+.menu-product-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.menu-product-top h4{margin:0;color:#111827;font-size:18px;line-height:1.15;letter-spacing:-.4px}
+.menu-price-pill{flex:none;display:inline-flex;align-items:center;justify-content:center;min-height:34px;padding:6px 11px;border-radius:999px;background:#101114;color:#fff;font-size:12px;font-weight:950;white-space:nowrap}
+.menu-product-copy p{margin:8px 0 0;color:#707783;font-size:12px;line-height:1.55}
+.menu-product-meta{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}
+.menu-meta-pill{display:inline-flex;align-items:center;min-height:28px;padding:5px 9px;border-radius:999px;background:#f2f4f7;color:#596273;font-size:10px;font-weight:900}
+.menu-meta-pill.sold{background:#fff1f0;color:#c2362f}
+.menu-product-photo{width:98px;height:98px;border-radius:18px;overflow:hidden;background:#f0f1f4;box-shadow:inset 0 0 0 1px #edeef2}
+.menu-product-photo img{width:100%;height:100%;object-fit:cover;display:block}
+.menu-detail-empty{padding:44px 18px;text-align:center;border:1px dashed #d8d9e0;border-radius:22px;background:#fff;color:#667085}
+.menu-detail-empty b{display:block;margin-bottom:6px;color:#101828;font-size:18px}
+@media(max-width:760px){
+  .menu-app{padding-left:12px;padding-right:12px}
+  .menu-cat-card{grid-template-columns:52px minmax(0,1fr) 34px;min-height:94px;padding:12px 13px;border-radius:22px}
+  .menu-cat-icon{width:46px;height:46px;border-radius:15px;font-size:21px}
+  .menu-cat-copy strong{font-size:18px}
+  .menu-cat-copy span{font-size:10px;margin-top:5px}
+  .menu-cat-arrow{width:34px;height:34px;font-size:22px}
+  .menu-detail-hero{min-height:214px;padding:14px 12px 20px}
+  .menu-list-shell{padding:12px 12px 24px;margin-top:-14px}
+  .menu-product-card{grid-template-columns:minmax(0,1fr) 86px;padding:12px;border-radius:20px}
+  .menu-product-card.no-photo{grid-template-columns:1fr}
+  .menu-product-top{align-items:flex-start}
+  .menu-product-top h4{font-size:16px}
+  .menu-price-pill{font-size:11px;min-height:30px;padding:5px 10px}
+  .menu-product-copy p{font-size:11px}
+  .menu-product-photo{width:86px;height:86px;border-radius:16px}
+}
+@media(max-width:420px){
+  .menu-intro h2{font-size:42px}
+  .menu-detail-copy h2{font-size:40px}
+  .menu-product-card{grid-template-columns:minmax(0,1fr) 80px}
+  .menu-product-photo{width:80px;height:80px}
+}
+
 </style></head><body>
 <header><nav class="wrap"><a class="brand" href="#home" aria-label="OynaBak ana sayfa"><img src="/oynabak-logo.png" alt="OynaBak"></a><div class="links"><a class="desktop" href="#features">Nasıl çalışır?</a><a class="desktop" href="#faq">Merak edilenler</a><a class="btn small light" href="#panel">İşletme girişi ↗</a></div></nav></header>
 <main id="app"></main><footer><div class="wrap row" style="justify-content:space-between;gap:18px"><div><b>OynaBak · Molana oyun kat.</b><span style="display:block;margin-top:4px">Kafe · Spor salonu · Mağaza</span></div><div class="footer-links"><a href="#home">Ana sayfa</a><a href="#privacy">Gizlilik</a><a href="#kvkk">KVKK</a><a href="#terms">Kullanım Koşulları</a><a href="#contact">İletişim</a></div></div></footer><a class="whatsapp" href="https://wa.me/905066403989?text=Merhaba%2C%20OynaBak%20hakk%C4%B1nda%20bilgi%20almak%20istiyorum." target="_blank" rel="noopener noreferrer">WhatsApp'tan sor ↗</a>
@@ -3423,7 +3497,7 @@ let recoveryMode=authLanding.searchParams.get('recovery')==='1'||authFragment.ge
 let recoveryFailure=authFragment.has('error')||authLanding.searchParams.has('error');
 const configured=Boolean(SUPABASE_URL&&SUPABASE_PUBLISHABLE_KEY);let db=null,initError='';
 try{if(configured){if(!window.supabase)throw Error('Bağlantı kütüphanesi yüklenemedi. İnternet bağlantınızı kontrol edin.');db=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY)}}catch(e){initError=e.message}
-let me=null,adminData=null,tab='venues',venue=null,gameCleanup=()=>{},routeSeq=0,toastTimer,adminGameMedia={};
+let me=null,adminData=null,tab='venues',venue=null,gameCleanup=()=>{},routeSeq=0,toastTimer,adminGameMedia={},activeMenuData=null,activeMenuCategoryId='';
 const legacyGameNames={
   "tabu":"Tabu",
   "g2048":"2048",
@@ -4602,23 +4676,76 @@ async function loadVenueMenu(vid,{strict=false}={}){
     return normalizeMenu({});
   }
 }
+function menuActiveCategories(menu=activeMenuData||venue?.menu){
+  return normalizeMenu(menu).categories.filter(c=>c.active&&c.items.some(i=>i.active));
+}
+function menuCategoryIcon(name=''){
+  const x=String(name||'').toLocaleLowerCase('tr-TR');
+  if(/kahve|coffee|espresso|latte|mocha|americano|cappuccino|çay|icecek|içecek/.test(x))return '☕';
+  if(/tatlı|dessert|kek|waffle|cheesecake|dondurma/.test(x))return '🍰';
+  if(/alkol|şarap|sarap|kokteyl|bira|viski|rakı|vodka|gin/.test(x))return '🍷';
+  if(/burger|pizza|yemek|makarna|salata|toast|tost|sandviç|sandvic|ana/.test(x))return '🍽️';
+  if(/soğuk|soguk|smoothie|limonata|milkshake|frappe|frozen/.test(x))return '🥤';
+  if(/signature|özel|ozel|öneri|oner|chef|imza/.test(x))return '✨';
+  return '🍽️';
+}
+function menuCategorySummary(cat){
+  const items=(cat?.items||[]).filter(i=>i.active);
+  const preview=items.slice(0,3).map(i=>i.name).filter(Boolean).join(' · ');
+  return `${items.length} ürün${preview?` · ${preview}`:''}`;
+}
+function menuCategoryCover(cat){
+  const item=(cat?.items||[]).find(i=>i.active&&(i.image_data||i.image_url));
+  return item?(item.image_data||item.image_url):'';
+}
+function menuProductCardHtml(i){
+  const photo=i.image_data||i.image_url||'';
+  return `<article class="menu-product-card ${photo?'':'no-photo'}"><div class="menu-product-copy"><div class="menu-product-top"><h4>${esc(i.name)}</h4><span class="menu-price-pill">${esc(formatPrice(i.price))}</span></div>${i.description?`<p>${esc(i.description)}</p>`:''}<div class="menu-product-meta"><span class="menu-meta-pill">İşletme fiyatı</span>${i.sold_out?'<span class="menu-meta-pill sold">Tükendi</span>':''}</div></div>${photo?`<div class="menu-product-photo"><img src="${esc(photo)}" alt="${esc(i.name)}" loading="lazy"></div>`:''}</article>`;
+}
+function menuCategoriesHtml(menu=activeMenuData||venue?.menu){
+  const cats=menuActiveCategories(menu);
+  if(!cats.length)return `<div class="menu-app"><section class="menu-intro"><small class="menu-kicker">${esc(venue?.name||'OynaBak')} · ${esc(customerTable()?'Masa '+customerTable():'Dijital Menü')}</small><h2>Dijital Menü</h2><p>Yiyecek ve içecek kategorileri burada yer alır. Menü hazır olduğunda ürünler bu ekranda görünecek.</p></section><div class="menu-empty-premium"><b>Menü henüz hazırlanıyor.</b><span>Lütfen işletmeden bilgi alın.</span></div></div>`;
+  return `<div class="menu-app"><section class="menu-intro"><small class="menu-kicker">${esc(venue?.name||'OynaBak')} · ${esc(customerTable()?'Masa '+customerTable():'Dijital Menü')}</small><h2>Dijital Menü</h2><p>Kategoriyi seç, ürünleri ve güncel fiyatları incele. Sipariş ve ödeme bu ekran üzerinden yapılmaz.</p></section><section class="menu-category-stack">${cats.map(c=>{const cover=menuCategoryCover(c);return `<button type="button" class="menu-cat-card" data-action="menu-open-category" data-category-id="${esc(c.id)}"><div class="menu-cat-card-media">${cover?`<img src="${esc(cover)}" alt="${esc(c.name)}" loading="lazy">`:''}</div><div class="menu-cat-icon">${esc(menuCategoryIcon(c.name))}</div><div class="menu-cat-copy"><strong>${esc(c.name)}</strong><span>${esc(menuCategorySummary(c))}</span></div><div class="menu-cat-arrow">›</div></button>`}).join('')}</section><div class="menu-note">Fiyatlar işletme tarafından güncellenir. Stokta olmayan ürünler kategori içinde <b>Tükendi</b> etiketiyle gösterilir.</div></div>`;
+}
+function menuCategoryDetailHtml(catId,menu=activeMenuData||venue?.menu){
+  const cats=menuActiveCategories(menu);
+  const cat=cats.find(x=>String(x.id)===String(catId))||cats[0];
+  if(!cat)return menuCategoriesHtml(menu);
+  const items=(cat.items||[]).filter(i=>i.active);
+  const cover=menuCategoryCover(cat);
+  return `<div class="menu-detail-shell"><section class="menu-detail-hero"><div class="menu-detail-media">${cover?`<img src="${esc(cover)}" alt="${esc(cat.name)}" loading="lazy">`:''}</div><button type="button" class="menu-back-btn" data-action="menu-back-categories"><span>‹</span>Tüm kategoriler</button><div class="menu-detail-copy"><small>${esc(venue?.name||'OynaBak')} · ${esc(customerTable()?'Masa '+customerTable():'Dijital Menü')}</small><h2>${esc(cat.name)}</h2><p>${esc(items.length)} ürün · fiyatlar işletme tarafından güncellenir. Sipariş ve ödeme bu ekran üzerinden yapılmaz.</p></div></section><section class="menu-list-shell">${items.length?items.map(menuProductCardHtml).join(''):`<div class="menu-detail-empty"><b>Bu kategoride ürün yok.</b><span>Lütfen başka bir kategori seçin.</span></div>`}</section></div>`;
+}
+function renderMenuScreen(view='home',catId=''){
+  const root=$('#modalBody');
+  if(!root)return;
+  const menu=activeMenuData||venue?.menu;
+  if(view==='category'){
+    activeMenuCategoryId=String(catId||'');
+    root.innerHTML=menuCategoryDetailHtml(activeMenuCategoryId,menu);
+    return;
+  }
+  activeMenuCategoryId='';
+  root.innerHTML=menuCategoriesHtml(menu);
+}
 function menuPublicHtml(menu=venue?.menu){
-  menu=normalizeMenu(menu);const cats=menu.categories.filter(c=>c.active&&c.items.some(i=>i.active));
-  if(!cats.length)return `<div class="menu-screen"><div class="menu-hero"><small>${esc(venue?.name||'OynaBak')}</small><h2>Dijital Menü</h2><p>Fiyatlar işletme tarafından güncellenir.</p></div><div class="menu-empty"><b>Menü henüz hazırlanıyor.</b><br><span style="font-size:12px">Lütfen işletmeden bilgi alın.</span></div></div>`;
-  return `<div class="menu-screen"><div class="menu-hero"><small>${esc(venue?.name||'OynaBak')} · ${esc('Masa '+(customerTable()||''))}</small><h2>Menü</h2><p>Ürünleri ve güncel fiyatları inceleyebilirsin. Sipariş ve ödeme bu ekran üzerinden yapılmaz.</p></div><nav class="menu-cat-nav">${cats.map(c=>`<a href="#menu-${esc(c.id)}">${esc(c.name)}</a>`).join('')}</nav>${cats.map(c=>`<section class="menu-category" id="menu-${esc(c.id)}"><h3>${esc(c.name)}</h3><div class="menu-items">${c.items.filter(i=>i.active).map(i=>{const photo=i.image_data||i.image_url||'';return `<article class="menu-item ${photo?'has-image':''}"><div><h4>${esc(i.name)}</h4>${i.description?`<p>${esc(i.description)}</p>`:''}${i.sold_out?'<span class="menu-sold">Tükendi</span>':''}</div><div class="menu-price">${esc(formatPrice(i.price))}</div>${photo?`<div class="menu-photo"><img src="${esc(photo)}" alt="${esc(i.name)}" loading="lazy"></div>`:''}</article>`}).join('')}</div></section>`).join('')}</div>`;
+  activeMenuData=normalizeMenu(menu);
+  return menuCategoriesHtml(activeMenuData);
 }
 async function openCustomerMenu(){
   const vid=String(venue?.id||qrParams().venueId||'').trim();
-  modal('Menü','<div class="menu-screen"><div class="menu-hero"><small>'+esc(venue?.name||'OynaBak')+'</small><h2>Dijital Menü</h2><p>Menü yükleniyor…</p></div><div class="menu-empty">Menü hazırlanıyor…</div></div>');
+  modal('Menü','<div class="menu-app"><section class="menu-intro"><small class="menu-kicker">'+esc(venue?.name||'OynaBak')+'</small><h2>Dijital Menü</h2><p>Menü yükleniyor…</p></section><div class="menu-empty-premium">Menü hazırlanıyor…</div></div>');
   $('#modal').classList.add('menu-full');
   try{
     const fresh=await loadVenueMenu(vid,{strict:true});
     if(venue)venue.menu=fresh;
-    $('#modalBody').innerHTML=menuPublicHtml(fresh);
+    activeMenuData=fresh;
+    renderMenuScreen('home');
   }catch(e){
-    $('#modalBody').innerHTML=`<div class="menu-screen"><div class="menu-hero"><small>${esc(venue?.name||'OynaBak')}</small><h2>Dijital Menü</h2><p>Menü şu anda yüklenemedi.</p></div><div class="menu-empty"><b>Menü verisi alınamadı.</b><br><span style="font-size:12px">${esc(e.message)}</span><br><button type="button" class="btn light" style="margin-top:16px" data-action="menu-open">Tekrar dene</button></div></div>`;
+    activeMenuData=normalizeMenu({});
+    $('#modalBody').innerHTML=`<div class="menu-app"><section class="menu-intro"><small class="menu-kicker">${esc(venue?.name||'OynaBak')}</small><h2>Dijital Menü</h2><p>Menü şu anda yüklenemedi.</p></section><div class="menu-empty-premium"><b>Menü verisi alınamadı.</b><span>${esc(e.message)}</span><br><button type="button" class="btn light" style="margin-top:16px" data-action="menu-open">Tekrar dene</button></div></div>`;
   }
 }
+
 function menuAdminCategoryHtml(c){return `<section class="menu-admin-cat" data-menu-cat="${esc(c.id)}"><div class="menu-admin-cat-head"><label>Kategori adı<input class="menu-cat-name" maxlength="80" value="${esc(c.name||'')}"></label><button type="button" class="danger" data-action="menu-remove-category">Kategoriyi sil</button></div><div class="menu-admin-items">${(c.items||[]).map(menuAdminItemHtml).join('')}</div><div class="menu-admin-actions"><button type="button" class="mini" data-action="menu-add-item">+ Ürün ekle</button></div></section>`}
 function menuAdminItemHtml(i){const photo=i.image_data||i.image_url||'';return `<div class="menu-admin-item" data-menu-item="${esc(i.id)}"><label>Ürün<input class="menu-item-name" maxlength="120" value="${esc(i.name||'')}"></label><label>Fiyat (TL)<input class="menu-item-price" type="number" min="0" step="0.01" value="${Number(i.price||0)}"></label><button type="button" class="danger" data-action="menu-remove-item">Sil</button><label class="desc">Açıklama<input class="menu-item-desc" maxlength="300" value="${esc(i.description||'')}"></label><div class="image-upload"><span style="font-size:10px;font-weight:850;color:#667085">Ürün fotoğrafı</span><div class="menu-image-upload"><div class="menu-image-preview">${photo?`<img src="${esc(photo)}" alt="Ürün fotoğrafı">`:'Fotoğraf<br>yok'}</div><div style="min-width:0"><div class="menu-image-controls"><label class="menu-image-file">Telefondan / cihazdan seç<input class="menu-item-file" type="file" accept="image/*" capture="environment"></label><button type="button" class="menu-image-remove" data-action="menu-image-remove" ${photo?'':'hidden'}>Fotoğrafı kaldır</button></div><small class="menu-image-note">Fotoğraf otomatik küçültülür ve menüyle birlikte kaydedilir.</small></div></div><input class="menu-item-image-data" type="hidden" value="${esc(photo)}"></div><label style="display:flex;align-items:center;gap:5px"><input class="menu-item-active" type="checkbox" ${i.active!==false?'checked':''}> Göster</label><label style="display:flex;align-items:center;gap:5px"><input class="menu-item-sold" type="checkbox" ${i.sold_out?'checked':''}> Tükendi</label></div>`}
 function collectMenuForm(){
@@ -4861,7 +4988,7 @@ function hasQrGameAccess(){
   }
 }
 window.addEventListener('hashchange',route);
-document.addEventListener('click',async e=>{const b=e.target.closest('[data-action],[data-tab],[data-game],[data-custom]');if(!b||b.disabled)return;try{if(b.dataset.tab){tab=b.dataset.tab;drawAdmin();return}if(b.dataset.game){const key=b.dataset.game;if(!hasQrGameAccess()){toast('Bu oyun yalnızca işletme QR koduyla açılır.');return}if(!venue||!venue.enabled.includes(key))return;await trackEvent('game_open',{game:key});if(embeddedGameBase64[key]){openEmbeddedGame(key);return}return}if(b.dataset.custom){if(!hasQrGameAccess()){toast('Bu oyun yalnızca işletme QR koduyla açılır.');return}const vid=String(venue?.id||qrParams().venueId||''),gid=b.dataset.custom,gmeta=venue.games.find(g=>String(g.id)===String(gid)),gname=gmeta?.name||'Oyun';if(!vid){toast('İşletme bağlantısı bulunamadı. QR kodunu yeniden okut.');return}await trackEvent('game_open',{game:'custom:'+gid});modal(gname,'<div id="customGame"><p style="padding:24px">Oyun yükleniyor…</p></div>');enterGameScreen();const token=++gameLoadSeq;try{const code=await rpc('ob_game',{vid,gid});if(token!==gameLoadSeq||!$('#modal').open)return;safeFrame(code,$('#customGame'),{gameId:gid,gameName:gname})}catch(error){if(token===gameLoadSeq){$('#customGame').innerHTML=`<div style="padding:24px;font:14px/1.5 system-ui;color:#fff;background:#111;min-height:100%"><b>Oyun yüklenemedi.</b><br>${esc(error?.message||'Bilinmeyen hata')}</div>`}}return}const a=b.dataset.action,id=b.dataset.id;if(a==='menu-open'){trackEvent('menu_open');await openCustomerMenu();return}if(a==='menu-manage'){await menuManager(id||me?.venue?.id);return}if(a==='menu-add-category'){const box=$('#menuAdminCategories');box?.insertAdjacentHTML('beforeend',menuAdminCategoryHtml({id:menuId('cat'),name:'Yeni Kategori',items:[]}));return}if(a==='menu-remove-category'){b.closest('[data-menu-cat]')?.remove();return}if(a==='menu-add-item'){const box=b.closest('[data-menu-cat]')?.querySelector('.menu-admin-items');box?.insertAdjacentHTML('beforeend',menuAdminItemHtml({id:menuId('item'),name:'',price:0,active:true,sold_out:false}));return}if(a==='menu-remove-item'){b.closest('[data-menu-item]')?.remove();return}if(a==='menu-image-remove'){const row=b.closest('[data-menu-item]');const hidden=row?.querySelector('.menu-item-image-data');const preview=row?.querySelector('.menu-image-preview');if(hidden)hidden.value='';if(preview)preview.innerHTML='Fotoğraf<br>yok';b.hidden=true;return}if(a==='retry')await route();if(a==='close-game'){closeModal();return}if(a==='logout'){const {error}=await db.auth.signOut();if(error)throw error;me=null;adminData=null;await route()}if(a==='reset'){const email=$('#authForm [name=email]').value;if(!email)throw Error('Önce e-posta adresini yaz.');const redirect=new URL(location.href);redirect.search='?recovery=1';redirect.hash='';const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo:redirect.href});if(error)throw error;toast('Hesabın varsa şifre yenileme bağlantısı gönderilecek.')}if(a==='venue-new')venueForm();if(a==='venue-edit')venueForm(getVenue(id));if(a==='merchant-edit')venueForm(me.venue,true);if(a==='game-new')gameForm();if(a==='game-edit')gameForm(adminData.games.find(g=>g.id===id));if(a==='game-delete'){const game=adminData.games.find(g=>String(g.id)===String(id));const gameName=String(game?.name||b.dataset.name||'Bu oyun');const ok=window.confirm(`“${gameName}” oyununu kalıcı olarak silmek istediğine emin misin?\n\nBu işlem geri alınamaz ve oyun atandığı tüm işletmelerden de kaldırılır.`);if(!ok)return;b.disabled=true;try{await rpc('ob_delete_game',{gid:String(id)});toast('Oyun silindi.');await route()}finally{b.disabled=false}return}if(a==='preview-code')safeFrame($('#gameForm [name=code]').value,$('#codePreview'),{gameName:$('#gameForm [name=name]').value||'Önizleme',preview:true});if(a==='qr')qrView(id);if(a==='stats')await stats(id,7);if(a==='stats-period')await stats(id,Number(b.dataset.days||7));if(a==='games'){trackEvent('games_open');const box=$('#gameList');if(!box.innerHTML.trim())listGames();box.scrollIntoView({behavior:'smooth',block:'start'})}if(a==='quote'){trackEvent('quote_open');openQuotePremium()}if(a==='copy-quote')await copyQuote(b.dataset.quote||dailyQuote().text);if(a==='review')openReviewPage();}catch(err){toast(err.message)}});
+document.addEventListener('click',async e=>{const b=e.target.closest('[data-action],[data-tab],[data-game],[data-custom]');if(!b||b.disabled)return;try{if(b.dataset.tab){tab=b.dataset.tab;drawAdmin();return}if(b.dataset.game){const key=b.dataset.game;if(!hasQrGameAccess()){toast('Bu oyun yalnızca işletme QR koduyla açılır.');return}if(!venue||!venue.enabled.includes(key))return;await trackEvent('game_open',{game:key});if(embeddedGameBase64[key]){openEmbeddedGame(key);return}return}if(b.dataset.custom){if(!hasQrGameAccess()){toast('Bu oyun yalnızca işletme QR koduyla açılır.');return}const vid=String(venue?.id||qrParams().venueId||''),gid=b.dataset.custom,gmeta=venue.games.find(g=>String(g.id)===String(gid)),gname=gmeta?.name||'Oyun';if(!vid){toast('İşletme bağlantısı bulunamadı. QR kodunu yeniden okut.');return}await trackEvent('game_open',{game:'custom:'+gid});modal(gname,'<div id="customGame"><p style="padding:24px">Oyun yükleniyor…</p></div>');enterGameScreen();const token=++gameLoadSeq;try{const code=await rpc('ob_game',{vid,gid});if(token!==gameLoadSeq||!$('#modal').open)return;safeFrame(code,$('#customGame'),{gameId:gid,gameName:gname})}catch(error){if(token===gameLoadSeq){$('#customGame').innerHTML=`<div style="padding:24px;font:14px/1.5 system-ui;color:#fff;background:#111;min-height:100%"><b>Oyun yüklenemedi.</b><br>${esc(error?.message||'Bilinmeyen hata')}</div>`}}return}const a=b.dataset.action,id=b.dataset.id;if(a==='menu-open'){trackEvent('menu_open');await openCustomerMenu();return}if(a==='menu-open-category'){renderMenuScreen('category',b.dataset.categoryId);return}if(a==='menu-back-categories'){renderMenuScreen('home');return}if(a==='menu-manage'){await menuManager(id||me?.venue?.id);return}if(a==='menu-add-category'){const box=$('#menuAdminCategories');box?.insertAdjacentHTML('beforeend',menuAdminCategoryHtml({id:menuId('cat'),name:'Yeni Kategori',items:[]}));return}if(a==='menu-remove-category'){b.closest('[data-menu-cat]')?.remove();return}if(a==='menu-add-item'){const box=b.closest('[data-menu-cat]')?.querySelector('.menu-admin-items');box?.insertAdjacentHTML('beforeend',menuAdminItemHtml({id:menuId('item'),name:'',price:0,active:true,sold_out:false}));return}if(a==='menu-remove-item'){b.closest('[data-menu-item]')?.remove();return}if(a==='menu-image-remove'){const row=b.closest('[data-menu-item]');const hidden=row?.querySelector('.menu-item-image-data');const preview=row?.querySelector('.menu-image-preview');if(hidden)hidden.value='';if(preview)preview.innerHTML='Fotoğraf<br>yok';b.hidden=true;return}if(a==='retry')await route();if(a==='close-game'){closeModal();return}if(a==='logout'){const {error}=await db.auth.signOut();if(error)throw error;me=null;adminData=null;await route()}if(a==='reset'){const email=$('#authForm [name=email]').value;if(!email)throw Error('Önce e-posta adresini yaz.');const redirect=new URL(location.href);redirect.search='?recovery=1';redirect.hash='';const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo:redirect.href});if(error)throw error;toast('Hesabın varsa şifre yenileme bağlantısı gönderilecek.')}if(a==='venue-new')venueForm();if(a==='venue-edit')venueForm(getVenue(id));if(a==='merchant-edit')venueForm(me.venue,true);if(a==='game-new')gameForm();if(a==='game-edit')gameForm(adminData.games.find(g=>g.id===id));if(a==='game-delete'){const game=adminData.games.find(g=>String(g.id)===String(id));const gameName=String(game?.name||b.dataset.name||'Bu oyun');const ok=window.confirm(`“${gameName}” oyununu kalıcı olarak silmek istediğine emin misin?\n\nBu işlem geri alınamaz ve oyun atandığı tüm işletmelerden de kaldırılır.`);if(!ok)return;b.disabled=true;try{await rpc('ob_delete_game',{gid:String(id)});toast('Oyun silindi.');await route()}finally{b.disabled=false}return}if(a==='preview-code')safeFrame($('#gameForm [name=code]').value,$('#codePreview'),{gameName:$('#gameForm [name=name]').value||'Önizleme',preview:true});if(a==='qr')qrView(id);if(a==='stats')await stats(id,7);if(a==='stats-period')await stats(id,Number(b.dataset.days||7));if(a==='games'){trackEvent('games_open');const box=$('#gameList');if(!box.innerHTML.trim())listGames();box.scrollIntoView({behavior:'smooth',block:'start'})}if(a==='quote'){trackEvent('quote_open');openQuotePremium()}if(a==='copy-quote')await copyQuote(b.dataset.quote||dailyQuote().text);if(a==='review')openReviewPage();}catch(err){toast(err.message)}});
 document.addEventListener('change',async e=>{
   const input=e.target.closest?.('.menu-item-file');if(!input)return;
   const file=input.files?.[0];if(!file)return;
