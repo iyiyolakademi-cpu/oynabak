@@ -2493,6 +2493,113 @@ body.customer-mode #app{
   }
 }
 
+
+/* =========================================================
+   OynaBak FINAL — Görsel düzeltmeler
+   1) Menü modal kapatma tuşu siyah ve görünür
+   2) Yeşil değerlendirme kartında tüm yazılar beyaz/uyumlu
+   3) Oyun listesi açıldığında eski açık arka plan geri gelir
+   ========================================================= */
+
+/* Modal başlık ve kapatma butonu */
+#modal .dialog-head{
+  background:#2a1710!important;
+  color:#fff!important;
+}
+#modal .dialog-head h2,
+#modal .dialog-head strong{
+  color:#fff!important;
+}
+#modal .dialog-close,
+#modal [data-action="close-modal"],
+#modal button.close,
+#modal .close{
+  background:#000!important;
+  color:#fff!important;
+  border:1px solid rgba(255,255,255,.16)!important;
+  box-shadow:0 6px 18px rgba(0,0,0,.22)!important;
+}
+#modal .dialog-close:hover,
+#modal [data-action="close-modal"]:hover,
+#modal button.close:hover,
+#modal .close:hover{
+  background:#151515!important;
+  color:#fff!important;
+}
+
+/* İşletmeyi puanla kartı: tüm metin net beyaz */
+.entry-review,
+.entry-review *{
+  color:#fff!important;
+}
+.entry-review .entry-copy small{
+  color:#d7fff0!important;
+  opacity:.90!important;
+}
+.entry-review .entry-copy strong{
+  color:#fff!important;
+}
+.entry-review .entry-copy em{
+  color:#e7fff6!important;
+  opacity:.92!important;
+}
+.entry-review .entry-arrow{
+  color:#fff!important;
+  background:rgba(255,255,255,.16)!important;
+}
+.entry-review .entry-icon{
+  color:#06473e!important;
+}
+
+/* 3 seçenek ekranı siyah kalır */
+.customer-entry-only{
+  background:
+    radial-gradient(circle at 50% 42%,rgba(93,74,255,.10),transparent 34%),
+    radial-gradient(circle at 80% 75%,rgba(255,103,20,.08),transparent 30%),
+    #050505!important;
+}
+
+/* Oyunlara geçildiğinde eski açık/premium arka plan geri gelsin */
+.customer-entry-only:has(#gamesView:not([hidden])){
+  background:
+    radial-gradient(circle at 10% 0%,rgba(176,92,51,.13),transparent 32%),
+    radial-gradient(circle at 100% 100%,rgba(50,28,19,.07),transparent 33%),
+    linear-gradient(145deg,#f8f3ec 0%,#f2ebe1 54%,#ece2d5 100%)!important;
+}
+
+/* :has desteklemeyen tarayıcılar için body/class tabanlı fallback */
+body.games-mode .customer-entry-only{
+  background:
+    radial-gradient(circle at 10% 0%,rgba(176,92,51,.13),transparent 32%),
+    radial-gradient(circle at 100% 100%,rgba(50,28,19,.07),transparent 33%),
+    linear-gradient(145deg,#f8f3ec 0%,#f2ebe1 54%,#ece2d5 100%)!important;
+}
+
+/* Oyun görünümünde logo/başlık okunabilirliği */
+body.games-mode .customer-entry-brand{
+  background:rgba(255,255,255,.78)!important;
+  border-color:rgba(60,35,20,.10)!important;
+  box-shadow:0 12px 34px rgba(38,23,15,.10)!important;
+}
+body.games-mode .customer-entry-brand span{
+  color:#1b1613!important;
+}
+body.games-mode .customer-entry-brand small{
+  color:#8b5a3c!important;
+}
+
+/* Mobil modal kapatma butonu */
+@media(max-width:760px){
+  #modal .dialog-close,
+  #modal [data-action="close-modal"],
+  #modal button.close,
+  #modal .close{
+    min-width:42px!important;
+    min-height:42px!important;
+    border-radius:13px!important;
+  }
+}
+
 </style></head><body>
 <header><nav class="wrap"><a class="brand" href="#home" aria-label="OynaBak ana sayfa"><img src="oynabak-logo.png" alt="OynaBak"></a><div class="links"><a class="desktop" href="#features">Nasıl çalışır?</a><a class="desktop" href="#faq">Merak edilenler</a><a class="btn small light" href="#panel">İşletme Paneli ↗</a></div></nav></header>
 <main id="app"></main><footer><div class="wrap row" style="justify-content:space-between;gap:18px"><div><b>OynaBak · Molana oyun kat.</b><span style="display:block;margin-top:4px">Kafe · Spor salonu · Mağaza</span><span style="display:block;margin-top:4px;color:#7b8797">© 2026 OynaBak · Tüm hakları saklıdır.</span></div><div class="footer-links"><a href="#home">Ana sayfa</a><a href="#privacy">Gizlilik</a><a href="#kvkk">KVKK</a><a href="#terms">Kullanım Koşulları</a><a href="#contact">İletişim</a></div></div></footer><a class="whatsapp" href="https://wa.me/905066403989?text=Merhaba%2C%20OynaBak%20hakk%C4%B1nda%20bilgi%20almak%20istiyorum." target="_blank" rel="noopener noreferrer">WhatsApp'tan sor ↗</a>
@@ -6397,6 +6504,7 @@ async function trackEvent(et,{game=null,score=null,key=null}={}){
 function businessCodeEntry(){document.body.classList.add('customer-mode');document.documentElement.style.setProperty('--accent','#ff6a00');$('#app').innerHTML=`<div class="code-entry-page"><form id="businessCodeForm" class="code-entry-card"><img class="code-entry-logo" src="oynabak-logo.png" alt="OynaBak"><span class="eyebrow">TEK QR · HEMEN OYNA</span><h1>İşletme kodunu gir.</h1><p>Bulunduğun işletmenin OynaBak standında yazan 4 karakterlik kodu gir ve oyunlara geç.</p><input class="code-input" name="business_code" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="4" minlength="4" placeholder="A1B2" required><button class="code-submit" type="submit">Oyunları aç →</button><div class="code-help"></div></form></div>`;requestAnimationFrame(()=>$('#businessCodeForm [name=business_code]')?.focus())}
 async function resolveBusinessCode(raw){const code=String(raw||'').trim().toUpperCase().replace(/[^A-Z0-9]/g,'');if(code.length!==4)throw Error('İşletme kodu 4 karakter olmalı.');const vid=await rpc('ob_code_resolve',{p_code:code});const id=String(vid||'').trim();if(!id)throw Error('İşletme kodu bulunamadı. Kodu kontrol edip tekrar dene.');return id}
 async function customer(demo,seq){
+  document.body.classList.remove('games-mode');
   let branding={};
 
   if(demo){
@@ -6678,6 +6786,7 @@ if(a==='customer-games'){
   if(entry)entry.hidden=true;
   if(games){
     games.hidden=false;
+    document.body.classList.add('games-mode');
     window.scrollTo({top:0,behavior:'smooth'});
   }
   return
@@ -6686,6 +6795,7 @@ if(a==='customer-home'){
   const entry=$('#customerEntry');
   const games=$('#gamesView');
   if(games)games.hidden=true;
+  document.body.classList.remove('games-mode');
   if(entry){
     entry.hidden=false;
     window.scrollTo({top:0,behavior:'smooth'});
