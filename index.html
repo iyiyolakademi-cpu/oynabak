@@ -1088,6 +1088,83 @@ body.customer-mode #app{
   line-height:1.5;
   font-weight:650;
 }
+
+.finish-review-card{
+  width:min(100%,440px);
+  margin:27px auto 0;
+  padding:18px;
+  border:1px solid rgba(184,95,54,.18);
+  border-radius:20px;
+  background:
+    radial-gradient(circle at 90% 10%,rgba(199,162,103,.13),transparent 34%),
+    linear-gradient(145deg,#fffaf5 0%,#f5ede5 100%);
+  box-shadow:0 14px 32px rgba(61,43,32,.08);
+  text-align:left;
+}
+.finish-review-stars{
+  color:#c18a55;
+  font-size:17px;
+  line-height:1;
+  letter-spacing:3px;
+  margin-bottom:12px;
+}
+.finish-review-copy small{
+  display:block;
+  margin-bottom:5px;
+  color:#9a765b;
+  font-size:8px;
+  line-height:1;
+  font-weight:950;
+  letter-spacing:1.35px;
+}
+.finish-review-copy strong{
+  display:block;
+  color:#171312;
+  font-size:21px;
+  line-height:1.1;
+  font-weight:950;
+  letter-spacing:-.45px;
+}
+.finish-review-copy p{
+  margin:7px 0 0;
+  color:#776d65;
+  font-size:11px;
+  line-height:1.45;
+  font-weight:650;
+}
+.finish-review-btn{
+  width:100%;
+  min-height:50px;
+  margin-top:15px;
+  border:0;
+  border-radius:14px;
+  padding:0 15px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  background:linear-gradient(135deg,#b85f36,#8b4432);
+  color:#fff;
+  box-shadow:0 10px 22px rgba(114,60,42,.20);
+  font-size:12px;
+  font-weight:950;
+  cursor:pointer;
+}
+.finish-review-btn span{
+  color:#f3d29e;
+  font-size:17px;
+}
+.finish-review-btn b{
+  margin-left:2px;
+  font-size:14px;
+}
+.finish-review-btn:active{transform:scale(.992)}
+.finish-review-btn:disabled{
+  cursor:not-allowed;
+  opacity:.48;
+  box-shadow:none;
+}
+
 .game-finish-actions{
   display:grid;
   grid-template-columns:1fr 1fr;
@@ -1114,8 +1191,37 @@ body.customer-mode #app{
   color:#111;
 }
 @media(max-width:520px){
+  .game-finish-screen{
+    align-items:flex-start;
+    overflow:auto;
+    padding-top:max(22px,env(safe-area-inset-top));
+    padding-bottom:max(22px,env(safe-area-inset-bottom));
+  }
+  .game-finish-mark{width:48px;height:48px;margin-bottom:17px;font-size:21px}
+  .game-finish-title{font-size:clamp(32px,11vw,46px)}
+  .game-finish-winner{margin-top:13px;font-size:16px}
+  .game-finish-score{margin-top:13px;font-size:29px}
+  .finish-review-card{
+    margin-top:20px;
+    padding:15px;
+    border-radius:17px;
+  }
+  .finish-review-copy strong{font-size:18px}
+  .finish-review-copy p{font-size:10px}
+  .finish-review-btn{min-height:47px;margin-top:13px}
+  .game-finish-actions{
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+    margin-top:16px;
+  }
+  .game-finish-btn{
+    min-height:48px;
+    padding:0 10px;
+    font-size:11px;
+  }
+}
+@media(max-width:360px){
   .game-finish-actions{grid-template-columns:1fr}
-  .game-finish-title{font-size:clamp(36px,12vw,50px)}
 }
 
 
@@ -3789,6 +3895,9 @@ function reviewUrl(){
   if(!venue?.review_url)return null;
   return normalizeReviewUrl(venue.review_url);
 }
+function reviewUrlSafe(){
+  try{return reviewUrl()||''}catch{return ''}
+}
 function openReviewPage(){
   let url='';
   try{url=reviewUrl()}catch(e){
@@ -4493,6 +4602,8 @@ function showGameFinishScreen({gameName='Oyun',score=null,winner='',players=null
     ? `data-game="${esc(replayId)}"`
     : `data-custom="${esc(replayId)}"`;
 
+  const canReview=Boolean(reviewUrlSafe());
+
   $('#modalTitle').textContent='Oyun bitti';
   $('#modalBody').innerHTML=`
     <div class="game-finish-screen">
@@ -4503,6 +4614,26 @@ function showGameFinishScreen({gameName='Oyun',score=null,winner='',players=null
         ${cleanWinner?`<div class="game-finish-winner">${esc(cleanWinner)} kazandı</div>`:''}
         ${showScore?`<div class="game-finish-score">${Math.round(numericScore)} <small>/ 100</small></div>`:''}
         ${meta.length?`<p class="game-finish-meta">${esc(meta.join(' · '))}</p>`:''}
+
+        <div class="finish-review-card">
+          <div class="finish-review-stars" aria-hidden="true">★★★★★</div>
+          <div class="finish-review-copy">
+            <small>OYUN TAMAMLANDI</small>
+            <strong>Deneyimin nasıldı?</strong>
+            <p>İşletmeye destek olmak için Google’da kısa bir değerlendirme bırakabilirsin.</p>
+          </div>
+          <button
+            class="finish-review-btn"
+            type="button"
+            data-action="review"
+            ${canReview?'':'disabled'}
+          >
+            <span>★</span>
+            ${canReview?'İşletmeyi puanla':'Değerlendirme bağlantısı yok'}
+            <b>↗</b>
+          </button>
+        </div>
+
         <div class="game-finish-actions">
           <button class="game-finish-btn primary" type="button" ${replayAttr}>Tekrar oyna</button>
           <button class="game-finish-btn secondary" type="button" data-action="close-game">Oyunlara dön</button>
