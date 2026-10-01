@@ -1545,30 +1545,45 @@ body.customer-mode #app{
 }
 
 .menu-cat-nav{
-  position:sticky;top:0;z-index:20;
-  display:flex;gap:8px;overflow-x:auto;
+  position:sticky;
+  top:0;
+  z-index:20;
+  display:flex;
+  gap:8px;
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
   padding:14px 0 12px;
   background:linear-gradient(180deg,#f3eadf 76%,rgba(243,234,223,0));
-  scrollbar-width:none
+  scrollbar-width:none;
+  touch-action:pan-x;
 }
 .menu-cat-nav::-webkit-scrollbar{display:none}
-.menu-cat-nav a{
+.menu-cat-btn{
   flex:none;
-  text-decoration:none;
-  color:#4b2e22;
-  background:#fff8ee;
+  appearance:none;
+  -webkit-appearance:none;
   border:1px solid rgba(124,76,48,.13);
   border-radius:999px;
   padding:9px 14px;
+  color:#4b2e22;
+  background:#fff8ee;
+  font:inherit;
   font-size:10px;
   font-weight:900;
-  box-shadow:0 5px 14px rgba(70,43,28,.05)
+  line-height:1;
+  box-shadow:0 5px 14px rgba(70,43,28,.05);
+  cursor:pointer;
+  white-space:nowrap;
+  -webkit-tap-highlight-color:transparent;
+  transition:.15s ease;
 }
-.menu-cat-nav a:first-child{
+.menu-cat-btn.active{
   background:#6f3827;
   color:#fff;
-  border-color:#6f3827
+  border-color:#6f3827;
+  box-shadow:0 7px 18px rgba(111,56,39,.18);
 }
+.menu-cat-btn:active{transform:scale(.97)}
 
 .menu-paper{
   position:relative;
@@ -1598,7 +1613,13 @@ body.customer-mode #app{
 .menu-category{
   padding:24px 0 20px;
   border-bottom:1px dashed rgba(94,60,41,.18);
-  scroll-margin-top:70px
+  scroll-margin-top:70px;
+  animation:menuCategoryIn .16s ease;
+}
+.menu-category[hidden]{display:none!important}
+@keyframes menuCategoryIn{
+  from{opacity:0;transform:translateY(4px)}
+  to{opacity:1;transform:none}
 }
 .menu-category:last-child{border-bottom:0}
 .menu-category-head{
@@ -1753,6 +1774,16 @@ body.customer-mode #app{
   .customer-service-grid{grid-template-columns:1fr;gap:10px}
 }
 @media(max-width:560px){
+  #modal.menu-full{
+    width:100%!important;
+    max-width:100%!important;
+    height:100dvh!important;
+    max-height:100dvh!important;
+  }
+  #modal.menu-full .dialog-body{
+    overscroll-behavior:contain;
+    -webkit-overflow-scrolling:touch;
+  }
   .customer-menu-hero{
     min-height:0;
     padding:13px;
@@ -1813,6 +1844,49 @@ body.customer-mode #app{
   .menu-row-dots{display:none}
   .menu-price{align-self:start;padding-top:2px}
 }
+
+@media(max-width:430px){
+  .menu-screen{padding-left:8px;padding-right:8px}
+  .menu-restaurant-hero{padding:20px 16px}
+  .menu-restaurant-hero h2{font-size:38px}
+  .menu-cat-nav{margin-left:-1px;margin-right:-1px;padding-top:11px}
+  .menu-cat-btn{padding:9px 12px;font-size:9px}
+  .menu-paper{padding-left:12px;padding-right:12px}
+  .menu-category-head{align-items:center}
+  .menu-category-head h3{font-size:22px}
+  .menu-row{
+    grid-template-columns:minmax(0,1fr) auto;
+    gap:8px;
+    align-items:start;
+  }
+  .menu-row-dots{display:none}
+  .menu-price{
+    padding-top:1px;
+    font-size:14px;
+  }
+  .menu-row p{
+    max-width:95%;
+    font-size:8.8px;
+  }
+}
+
+
+@media(max-width:560px){
+  #menuForm .row{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+  }
+  .menu-admin-cat-head{
+    align-items:stretch;
+    flex-direction:column;
+  }
+  .menu-admin-cat-head .danger{width:100%}
+  .menu-admin-actions .mini{width:100%}
+  .menu-admin-item{
+    padding:10px;
+  }
+}
+
 </style></head><body>
 <header><nav class="wrap"><a class="brand" href="#home" aria-label="OynaBak ana sayfa"><img src="/oynabak-logo.png" alt="OynaBak"></a><div class="links"><a class="desktop" href="#features">Nasıl çalışır?</a><a class="desktop" href="#faq">Merak edilenler</a><a class="btn small light" href="#panel">İşletme Paneli ↗</a></div></nav></header>
 <main id="app"></main><footer><div class="wrap row" style="justify-content:space-between;gap:18px"><div><b>OynaBak · Molana oyun kat.</b><span style="display:block;margin-top:4px">Kafe · Spor salonu · Mağaza</span><span style="display:block;margin-top:4px;color:#7b8797">© 2026 OynaBak · Tüm hakları saklıdır.</span></div><div class="footer-links"><a href="#home">Ana sayfa</a><a href="#privacy">Gizlilik</a><a href="#kvkk">KVKK</a><a href="#terms">Kullanım Koşulları</a><a href="#contact">İletişim</a></div></div></footer><a class="whatsapp" href="https://wa.me/905066403989?text=Merhaba%2C%20OynaBak%20hakk%C4%B1nda%20bilgi%20almak%20istiyorum." target="_blank" rel="noopener noreferrer">WhatsApp'tan sor ↗</a>
@@ -5376,6 +5450,7 @@ function menuPublicHtml(menu=venue?.menu){
     </div>
   </div>`;
 
+  const firstId=cats[0]?.id||'';
   return `<div class="menu-screen">
     <div class="menu-restaurant-hero">
       <div class="menu-restaurant-badge">OynaBak Menü</div>
@@ -5387,13 +5462,23 @@ function menuPublicHtml(menu=venue?.menu){
       </div>
     </div>
 
-    <nav class="menu-cat-nav">
-      ${cats.map(c=>`<a href="#menu-${esc(c.id)}">${esc(c.name)}</a>`).join('')}
+    <nav class="menu-cat-nav" aria-label="Menü kategorileri">
+      ${cats.map((c,i)=>`
+        <button
+          type="button"
+          class="menu-cat-btn ${i===0?'active':''}"
+          data-menu-category="${esc(c.id)}"
+          aria-pressed="${i===0?'true':'false'}"
+        >${esc(c.name)}</button>`).join('')}
     </nav>
 
     <div class="menu-paper">
       ${cats.map((c,ci)=>`
-        <section class="menu-category" id="menu-${esc(c.id)}">
+        <section
+          class="menu-category ${ci===0?'active':''}"
+          data-menu-section="${esc(c.id)}"
+          ${ci===0?'':'hidden'}
+        >
           <div class="menu-category-head">
             <div>
               <span class="menu-category-number">${String(ci+1).padStart(2,'0')}</span>
@@ -5427,7 +5512,11 @@ function menuPublicHtml(menu=venue?.menu){
 }
 function openCustomerMenu(){
   modal('Menü',menuPublicHtml());
-  $('#modal').classList.add('menu-full');
+  const m=$('#modal');
+  m.classList.add('menu-full');
+  const body=m.querySelector('.dialog-body');
+  if(body)body.scrollTop=0;
+  setTimeout(()=>body&&body.scrollTo({top:0,behavior:'auto'}),0);
 }
 function menuAdminCategoryHtml(c){return `<section class="menu-admin-cat" data-menu-cat="${esc(c.id)}"><div class="menu-admin-cat-head"><label>Kategori adı<input class="menu-cat-name" maxlength="80" value="${esc(c.name||'')}"></label><button type="button" class="danger" data-action="menu-remove-category">Kategoriyi sil</button></div><div class="menu-admin-items">${(c.items||[]).map(menuAdminItemHtml).join('')}</div><div class="menu-admin-actions"><button type="button" class="mini" data-action="menu-add-item">+ Ürün ekle</button></div></section>`}
 function menuAdminItemHtml(i){
@@ -5679,6 +5768,27 @@ function hasQrGameAccess(){
 }
 window.addEventListener('hashchange',route);
 document.addEventListener('click',async e=>{const b=e.target.closest('[data-action],[data-tab],[data-game],[data-custom]');if(!b||b.disabled)return;try{if(b.dataset.tab){tab=b.dataset.tab;drawAdmin();hydrateVenueCodes();return}if(b.dataset.game){const key=b.dataset.game;if(!hasQrGameAccess()){toast('Bu oyun yalnızca işletme QR koduyla açılır.');return}if(!venue||!venue.enabled.includes(key))return;await trackEvent('game_open',{game:key});if(embeddedGameBase64[key]){openEmbeddedGame(key);return}return}if(b.dataset.custom){if(!hasQrGameAccess()){toast('Bu oyun yalnızca işletme QR koduyla açılır.');return}const vid=String(venue?.id||qrParams().venueId||''),gid=b.dataset.custom,gmeta=venue.games.find(g=>String(g.id)===String(gid)),gname=gmeta?.name||'Oyun';if(!vid){toast('İşletme bağlantısı bulunamadı. QR kodunu yeniden okut.');return}await trackEvent('game_open',{game:'custom:'+gid});modal(gname,'<div id="customGame"><p style="padding:24px">Oyun yükleniyor…</p></div>');enterGameScreen();const token=++gameLoadSeq;try{const code=await rpc('ob_game',{vid,gid});if(token!==gameLoadSeq||!$('#modal').open)return;safeFrame(code,$('#customGame'),{gameId:gid,gameName:gname})}catch(error){if(token===gameLoadSeq){$('#customGame').innerHTML=`<div style="padding:24px;font:14px/1.5 system-ui;color:#fff;background:#111;min-height:100%"><b>Oyun yüklenemedi.</b><br>${esc(error?.message||'Bilinmeyen hata')}</div>`}}return}const a=b.dataset.action,id=b.dataset.id;
+
+const menuCat=b.dataset.menuCategory;
+if(menuCat){
+  const modal=$('#modal');
+  modal?.querySelectorAll('.menu-cat-btn').forEach(btn=>{
+    const on=btn.dataset.menuCategory===menuCat;
+    btn.classList.toggle('active',on);
+    btn.setAttribute('aria-pressed',on?'true':'false');
+  });
+  modal?.querySelectorAll('[data-menu-section]').forEach(sec=>{
+    const on=sec.dataset.menuSection===menuCat;
+    sec.hidden=!on;
+    sec.classList.toggle('active',on);
+  });
+  requestAnimationFrame(()=>{
+    const body=modal?.querySelector('.dialog-body');
+    if(body)body.scrollTo({top:0,behavior:'smooth'});
+  });
+  return;
+}
+
 if(a==='menu-open'){trackEvent('menu_open').catch(()=>{});openCustomerMenu();return}
 if(a==='menu-manage'){await menuManager(id||me?.venue?.id);return}
 if(a==='menu-add-category'){const box=$('#menuAdminCategories');box?.insertAdjacentHTML('beforeend',menuAdminCategoryHtml({id:menuId('cat'),name:'Yeni Kategori',items:[]}));return}
