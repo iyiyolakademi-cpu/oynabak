@@ -2137,8 +2137,235 @@ body.customer-mode #app{
   .entry-choice{min-height:164px}
 }
 
+
+/* =========================================================
+   OynaBak FINAL — Logo + tam merkez + güçlü premium renkler
+   ========================================================= */
+.customer-entry-shell{
+  position:relative!important;
+  min-height:100dvh!important;
+  padding:clamp(20px,4vw,42px)!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+}
+
+.customer-entry-brand{
+  position:absolute!important;
+  z-index:5;
+  top:max(20px,calc(env(safe-area-inset-top) + 14px))!important;
+  left:50%!important;
+  transform:translateX(-50%)!important;
+  margin:0!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:11px!important;
+  padding:8px 13px!important;
+  border:1px solid rgba(255,255,255,.68)!important;
+  border-radius:18px!important;
+  background:rgba(255,255,255,.72)!important;
+  box-shadow:0 12px 34px rgba(38,23,15,.12)!important;
+  backdrop-filter:blur(16px)!important;
+  -webkit-backdrop-filter:blur(16px)!important;
+  white-space:nowrap;
+}
+
+.customer-entry-brand img{
+  display:block!important;
+  width:48px!important;
+  height:48px!important;
+  object-fit:contain!important;
+  border-radius:13px!important;
+  background:#fff!important;
+  box-shadow:none!important;
+}
+
+.customer-entry-brand span{
+  color:#1b1613!important;
+  font-size:16px!important;
+  font-weight:950!important;
+  letter-spacing:-.45px!important;
+}
+
+.customer-entry-brand small{
+  color:#8b5a3c!important;
+  font-size:8px!important;
+  font-weight:900!important;
+  letter-spacing:.7px!important;
+}
+
+.customer-entry-brand .logo-fallback span::before{
+  content:"OB";
+  display:inline-grid;
+  place-items:center;
+  width:34px;
+  height:34px;
+  margin-right:8px;
+  border-radius:10px;
+  color:#fff;
+  background:linear-gradient(145deg,#ff6b00,#d93b20);
+  font-size:10px;
+  letter-spacing:0;
+}
+
+.customer-entry{
+  width:100%!important;
+  margin:0!important;
+}
+
+.customer-entry-grid{
+  width:min(930px,100%)!important;
+  margin:0 auto!important;
+  align-items:stretch!important;
+}
+
+/* OYUN — koyu mor/mavi premium */
+.entry-games{
+  color:#fff!important;
+  background:
+    radial-gradient(circle at 88% 10%,rgba(128,122,255,.40),transparent 30%),
+    radial-gradient(circle at 10% 100%,rgba(0,194,255,.20),transparent 34%),
+    linear-gradient(145deg,#111426 0%,#25245d 52%,#5547e7 100%)!important;
+  border:1px solid rgba(130,132,255,.28)!important;
+}
+.entry-games .entry-icon{
+  background:linear-gradient(145deg,#736cff,#4b43dc)!important;
+  box-shadow:0 10px 28px rgba(84,71,231,.36)!important;
+}
+
+/* MENÜ — canlı turuncu/kızıl */
+.entry-menu{
+  color:#fff!important;
+  background:
+    radial-gradient(circle at 92% 6%,rgba(255,234,165,.34),transparent 27%),
+    radial-gradient(circle at 5% 100%,rgba(255,36,0,.22),transparent 36%),
+    linear-gradient(145deg,#a92e18 0%,#ed5b13 50%,#ff9418 100%)!important;
+  border:1px solid rgba(255,163,74,.33)!important;
+}
+.entry-menu .entry-icon{
+  background:rgba(74,20,8,.24)!important;
+  box-shadow:0 10px 28px rgba(109,35,8,.25)!important;
+}
+
+/* PUANLA — zümrüt/teal */
+.entry-review{
+  color:#fff!important;
+  background:
+    radial-gradient(circle at 92% 5%,rgba(152,255,209,.30),transparent 28%),
+    radial-gradient(circle at 2% 100%,rgba(8,80,76,.25),transparent 36%),
+    linear-gradient(145deg,#064e49 0%,#087d70 52%,#11a66d 100%)!important;
+  border:1px solid rgba(82,230,181,.28)!important;
+}
+.entry-review .entry-icon{
+  color:#073d37!important;
+  background:linear-gradient(145deg,#a9f4d0,#64d8ab)!important;
+  box-shadow:0 10px 28px rgba(30,176,126,.30)!important;
+}
+
+.entry-choice{
+  isolation:isolate;
+}
+.entry-choice::after{
+  content:"";
+  position:absolute;
+  inset:auto -50px -80px auto;
+  width:180px;
+  height:180px;
+  border-radius:50%;
+  background:rgba(255,255,255,.08);
+  pointer-events:none;
+}
+.entry-choice .entry-number,
+.entry-choice .entry-icon,
+.entry-choice .entry-copy,
+.entry-choice .entry-arrow{
+  position:relative;
+  z-index:1;
+}
+.entry-choice .entry-copy small{
+  opacity:.80!important;
+}
+.entry-choice .entry-copy em{
+  opacity:.82!important;
+}
+.entry-choice .entry-arrow{
+  width:38px;
+  height:38px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  background:rgba(255,255,255,.13);
+  font-size:18px!important;
+}
+
+/* Mobilde de üç seçenek gerçek ekran merkezine yakın tutulur. */
+@media(max-width:760px){
+  .customer-entry-shell{
+    min-height:100dvh!important;
+    padding:
+      max(86px,calc(env(safe-area-inset-top) + 78px))
+      14px
+      max(18px,env(safe-area-inset-bottom))!important;
+    justify-content:center!important;
+  }
+
+  .customer-entry-brand{
+    top:max(14px,calc(env(safe-area-inset-top) + 8px))!important;
+  }
+
+  .customer-entry-brand img{
+    width:42px!important;
+    height:42px!important;
+  }
+
+  .customer-entry-grid{
+    gap:11px!important;
+  }
+
+  .entry-choice{
+    min-height:158px!important;
+    padding:17px 18px!important;
+    border-radius:23px!important;
+  }
+
+  .entry-icon{
+    width:44px!important;
+    height:44px!important;
+    border-radius:14px!important;
+  }
+
+  .entry-copy strong{
+    font-size:26px!important;
+  }
+
+  .entry-copy em{
+    font-size:9px!important;
+    max-width:230px!important;
+  }
+
+  .entry-arrow{
+    right:17px!important;
+    bottom:17px!important;
+  }
+}
+
+@media(max-width:390px) and (max-height:720px){
+  .customer-entry-shell{
+    padding-top:max(76px,calc(env(safe-area-inset-top) + 70px))!important;
+  }
+  .customer-entry-grid{gap:8px!important}
+  .entry-choice{
+    min-height:142px!important;
+    padding:14px 16px!important;
+  }
+  .entry-copy strong{font-size:23px!important}
+  .entry-copy em{font-size:8px!important;margin-top:4px!important}
+  .entry-icon{width:39px!important;height:39px!important}
+}
+
 </style></head><body>
-<header><nav class="wrap"><a class="brand" href="#home" aria-label="OynaBak ana sayfa"><img src="/oynabak-logo.png" alt="OynaBak"></a><div class="links"><a class="desktop" href="#features">Nasıl çalışır?</a><a class="desktop" href="#faq">Merak edilenler</a><a class="btn small light" href="#panel">İşletme Paneli ↗</a></div></nav></header>
+<header><nav class="wrap"><a class="brand" href="#home" aria-label="OynaBak ana sayfa"><img src="oynabak-logo.png" alt="OynaBak"></a><div class="links"><a class="desktop" href="#features">Nasıl çalışır?</a><a class="desktop" href="#faq">Merak edilenler</a><a class="btn small light" href="#panel">İşletme Paneli ↗</a></div></nav></header>
 <main id="app"></main><footer><div class="wrap row" style="justify-content:space-between;gap:18px"><div><b>OynaBak · Molana oyun kat.</b><span style="display:block;margin-top:4px">Kafe · Spor salonu · Mağaza</span><span style="display:block;margin-top:4px;color:#7b8797">© 2026 OynaBak · Tüm hakları saklıdır.</span></div><div class="footer-links"><a href="#home">Ana sayfa</a><a href="#privacy">Gizlilik</a><a href="#kvkk">KVKK</a><a href="#terms">Kullanım Koşulları</a><a href="#contact">İletişim</a></div></div></footer><a class="whatsapp" href="https://wa.me/905066403989?text=Merhaba%2C%20OynaBak%20hakk%C4%B1nda%20bilgi%20almak%20istiyorum." target="_blank" rel="noopener noreferrer">WhatsApp'tan sor ↗</a>
 <dialog id="modal"><div class="dialog-head"><h3 id="modalTitle"></h3><button class="btn small light" id="closeModal" aria-label="Kapat">✕</button></div><div id="modalBody" class="dialog-body"></div></dialog><div id="toast" class="toast" role="status" aria-live="polite"></div>
 <!-- MIT License
@@ -6038,7 +6265,7 @@ async function trackEvent(et,{game=null,score=null,key=null}={}){
     return false;
   }
 }
-function businessCodeEntry(){document.body.classList.add('customer-mode');document.documentElement.style.setProperty('--accent','#ff6a00');$('#app').innerHTML=`<div class="code-entry-page"><form id="businessCodeForm" class="code-entry-card"><img class="code-entry-logo" src="/oynabak-logo.png" alt="OynaBak"><span class="eyebrow">TEK QR · HEMEN OYNA</span><h1>İşletme kodunu gir.</h1><p>Bulunduğun işletmenin OynaBak standında yazan 4 karakterlik kodu gir ve oyunlara geç.</p><input class="code-input" name="business_code" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="4" minlength="4" placeholder="A1B2" required><button class="code-submit" type="submit">Oyunları aç →</button><div class="code-help"></div></form></div>`;requestAnimationFrame(()=>$('#businessCodeForm [name=business_code]')?.focus())}
+function businessCodeEntry(){document.body.classList.add('customer-mode');document.documentElement.style.setProperty('--accent','#ff6a00');$('#app').innerHTML=`<div class="code-entry-page"><form id="businessCodeForm" class="code-entry-card"><img class="code-entry-logo" src="oynabak-logo.png" alt="OynaBak"><span class="eyebrow">TEK QR · HEMEN OYNA</span><h1>İşletme kodunu gir.</h1><p>Bulunduğun işletmenin OynaBak standında yazan 4 karakterlik kodu gir ve oyunlara geç.</p><input class="code-input" name="business_code" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="4" minlength="4" placeholder="A1B2" required><button class="code-submit" type="submit">Oyunları aç →</button><div class="code-help"></div></form></div>`;requestAnimationFrame(()=>$('#businessCodeForm [name=business_code]')?.focus())}
 async function resolveBusinessCode(raw){const code=String(raw||'').trim().toUpperCase().replace(/[^A-Z0-9]/g,'');if(code.length!==4)throw Error('İşletme kodu 4 karakter olmalı.');const vid=await rpc('ob_code_resolve',{p_code:code});const id=String(vid||'').trim();if(!id)throw Error('İşletme kodu bulunamadı. Kodu kontrol edip tekrar dene.');return id}
 async function customer(demo,seq){
   let branding={};
@@ -6077,7 +6304,7 @@ async function customer(demo,seq){
       <main class="customer-entry-shell">
 
         <div class="customer-entry-brand">
-          <img src="/oynabak-logo.png" alt="OynaBak">
+          <img src="oynabak-logo.png" alt="OynaBak" onerror="this.style.display='none';this.nextElementSibling?.classList.add('logo-fallback')">
           <div>
             <span>OynaBak</span>
             <small>${esc(venue?.name||'İşletme')}</small>
