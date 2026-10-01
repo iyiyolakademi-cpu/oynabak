@@ -4397,7 +4397,18 @@ function openReviewPage(){
 
 function toast(m){$('#toast').textContent=m;clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').textContent='',6500)}
 function modal(title,html){leaveGameScreen();gameCleanup();gameCleanup=()=>{};$('#modalTitle').textContent=title;$('#modalBody').innerHTML=html;if(!$('#modal').open)$('#modal').showModal()}
-function closeModal(){leaveGameScreen();gameCleanup();gameCleanup=()=>{};$('#modalBody').replaceChildren();$('#modal').close()}
+function closeModal(){
+  const state=activeCustomGame;
+  if(state&&!state.finished&&state.startedAt){
+    finishCustomGame(state,{auto:true,detectedBy:'modal-close'}).catch(err=>toast(err.message));
+    return;
+  }
+  leaveGameScreen();
+  gameCleanup();
+  gameCleanup=()=>{};
+  $('#modalBody').replaceChildren();
+  $('#modal').close();
+}
 $('#closeModal').onclick=closeModal;$('#modal').addEventListener('cancel',e=>{e.preventDefault();closeModal()});
 
 let gameLoadSeq=0,ownsFullscreen=false,activeCustomGame=null;
@@ -4905,11 +4916,19 @@ document.addEventListener('click',function(e){
   const t=normalizeText(el.innerText||el.textContent||el.getAttribute('aria-label')||'');
   // Oyun kendi son ekranını gösterip yeniden başlatma butonuna basıldığında
   // puanlama ekranını kaçırmamak için son güvenlik katmanı.
-  if(/tekrar oyna|yeniden oyna|yeni oyun|restart|play again|new game/.test(t)){
-    const page=normalizeText(document.body?.innerText||'');
-    if(/oyun bitti|oyun tamamlandi|oyun sona erdi|oyun sonu|mac bitti|game over|kazandi|kazanan|berabere|winner|victory|you win|you won|draw|galip|sure doldu|zaman doldu/.test(page)){
-      finishOnce({auto:true});
-    }
+  if(/tekrar oyna|yeniden oyna|yeni oyun|rovans|rövanş|restart|play again|new game/.test(t)){
+    // Bir oyun oturumu başladıysa, tekrar başlatmadan önce değerlendirme her seferinde gösterilir.
+    finishOnce({auto:true,detectedBy:'replay-button'});
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    return;
+  }
+
+  if(/oyundan cik|oyundan çık|oyunlara don|oyunlara dön|ana menu|ana menü|menuye don|menüye dön|quit game|exit game|back to games/.test(t)){
+    finishOnce({auto:true,detectedBy:'exit-button'});
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    return;
   }
 },true);
 
@@ -5125,6 +5144,41 @@ body{min-height:100dvh}
   // Parça HTML ise güvenli bir belge içinde çalıştır.
   return `<!doctype html><html><head>${injected}</head><body>${src}</body></html>`;
 }
+
+function instrumentGameFinish(code){
+  let src=String(code||'');
+
+  // Yaygın gerçek oyun-bitiş fonksiyonlarına doğrudan OynaBak.finish ekle.
+  // Böylece metin algılamaya bağlı kalmaz.
+  const names=[
+    'finishGame','endGame','gameOver','finishMatch','endMatch',
+    'finishRound','endRound','completeGame','completeMatch',
+    'showGameOver','showFinal','showFinalScreen','showWinner',
+    'declareWinner','finishRace','endRace','finishTournament'
+  ];
+
+  for(const name of names){
+    // function finishGame(...) { ... }
+    const decl=new RegExp('(function\\\\s+'+name+'\\\\s*\\\\([^)]*\\\\)\\\\s*\\\\{)','g');
+    src=src.replace(decl, `$1
+try{window.OynaBak?.finish({auto:true,detectedBy:'${name}'});}catch(_){}
+`);
+
+    // const finishGame = (...) => { ... } / finishGame = function(...) { ... }
+    const arrow=new RegExp('((?:const|let|var)\\\\s+'+name+'\\\\s*=\\\\s*(?:async\\\\s*)?\\\\([^)]*\\\\)\\\\s*=>\\\\s*\\\\{)','g');
+    src=src.replace(arrow, `$1
+try{window.OynaBak?.finish({auto:true,detectedBy:'${name}'});}catch(_){}
+`);
+
+    const fnAssign=new RegExp('('+name+'\\\\s*=\\\\s*(?:async\\\\s*)?function\\\\s*\\\\([^)]*\\\\)\\\\s*\\\\{)','g');
+    src=src.replace(fnAssign, `$1
+try{window.OynaBak?.finish({auto:true,detectedBy:'${name}'});}catch(_){}
+`);
+  }
+
+  return src;
+}
+
 function safeFrame(code,target,opts={}){
   target.replaceChildren();
 
@@ -5137,7 +5191,7 @@ function safeFrame(code,target,opts={}){
   f.setAttribute('allow',"fullscreen *; camera 'none'; microphone 'none'; geolocation 'none'; clipboard-read 'none'; clipboard-write 'none'");
 
   const bridge=gameBridgeCode();
-  f.srcdoc=normalizeGameDocument(code,bridge);
+  f.srcdoc=normalizeGameDocument(instrumentGameFinish(code),bridge);
 
   if(!opts.preview&&opts.gameId){
     activeCustomGame={
@@ -5855,7 +5909,15 @@ if(a==='menu-add-category'){const box=$('#menuAdminCategories');box?.insertAdjac
 if(a==='menu-remove-category'){b.closest('[data-menu-cat]')?.remove();return}
 if(a==='menu-add-item'){const box=b.closest('[data-menu-cat]')?.querySelector('.menu-admin-items');box?.insertAdjacentHTML('beforeend',menuAdminItemHtml({id:menuId('item'),name:'Yeni Ürün',description:'',price:0,active:true,sold_out:false}));return}
 if(a==='menu-remove-item'){b.closest('[data-menu-item]')?.remove();return}
-if(a==='copy-venue-code'){const code=await businessCodeForVenue(id||me?.venue?.id);try{await navigator.clipboard.writeText(code);toast('İşletme kodu kopyalandı.')}catch{toast('Kod kopyalanamadı.')}return}if(a==='regen-venue-code'){const vid=id||me?.venue?.id;if(!vid)throw Error('İşletme bulunamadı.');const ok=window.confirm('İşletme kodunu yenilemek istiyor musun? Eski kod hemen geçersiz olur ve standdaki kod etiketini değiştirmen gerekir.');if(!ok)return;b.disabled=true;try{const code=await regenerateBusinessCode(vid);toast('Yeni işletme kodu: '+code)}finally{b.disabled=false}return}if(a==='retry')await route();if(a==='close-game'){closeModal();return}if(a==='logout'){const {error}=await db.auth.signOut();if(error)throw error;me=null;adminData=null;await route()}if(a==='reset'){const email=$('#authForm [name=email]').value;if(!email)throw Error('Önce e-posta adresini yaz.');const redirect=new URL(location.href);redirect.search='?recovery=1';redirect.hash='';const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo:redirect.href});if(error)throw error;toast('Hesabın varsa şifre yenileme bağlantısı gönderilecek.')}if(a==='venue-new')venueForm();if(a==='venue-edit')venueForm(getVenue(id));if(a==='merchant-edit')venueForm(me.venue,true);if(a==='game-new')gameForm();if(a==='game-edit')gameForm(adminData.games.find(g=>g.id===id));if(a==='game-delete'){const game=adminData.games.find(g=>String(g.id)===String(id));const gameName=String(game?.name||b.dataset.name||'Bu oyun');const ok=window.confirm(`“${gameName}” oyununu kalıcı olarak silmek istediğine emin misin?\n\nBu işlem geri alınamaz ve oyun atandığı tüm işletmelerden de kaldırılır.`);if(!ok)return;b.disabled=true;try{await rpc('ob_delete_game',{gid:String(id)});toast('Oyun silindi.');await route()}finally{b.disabled=false}return}if(a==='preview-code')safeFrame($('#gameForm [name=code]').value,$('#codePreview'),{gameName:$('#gameForm [name=name]').value||'Önizleme',preview:true});if(a==='qr')qrView(id);if(a==='stats')await stats(id,7);if(a==='stats-period')await stats(id,Number(b.dataset.days||7));if(a==='games'){trackEvent('games_open');const box=$('#gameList');if(!box.innerHTML.trim())listGames();box.scrollIntoView({behavior:'smooth',block:'start'})}if(a==='review')openReviewPage();}catch(err){toast(err.message)}});
+if(a==='copy-venue-code'){const code=await businessCodeForVenue(id||me?.venue?.id);try{await navigator.clipboard.writeText(code);toast('İşletme kodu kopyalandı.')}catch{toast('Kod kopyalanamadı.')}return}if(a==='regen-venue-code'){const vid=id||me?.venue?.id;if(!vid)throw Error('İşletme bulunamadı.');const ok=window.confirm('İşletme kodunu yenilemek istiyor musun? Eski kod hemen geçersiz olur ve standdaki kod etiketini değiştirmen gerekir.');if(!ok)return;b.disabled=true;try{const code=await regenerateBusinessCode(vid);toast('Yeni işletme kodu: '+code)}finally{b.disabled=false}return}if(a==='retry')await route();if(a==='close-game'){
+  const state=activeCustomGame;
+  if(state&&!state.finished&&state.startedAt){
+    await finishCustomGame(state,{auto:true,detectedBy:'close-game'});
+    return;
+  }
+  closeModal();
+  return
+}if(a==='logout'){const {error}=await db.auth.signOut();if(error)throw error;me=null;adminData=null;await route()}if(a==='reset'){const email=$('#authForm [name=email]').value;if(!email)throw Error('Önce e-posta adresini yaz.');const redirect=new URL(location.href);redirect.search='?recovery=1';redirect.hash='';const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo:redirect.href});if(error)throw error;toast('Hesabın varsa şifre yenileme bağlantısı gönderilecek.')}if(a==='venue-new')venueForm();if(a==='venue-edit')venueForm(getVenue(id));if(a==='merchant-edit')venueForm(me.venue,true);if(a==='game-new')gameForm();if(a==='game-edit')gameForm(adminData.games.find(g=>g.id===id));if(a==='game-delete'){const game=adminData.games.find(g=>String(g.id)===String(id));const gameName=String(game?.name||b.dataset.name||'Bu oyun');const ok=window.confirm(`“${gameName}” oyununu kalıcı olarak silmek istediğine emin misin?\n\nBu işlem geri alınamaz ve oyun atandığı tüm işletmelerden de kaldırılır.`);if(!ok)return;b.disabled=true;try{await rpc('ob_delete_game',{gid:String(id)});toast('Oyun silindi.');await route()}finally{b.disabled=false}return}if(a==='preview-code')safeFrame($('#gameForm [name=code]').value,$('#codePreview'),{gameName:$('#gameForm [name=name]').value||'Önizleme',preview:true});if(a==='qr')qrView(id);if(a==='stats')await stats(id,7);if(a==='stats-period')await stats(id,Number(b.dataset.days||7));if(a==='games'){trackEvent('games_open');const box=$('#gameList');if(!box.innerHTML.trim())listGames();box.scrollIntoView({behavior:'smooth',block:'start'})}if(a==='review')openReviewPage();}catch(err){toast(err.message)}});
 document.addEventListener('input',e=>{const input=e.target.closest?.('#businessCodeForm [name=business_code]');if(!input)return;const next=String(input.value||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,4);if(input.value!==next)input.value=next});
 document.addEventListener('submit',async e=>{const f=e.target;if(!['authForm','passwordForm','recoveryRequestForm','requestForm','venueForm','gameForm','businessCodeForm','menuForm'].includes(f.id)&&!f.classList.contains('assignForm'))return;e.preventDefault();const button=e.submitter,mode=button?.value,d=new FormData(f);f.querySelectorAll('button').forEach(b=>b.disabled=true);try{if(f.id==='businessCodeForm'){const id=await resolveBusinessCode(d.get('business_code'));const u=new URL(location.href);u.search='';u.searchParams.set('isletme',id);u.hash='play';history.replaceState(null,'',u.href);await route()}else if(f.id==='recoveryRequestForm'){const redirect=new URL(location.pathname,location.origin);redirect.search='?recovery=1';redirect.hash='';const {error}=await db.auth.resetPasswordForEmail(d.get('email').trim(),{redirectTo:redirect.href});if(error)throw error;toast('Hesabın varsa yeni bağlantı gönderilecek. En son gelen e-postayı aç.')}else if(f.id==='authForm'){const credentials={email:d.get('email').trim(),password:d.get('password')};let r;if(mode==='signup'){const u=new URL(location.href);u.search='';u.hash='panel';r=await db.auth.signUp({...credentials,options:{emailRedirectTo:u.href}})}else r=await db.auth.signInWithPassword(credentials);if(r.error)throw r.error;if(mode==='signup'&&!r.data.session){toast('E-postanı kontrol et ve hesabını doğrula. Ardından giriş yap.');return}await route()}else if(f.id==='passwordForm'){if(d.get('password')!==d.get('confirm_password'))throw Error('Şifreler aynı olmalı.');const {error}=await db.auth.updateUser({password:d.get('password')});if(error)throw error;recoveryMode=false;recoveryFailure=false;history.replaceState(null,'',location.pathname+'#panel');toast('Şifren güncellendi.');await route()}else if(f.id==='requestForm'){await rpc('ob_request',{business_name:d.get('business_name')});toast('İşletme talebin alındı.');await route()}else if(f.id==='venueForm'){
   const rawReview=String(d.get('review_url')||'').trim();
