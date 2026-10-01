@@ -1875,6 +1875,123 @@ body.customer-mode #app{
   .menu-price{padding-top:1px;font-size:14px}
   .menu-row p{max-width:95%;font-size:8.8px}
 }
+
+/* ===== İlk kullanım / 3 ana seçim ===== */
+.customer-welcome{
+  margin:18px 0 28px;
+  padding:30px;
+  border:1px solid rgba(130,96,67,.12);
+  border-radius:28px;
+  background:
+    radial-gradient(circle at 92% 0%,rgba(184,95,54,.10),transparent 28%),
+    linear-gradient(145deg,rgba(255,252,247,.94),rgba(239,231,222,.82));
+  box-shadow:0 22px 52px rgba(51,37,28,.08)
+}
+.customer-welcome-kicker{
+  color:#9b6f52;font-size:8px;font-weight:950;letter-spacing:1.5px
+}
+.customer-welcome h1{
+  margin:8px 0 8px;
+  color:#171312;
+  font-size:clamp(38px,7vw,62px);
+  line-height:.94;
+  letter-spacing:-2.4px
+}
+.customer-welcome h1 span{color:#9a5035}
+.customer-welcome>p{margin:0;color:#776b62;font-size:12px}
+.customer-choice-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+  margin-top:24px
+}
+.customer-choice{
+  position:relative;
+  min-height:210px;
+  overflow:hidden;
+  border:0;
+  border-radius:22px;
+  padding:18px;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  text-align:left;
+  cursor:pointer;
+  transition:.17s ease
+}
+.customer-choice:hover{transform:translateY(-3px)}
+.customer-choice.games{background:linear-gradient(145deg,#181412,#30231d);color:#fff}
+.customer-choice.menu{background:linear-gradient(145deg,#7d3e2b,#ad6542);color:#fff}
+.customer-choice.review{background:linear-gradient(145deg,#eee2d1,#fff8ee);color:#2b1d16;border:1px solid rgba(125,85,57,.12)}
+.choice-no{position:absolute;right:15px;top:13px;font-size:9px;font-weight:900;opacity:.45}
+.choice-icon{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;background:rgba(255,255,255,.12);font-size:18px;font-weight:900}
+.customer-choice.review .choice-icon{background:#6f3827;color:#fff}
+.customer-choice small{margin-top:22px;font-size:7px;font-weight:950;letter-spacing:1.1px;opacity:.72}
+.customer-choice strong{margin-top:5px;font-size:21px;line-height:1.05;font-weight:950}
+.customer-choice em{margin-top:7px;font-size:9px;line-height:1.4;font-style:normal;opacity:.72}
+.customer-choice b{margin-top:auto;padding-top:20px;font-size:9px;font-weight:950}
+.customer-games-area{scroll-margin-top:18px}
+
+/* ===== Öne çıkan menü ürünleri ===== */
+.menu-featured-section{
+  margin:14px 0 4px;
+  padding:17px;
+  border-radius:21px;
+  background:linear-gradient(145deg,#2b1912,#573020);
+  color:#fff;
+  box-shadow:0 16px 32px rgba(65,38,25,.13)
+}
+.menu-featured-head{display:flex;align-items:end;justify-content:space-between;gap:14px;margin-bottom:12px}
+.menu-featured-head small{color:#d9b792;font-size:7px;font-weight:950;letter-spacing:1.2px}
+.menu-featured-head h3{margin:3px 0 0;font-family:Georgia,'Times New Roman',serif;font-size:25px}
+.menu-featured-head>span{color:#cbb8aa;font-size:8px}
+.menu-featured-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.menu-featured-card{position:relative;min-width:0;padding:14px;border:1px solid rgba(255,255,255,.09);border-radius:15px;background:rgba(255,255,255,.06)}
+.menu-featured-label{display:inline-block;padding:4px 6px;border-radius:999px;background:#c59761;color:#2b1912;font-size:6px;font-weight:950}
+.menu-featured-card small{display:block;margin-top:11px;color:#c9b5a7;font-size:7px}
+.menu-featured-card h4{margin:4px 0 0;font-size:14px}
+.menu-featured-card p{margin:5px 0 0;color:#d3c7bf;font-size:8px;line-height:1.4}
+.menu-featured-card strong{display:block;margin-top:12px;color:#e8c797;font-family:Georgia,'Times New Roman',serif;font-size:15px}
+.menu-rec{display:inline-flex;padding:3px 6px;border-radius:999px;background:#e5c59d;color:#6c3b28;font-size:6px;font-weight:950}
+
+/* ===== Sade işletme paneli ===== */
+.merchant-simple-head{
+  display:flex;justify-content:space-between;gap:18px;align-items:center;
+  padding:20px;border:1px solid #ece6df;border-radius:20px;background:#fff
+}
+.merchant-simple-head h2{margin:8px 0 4px}
+.merchant-simple-head p{margin:0;color:#7a7772;font-size:12px}
+.merchant-control-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}
+.merchant-control-card{
+  min-height:118px;border:1px solid #e9e3dc;border-radius:18px;padding:17px;text-align:left;background:linear-gradient(180deg,#fff,#fcfaf7);cursor:pointer
+}
+.merchant-control-card span{display:block;color:#af8061;font-size:8px;font-weight:950}
+.merchant-control-card b{display:block;margin-top:14px;color:#251a15;font-size:16px}
+.merchant-control-card small{display:block;margin-top:5px;color:#817a74;font-size:10px;line-height:1.45}
+.merchant-game-list{display:grid;gap:7px}
+.merchant-game-row{display:grid;grid-template-columns:34px 1fr auto;gap:8px;align-items:center;padding:11px;border:1px solid #eee;border-radius:11px}
+.merchant-game-row span{color:#a57d62;font-size:8px}.merchant-game-row small{color:#54815b;font-size:8px;font-weight:900}
+
+/* ===== Analitik menü ekleri ===== */
+.analytics-mini-stats{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.analytics-mini-stats>div{padding:15px;border-radius:13px;background:#f8fafc;border:1px solid #edf0f3}
+.analytics-mini-stats small{display:block;color:#8390a0;font-size:9px;font-weight:850;text-transform:uppercase}
+.analytics-mini-stats b{display:block;margin-top:5px;font-size:25px;color:#26364b}
+
+.menu-featured-check{color:#81543d!important}
+@media(max-width:760px){
+  .customer-choice-grid{grid-template-columns:1fr}
+  .customer-choice{min-height:150px}
+  .menu-featured-grid{grid-template-columns:1fr}
+  .merchant-simple-head{align-items:flex-start;flex-direction:column}
+  .merchant-control-grid{grid-template-columns:1fr}
+}
+@media(max-width:430px){
+  .customer-welcome{padding:20px 14px;border-radius:22px}
+  .customer-welcome h1{font-size:39px}
+  .customer-choice{min-height:140px;border-radius:18px}
+}
+
 </style></head><body>
 <header><nav class="wrap"><a class="brand" href="#home" aria-label="OynaBak ana sayfa"><img src="/oynabak-logo.png" alt="OynaBak"></a><div class="links"><a class="desktop" href="#features">Nasıl çalışır?</a><a class="desktop" href="#faq">Merak edilenler</a><a class="btn small light" href="#panel">İşletme Paneli ↗</a></div></nav></header>
 <main id="app"></main><footer><div class="wrap row" style="justify-content:space-between;gap:18px"><div><b>OynaBak · Molana oyun kat.</b><span style="display:block;margin-top:4px">Kafe · Spor salonu · Mağaza</span><span style="display:block;margin-top:4px;color:#7b8797">© 2026 OynaBak · Tüm hakları saklıdır.</span></div><div class="footer-links"><a href="#home">Ana sayfa</a><a href="#privacy">Gizlilik</a><a href="#kvkk">KVKK</a><a href="#terms">Kullanım Koşulları</a><a href="#contact">İletişim</a></div></div></footer><a class="whatsapp" href="https://wa.me/905066403989?text=Merhaba%2C%20OynaBak%20hakk%C4%B1nda%20bilgi%20almak%20istiyorum." target="_blank" rel="noopener noreferrer">WhatsApp'tan sor ↗</a>
@@ -4580,7 +4697,59 @@ async function syncVenueCustomGames(venueId,selectedIds=[]){
   }
 }
 
-function drawMerchant(email){const a=me.account,v=me.venue;$('#app').innerHTML=`<div class="wrap page">${panelTop('İşletme hesabım')}<p class="muted">${esc(email)}</p>${v?`<div class="card"><span class="badge ${v.active&&v.licensed?'good':''}">${v.active&&v.licensed?'Oyun alanı aktif':'Oyun alanı kapalı / Lisans bekliyor'}</span><h2>${esc(v.name)}</h2><div class="venue-code-inline"><div><small>İşletme kodun</small><b data-venue-code="${esc(v.id)}">Yükleniyor…</b></div><div class="venue-code-actions"><button type="button" data-action="copy-venue-code" data-id="${esc(v.id)}">Kopyala</button><button type="button" class="danger-lite" data-action="regen-venue-code" data-id="${esc(v.id)}">Kodu yenile</button></div></div><div class="row"><button class="btn coral" data-action="merchant-edit">Bilgileri düzenle</button><button class="btn light" data-action="menu-manage" data-id="${v.id}">Menüyü yönet</button><button class="btn light" data-action="qr" data-id="${v.id}">QR ve işletme kodu</button><button class="btn light" data-action="stats" data-id="${v.id}">İstatistikler</button><a class="btn light" href="${customerURL(v.id)}" target="_blank" rel="noopener">Müşteri ekranı ↗</a></div></div>`:a?.user_id?`<div class="notice"><b>${a.status==='revoked'?'İşletme erişimin kapatılmış.':'İşletme talebin alındı.'}</b><br>${esc(a.business_name)} için ${a.status==='revoked'?'bizimle iletişime geçebilirsin.':'OynaBak yönetiminin onayını bekliyorsun.'}</div>`:`<form id="requestForm" class="card narrow"><h3>İşletmeni tanıtalım.</h3><label class="field">İşletme adı<input name="business_name" required minlength="2" maxlength="100"></label><button class="btn coral">Erişim talebi oluştur</button></form>`}</div>`}
+function merchantGamesModal(){
+  const v=me?.venue||{};
+  const games=currentTenGames(v.games||[]);
+  modal('Oyunlarım',`
+    <div class="merchant-games-modal">
+      <p class="muted" style="margin-top:0">İşletmende aktif olan oyunlar.</p>
+      <div class="merchant-game-list">
+        ${games.length?games.map((g,i)=>`<div class="merchant-game-row"><span>${String(i+1).padStart(2,'0')}</span><b>${esc(g.name||'Oyun')}</b><small>Aktif</small></div>`).join(''):'<div class="analytics-empty">Henüz oyun atanmadı.</div>'}
+      </div>
+    </div>`);
+}
+function drawMerchant(email){
+  const a=me.account,v=me.venue;
+  $('#app').innerHTML=`<div class="wrap page">
+    ${panelTop('İşletme paneli')}
+    <p class="muted">${esc(email)}</p>
+    ${v?`
+      <div class="merchant-simple-head">
+        <div>
+          <span class="badge ${v.active&&v.licensed?'good':''}">${v.active&&v.licensed?'Sistem aktif':'Lisans bekliyor'}</span>
+          <h2>${esc(v.name)}</h2>
+          <p>Menünü, değerlendirme bağlantını, oyunlarını ve analitiğini tek yerden yönet.</p>
+        </div>
+        <a class="btn light" href="${customerURL(v.id)}" target="_blank" rel="noopener">Müşteri ekranı ↗</a>
+      </div>
+
+      <div class="merchant-control-grid">
+        <button class="merchant-control-card" data-action="menu-manage" data-id="${v.id}">
+          <span>01</span><b>Menüyü yönet</b><small>Kategori, ürün, fiyat ve önerilen ürünler</small>
+        </button>
+        <button class="merchant-control-card" data-action="merchant-review-settings">
+          <span>02</span><b>Google değerlendirme</b><small>Değerlendirme bağlantını düzenle</small>
+        </button>
+        <button class="merchant-control-card" data-action="merchant-games">
+          <span>03</span><b>Oyunlarım</b><small>İşletmende aktif oyunları görüntüle</small>
+        </button>
+        <button class="merchant-control-card" data-action="stats" data-id="${v.id}">
+          <span>04</span><b>Analitik</b><small>QR, oyun, menü ve değerlendirme verileri</small>
+        </button>
+        <button class="merchant-control-card" data-action="qr" data-id="${v.id}">
+          <span>05</span><b>QR ve işletme kodu</b><small>Müşteri erişim bilgilerini görüntüle</small>
+        </button>
+      </div>
+    `:a?.user_id?`
+      <div class="notice"><b>${a.status==='revoked'?'İşletme erişimin kapatılmış.':'İşletme talebin alındı.'}</b><br>${esc(a.business_name)} için ${a.status==='revoked'?'bizimle iletişime geçebilirsin.':'OynaBak yönetiminin onayını bekliyorsun.'}</div>
+    `:`
+      <form id="requestForm" class="card narrow">
+        <h3>İşletmeni tanıtalım.</h3>
+        <label class="field">İşletme adı<input name="business_name" required minlength="2" maxlength="100"></label>
+        <button class="btn coral">Erişim talebi oluştur</button>
+      </form>`}
+  </div>`;
+}
 
 function brandInitials(name=''){
   const parts=String(name).trim().split(/\s+/).filter(Boolean);
@@ -5467,6 +5636,7 @@ async function stats(id,days=7){
   const topGame=a?.top_game?displayGame(a.top_game):'—';
   const activeTable=a?.active_table?'Aktif':'—';
   const avgScore=a?.avg_score===null||a?.avg_score===undefined?'—':Math.round(Number(a.avg_score));
+  const topCategory=a?.top_menu_category||'—';
 
   modal('İşletme analitiği',`
     <div class="analytics-shell">
@@ -5489,7 +5659,9 @@ async function stats(id,days=7){
       <div class="metric-grid">
         <div class="metric-card"><div class="metric-icon">⌁</div><small>QR açılışı</small><strong>${unavailable?'—':metricValue(a.qr_opens)}</strong><p>${period}</p></div>
         <div class="metric-card"><div class="metric-icon">🎮</div><small>Tamamlanan oyun</small><strong>${unavailable?'—':metricValue(a.game_finishes)}</strong><p>${period}</p></div>
-        <div class="metric-card"><div class="metric-icon">★</div><small>Google tıklaması</small><strong>${unavailable?'—':metricValue(a.review_clicks)}</strong><p>Değerlendirme sayfasına geçiş</p></div>
+        <div class="metric-card"><div class="metric-icon">★</div><small>Değerlendirme tıklaması</small><strong>${unavailable?'—':metricValue(a.review_clicks)}</strong><p>Google değerlendirme sayfasına geçiş</p></div>
+        <div class="metric-card"><div class="metric-icon">☰</div><small>Menü açılışı</small><strong>${unavailable?'—':metricValue(a.menu_opens)}</strong><p>${period}</p></div>
+        <div class="metric-card"><div class="metric-icon">◉</div><small>En çok açılan kategori</small><strong title="${esc(topCategory)}">${esc(topCategory)}</strong><p>Menü kategori etkileşimi</p></div>
         <div class="metric-card"><div class="metric-icon">🏆</div><small>En popüler oyun</small><strong title="${esc(topGame)}">${esc(topGame)}</strong><p>${period}</p></div>
         <div class="metric-card"><div class="metric-icon">▦</div><small>QR kullanımı</small><strong>${esc(activeTable)}</strong><p>Tek QR sistemi</p></div>
         <div class="metric-card"><div class="metric-icon">◎</div><small>Ortalama oyun puanı</small><strong>${unavailable?'—':avgScore}</strong><p>${avgScore==='—'?'Henüz veri yok':'100 üzerinden'}</p></div>
@@ -5509,6 +5681,22 @@ async function stats(id,days=7){
         </section>
       </div>
 
+      <div class="analytics-grid analytics-grid-menu">
+        <section class="analytics-panel">
+          <h3>Menü kategorileri</h3>
+          <p class="sub">Müşterilerin en çok açtığı kategoriler</p>
+          ${unavailable?'<div class="analytics-empty">Analitik veri bekleniyor.</div>':rankRows(a.menu_categories,x=>x.category||'Kategori')}
+        </section>
+        <section class="analytics-panel">
+          <h3>Menü performansı</h3>
+          <p class="sub">Menü ve değerlendirme etkileşimleri</p>
+          <div class="analytics-mini-stats">
+            <div><small>Menü açılışı</small><b>${unavailable?'—':metricValue(a.menu_opens)}</b></div>
+            <div><small>Değerlendirme</small><b>${unavailable?'—':metricValue(a.review_clicks)}</b></div>
+          </div>
+        </section>
+      </div>
+
     </div>`);
 }
 function normalizeMenu(raw){
@@ -5520,7 +5708,7 @@ function normalizeMenu(raw){
     active:c?.active!==false,
     items:(Array.isArray(c?.items)?c.items:[]).slice(0,100).map((it,ii)=>({
       id:String(it?.id||('item-'+ii)),name:String(it?.name||'Ürün').slice(0,120),description:String(it?.description||'').slice(0,300),
-      price:Number(it?.price||0),image_url:String(it?.image_url||'').slice(0,1200),image_data:String(it?.image_data||'').slice(0,900000),active:it?.active!==false,sold_out:Boolean(it?.sold_out)
+      price:Number(it?.price||0),image_url:String(it?.image_url||'').slice(0,1200),image_data:String(it?.image_data||'').slice(0,900000),active:it?.active!==false,sold_out:Boolean(it?.sold_out),featured:Boolean(it?.featured)
     }))
   }))};
 }
@@ -5531,6 +5719,12 @@ async function loadVenueMenu(vid){try{return normalizeMenu(await rpc('ob_menu',{
 function menuPublicHtml(menu=venue?.menu){
   menu=normalizeMenu(menu);
   const cats=menu.categories.filter(c=>c.active&&c.items.some(i=>i.active));
+  const featuredProducts=[];
+  cats.forEach(c=>{
+    c.items.filter(i=>i.active&&i.featured&&!i.sold_out).forEach(i=>{
+      if(featuredProducts.length<3)featuredProducts.push({...i,category:c.name});
+    });
+  });
 
   if(!cats.length)return `<div class="menu-screen">
     <div class="menu-restaurant-hero">
@@ -5556,12 +5750,34 @@ function menuPublicHtml(menu=venue?.menu){
       <p>Menüyü incele, seçimini yap, keyfine bak.</p>
     </div>
 
+    ${featuredProducts.length?`
+      <section class="menu-featured-section">
+        <div class="menu-featured-head">
+          <div>
+            <small>İŞLETMENİN ÖNERİSİ</small>
+            <h3>Öne çıkanlar</h3>
+          </div>
+          <span>${featuredProducts.length} ürün</span>
+        </div>
+        <div class="menu-featured-grid">
+          ${featuredProducts.map(i=>`
+            <article class="menu-featured-card">
+              <span class="menu-featured-label">ÖNERİLEN</span>
+              <small>${esc(i.category)}</small>
+              <h4>${esc(i.name)}</h4>
+              ${i.description?`<p>${esc(i.description)}</p>`:''}
+              <strong>${esc(formatPrice(i.price))}</strong>
+            </article>`).join('')}
+        </div>
+      </section>`:''}
+
     <nav class="menu-cat-nav" aria-label="Menü kategorileri">
       ${cats.map((c,i)=>`
         <button
           type="button"
           class="menu-cat-btn ${i===0?'active':''}"
           data-menu-category="${esc(c.id)}"
+          data-menu-category-name="${esc(c.name)}"
           aria-pressed="${i===0?'true':'false'}"
         >${esc(c.name)}</button>`).join('')}
     </nav>
@@ -5574,11 +5790,7 @@ function menuPublicHtml(menu=venue?.menu){
       </div>
 
       ${cats.map((c,ci)=>`
-        <section
-          class="menu-category ${ci===0?'active':''}"
-          data-menu-section="${esc(c.id)}"
-          ${ci===0?'':'hidden'}
-        >
+        <section class="menu-category ${ci===0?'active':''}" data-menu-section="${esc(c.id)}" ${ci===0?'':'hidden'}>
           <div class="menu-category-head">
             <div>
               <span class="menu-category-number">${String(ci+1).padStart(2,'0')}</span>
@@ -5586,13 +5798,13 @@ function menuPublicHtml(menu=venue?.menu){
             </div>
             <span>${c.items.filter(i=>i.active).length} ürün</span>
           </div>
-
           <div class="menu-items menu-list">
             ${c.items.filter(i=>i.active).map(i=>`
               <article class="menu-row ${i.sold_out?'is-sold':''}">
                 <div class="menu-row-copy">
                   <div class="menu-row-title">
                     <h4>${esc(i.name)}</h4>
+                    ${i.featured?'<span class="menu-rec">Önerilen</span>':''}
                     ${i.sold_out?'<span class="menu-sold">Tükendi</span>':''}
                   </div>
                   ${i.description?`<p>${esc(i.description)}</p>`:''}
@@ -5612,6 +5824,7 @@ function menuPublicHtml(menu=venue?.menu){
   </div>`;
 }
 function openCustomerMenu(){
+  trackEvent('menu_open').catch(()=>{});
   modal('Menü',menuPublicHtml());
   const m=$('#modal');
   m.classList.add('menu-full');
@@ -5635,11 +5848,12 @@ function menuAdminItemHtml(i){
     </label>
 
     <label class="menu-check"><input class="menu-item-active" type="checkbox" ${i.active!==false?'checked':''}> Menüde göster</label>
+    <label class="menu-check menu-featured-check"><input class="menu-item-featured" type="checkbox" ${i.featured?'checked':''}> Öne çıkan ürün</label>
     <label class="menu-check"><input class="menu-item-sold" type="checkbox" ${i.sold_out?'checked':''}> Tükendi olarak işaretle</label>
   </div>`;
 }
 function collectMenuForm(){
-  const categories=[...document.querySelectorAll('#menuAdminCategories [data-menu-cat]')].map(cat=>({id:cat.dataset.menuCat,name:cat.querySelector('.menu-cat-name')?.value.trim()||'Kategori',active:true,items:[...cat.querySelectorAll('[data-menu-item]')].map(it=>({id:it.dataset.menuItem,name:it.querySelector('.menu-item-name')?.value.trim()||'Ürün',description:it.querySelector('.menu-item-desc')?.value.trim()||'',price:Math.max(0,Number(it.querySelector('.menu-item-price')?.value||0)),active:Boolean(it.querySelector('.menu-item-active')?.checked),sold_out:Boolean(it.querySelector('.menu-item-sold')?.checked)}))}));
+  const categories=[...document.querySelectorAll('#menuAdminCategories [data-menu-cat]')].map(cat=>({id:cat.dataset.menuCat,name:cat.querySelector('.menu-cat-name')?.value.trim()||'Kategori',active:true,items:[...cat.querySelectorAll('[data-menu-item]')].map(it=>({id:it.dataset.menuItem,name:it.querySelector('.menu-item-name')?.value.trim()||'Ürün',description:it.querySelector('.menu-item-desc')?.value.trim()||'',price:Math.max(0,Number(it.querySelector('.menu-item-price')?.value||0)),active:Boolean(it.querySelector('.menu-item-active')?.checked),sold_out:Boolean(it.querySelector('.menu-item-sold')?.checked),featured:Boolean(it.querySelector('.menu-item-featured')?.checked)}))}));
   return normalizeMenu({categories});
 }
 async function menuManager(vid){
@@ -5690,53 +5904,62 @@ async function customer(demo,seq){
   $('#app').innerHTML=`
     <div class="customer">
       <section class="customer-shell">
-<main class="customer-main">
+        <main class="customer-main">
           <div class="customer-oynabak-brand">
             <img src="/oynabak-logo.png" alt="OynaBak">
-            <span>OynaBak Oyun Alanı</span>
+            <span>${esc(venue?.name||'OynaBak')}</span>
           </div>
 
-          <section class="customer-intro">
-            <div>
-              <span class="customer-kicker">Oyunlar</span>
-              <h1 class="customer-title">Bugün ne <span>oynuyoruz?</span></h1>
-              <p class="customer-subtitle">Oyunu seç, ek uygulama indirmeden doğrudan başla.</p>
-            </div>
+          <section class="customer-welcome">
+            <span class="customer-welcome-kicker">HOŞ GELDİN</span>
+            <h1>Ne yapmak <span>istersin?</span></h1>
+            <p>Tek QR ile oyunlara, menüye ve işletme değerlendirmesine ulaş.</p>
 
-            <div class="customer-status">
-              <div class="customer-count">
-                <b>${totalGames}</b>
-                <span>oyun hazır</span>
-              </div>
+            <div class="customer-choice-grid">
+              <button type="button" class="customer-choice games" data-action="customer-games">
+                <span class="choice-no">01</span>
+                <span class="choice-icon">▶</span>
+                <small>${totalGames} OYUN HAZIR</small>
+                <strong>Oyun Oyna</strong>
+                <em>Arkadaşlarınla hemen başla</em>
+                <b>Oyunlara git →</b>
+              </button>
+
+              <button type="button" class="customer-choice menu" data-action="menu-open">
+                <span class="choice-no">02</span>
+                <span class="choice-icon">≡</span>
+                <small>DİJİTAL MENÜ</small>
+                <strong>Menüyü Gör</strong>
+                <em>Ürün ve güncel fiyatları incele</em>
+                <b>Menüyü aç →</b>
+              </button>
+
+              <button type="button" class="customer-choice review" data-action="review">
+                <span class="choice-no">03</span>
+                <span class="choice-icon">★</span>
+                <small>GOOGLE</small>
+                <strong>İşletmeyi Puanla</strong>
+                <em>Deneyimini birkaç saniyede paylaş</em>
+                <b>Değerlendir ↗</b>
+              </button>
             </div>
           </section>
 
-          <div class="customer-service-grid">
-            <button class="customer-menu-hero" data-action="menu-open">
-              <span class="customer-menu-icon">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6h14M5 12h14M5 18h9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-              </span>
-              <span class="customer-menu-copy">
-                <small>DİJİTAL MENÜ</small>
-                <strong>Menüyü incele</strong>
-                <em>Ürünleri ve güncel fiyatları gör</em>
-              </span>
-              <span class="customer-menu-cta">Menüyü aç <b>↗</b></span>
-            </button>
+          <section id="gamesArea" class="customer-games-area">
+            <section class="customer-intro">
+              <div>
+                <span class="customer-kicker">Oyunlar</span>
+                <h2 class="customer-title">Bugün ne <span>oynuyoruz?</span></h2>
+                <p class="customer-subtitle">Oyunu seç, ek uygulama indirmeden doğrudan başla.</p>
+              </div>
+              <div class="customer-status">
+                <div class="customer-count"><b>${totalGames}</b><span>oyun hazır</span></div>
+              </div>
+            </section>
+            <div id="gameList"></div>
+          </section>
 
-            <button class="customer-review-hero" data-action="review">
-              <span class="customer-review-icon">${uiIcons.review}</span>
-              <span class="customer-review-copy">
-                <small>MEMNUN KALDIN MI?</small>
-                <strong>İşletmeyi puanla</strong>
-                <em>Google’da deneyimini paylaş</em>
-              </span>
-              <span class="customer-review-cta">Değerlendir <b>↗</b></span>
-            </button>
-          </div>
-
-          <div id="gameList"></div>
-          <p class="customer-brand-note">OynaBak · QR ile oyun deneyimi</p>
+          <p class="customer-brand-note">OynaBak · Tek QR, daha iyi deneyim</p>
         </main>
       </section>
     </div>`;
@@ -5872,6 +6095,8 @@ document.addEventListener('click',async e=>{const b=e.target.closest('[data-acti
 
 const menuCat=b.dataset.menuCategory;
 if(menuCat){
+  const menuCatName=String(b.dataset.menuCategoryName||menuCat);
+  trackEvent('menu_category',{game:menuCatName}).catch(()=>{});
   const root=$('#modal');
   const buttons=[...root.querySelectorAll('[data-menu-category]')];
   const sections=[...root.querySelectorAll('[data-menu-section]')];
@@ -5903,7 +6128,15 @@ if(menuCat){
   return;
 }
 
-if(a==='menu-open'){trackEvent('menu_open').catch(()=>{});openCustomerMenu();return}
+if(a==='merchant-review-settings'){venueForm(me?.venue||{},true);return}
+if(a==='merchant-games'){merchantGamesModal();return}
+if(a==='customer-games'){
+  trackEvent('games_open').catch(()=>{});
+  const target=$('#gamesArea');
+  if(target)target.scrollIntoView({behavior:'smooth',block:'start'});
+  return
+}
+if(a==='menu-open'){openCustomerMenu();return}
 if(a==='menu-manage'){await menuManager(id||me?.venue?.id);return}
 if(a==='menu-add-category'){const box=$('#menuAdminCategories');box?.insertAdjacentHTML('beforeend',menuAdminCategoryHtml({id:menuId('cat'),name:'Yeni Kategori',items:[]}));return}
 if(a==='menu-remove-category'){b.closest('[data-menu-cat]')?.remove();return}
