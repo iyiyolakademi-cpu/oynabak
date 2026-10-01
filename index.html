@@ -2600,6 +2600,97 @@ body.games-mode .customer-entry-brand small{
   }
 }
 
+
+/* =========================================================
+   OynaBak FINAL — Ana sayfa metin görünürlüğü + modal X düzeltme
+   ========================================================= */
+
+/* Ana sitedeki 3 seçenek önizlemesinde tüm metinler net ve uyumlu */
+.phone .tile,
+.phone .tile strong,
+.phone .tile small{
+  color:#0f2744!important;
+}
+
+.phone .tile.green,
+.phone .tile.green strong,
+.phone .tile.green small{
+  color:#fff!important;
+}
+
+.phone .tile.green small{
+  opacity:1!important;
+}
+
+.phone .tile.orange{
+  background:#fff0e7!important;
+  border:1px solid #f4d9c9!important;
+}
+.phone .tile.blue{
+  background:#eef3ff!important;
+  border:1px solid #dbe5fb!important;
+}
+.phone .tile.green{
+  background:linear-gradient(145deg,#0d8a72,#16a17d)!important;
+  border:1px solid rgba(4,107,88,.22)!important;
+}
+
+/* Menü modal kapatma butonu: siyah zemin + beyaz X */
+#modal .dialog-head button,
+#modal .dialog-head .btn,
+#modal .dialog-head [data-action="close-modal"],
+#modal .dialog-close,
+#modal button.close,
+#modal .close{
+  background:#000!important;
+  color:#fff!important;
+  border:2px solid #fff!important;
+  box-shadow:0 6px 18px rgba(0,0,0,.32)!important;
+  opacity:1!important;
+}
+
+#modal .dialog-head button svg,
+#modal .dialog-head button path,
+#modal .dialog-close svg,
+#modal .dialog-close path,
+#modal button.close svg,
+#modal button.close path{
+  color:#fff!important;
+  stroke:#fff!important;
+  fill:none!important;
+}
+
+#modal .dialog-head button:hover,
+#modal .dialog-close:hover,
+#modal button.close:hover,
+#modal .close:hover{
+  background:#111!important;
+  color:#fff!important;
+}
+
+/* Eğer X karakteri pseudo-element ile geliyorsa */
+#modal .dialog-close::before,
+#modal .dialog-close::after,
+#modal button.close::before,
+#modal button.close::after{
+  color:#fff!important;
+  background:#fff!important;
+}
+
+/* Mobilde kapatma tuşu daha belirgin */
+@media(max-width:760px){
+  #modal .dialog-head button,
+  #modal .dialog-close,
+  #modal button.close,
+  #modal .close{
+    min-width:44px!important;
+    min-height:44px!important;
+    border-radius:12px!important;
+    font-size:22px!important;
+    font-weight:900!important;
+  }
+}
+
 </style></head><body>
 <header><nav class="wrap"><a class="brand" href="#home" aria-label="OynaBak ana sayfa"><img src="oynabak-logo.png" alt="OynaBak"></a><div class="links"><a class="desktop" href="#features">Nasıl çalışır?</a><a class="desktop" href="#faq">Merak edilenler</a><a class="btn small light" href="#panel">İşletme Paneli ↗</a></div></nav></header>
 <main id="app"></main><footer><div class="wrap row" style="justify-content:space-between;gap:18px"><div><b>OynaBak · Molana oyun kat.</b><span style="display:block;margin-top:4px">Kafe · Spor salonu · Mağaza</span><span style="display:block;margin-top:4px;color:#7b8797">© 2026 OynaBak · Tüm hakları saklıdır.</span></div><div class="footer-links"><a href="#home">Ana sayfa</a><a href="#privacy">Gizlilik</a><a href="#kvkk">KVKK</a><a href="#terms">Kullanım Koşulları</a><a href="#contact">İletişim</a></div></div></footer><a class="whatsapp" href="https://wa.me/905066403989?text=Merhaba%2C%20OynaBak%20hakk%C4%B1nda%20bilgi%20almak%20istiyorum." target="_blank" rel="noopener noreferrer">WhatsApp'tan sor ↗</a>
