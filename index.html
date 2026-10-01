@@ -566,7 +566,7 @@ body.customer-mode #app{
 }
 
 /* Panelde işletme ve oyun resmi alanları */
-.brand-editor{margin:16px 0 18px;padding:15px;border:1px solid #e5e9ef;background:#f8fafc;border-radius:16px}.brand-editor-row{display:flex;align-items:center;gap:14px}.brand-preview{width:66px;height:66px;border-radius:17px;background:#fff;border:1px solid #e1e6ed;display:grid;place-items:center;overflow:hidden;color:#7a8798;font-size:11px;font-weight:800;text-align:center;flex:none}.brand-preview img{width:100%;height:100%;object-fit:contain;padding:4px}.brand-editor-info{flex:1;min-width:0}.brand-editor-info b{display:block;margin-bottom:3px}.brand-editor-info small{display:block;color:#7b8797;line-height:1.35}.brand-editor-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.brand-file{display:inline-flex;align-items:center;justify-content:center;padding:8px 11px;border-radius:10px;background:#17263c;color:#fff;font-size:12px;font-weight:800;cursor:pointer}.brand-file input{display:none}.brand-remove{border:1px solid #dbe1e9;background:#fff;border-radius:10px;padding:8px 11px;font-size:12px;font-weight:800}
+
 .game-image-editor{margin:14px 0 18px;padding:14px;border:1px solid #e3e8ef;border-radius:16px;background:#f8fafc}.game-image-editor h4{margin:0 0 4px}.game-image-editor p{margin:0 0 11px;color:#738093;font-size:12px}.game-image-preview{width:100%;aspect-ratio:16/7;overflow:hidden;display:grid;place-items:center;border:1px dashed #cbd5df;border-radius:14px;background:#eef2f6;color:#7a8798;font-size:12px;font-weight:800}.game-image-preview img{width:100%;height:100%;object-fit:cover}.game-image-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.game-image-file{display:inline-flex;align-items:center;justify-content:center;padding:9px 12px;border-radius:10px;background:#17263c;color:#fff;font-size:12px;font-weight:850;cursor:pointer}.game-image-file input{display:none}.game-image-remove{border:1px solid #d7dee8;background:#fff;color:#334155;border-radius:10px;padding:9px 12px;font-size:12px;font-weight:850}.admin-game-thumb{width:92px;aspect-ratio:16/9;flex:none;overflow:hidden;border-radius:10px;border:1px solid #e2e7ed;background:#eef2f6}.admin-game-thumb img{width:100%;height:100%;object-fit:cover}.admin-game-thumb .noimg{width:100%;height:100%;display:grid;place-items:center;color:#8591a1;font-size:9px;font-weight:800;text-align:center;padding:5px}
 
 @media(max-width:900px){.game-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.featured-content{width:68%}}
@@ -3811,59 +3811,6 @@ function brandingLogoHtml(v){
     ? `<img src="${esc(logo)}" alt="${esc(v?.name||'İşletme')} logosu">`
     : `<img src="/favicon.png" alt="OynaBak">`;
 }
-function fileToLogoData(file){
-  return new Promise((resolve,reject)=>{
-    if(!file||!file.type.startsWith('image/')){reject(Error('Lütfen PNG, JPG veya WEBP bir görsel seç.'));return}
-    const reader=new FileReader();
-    reader.onerror=()=>reject(Error('Logo okunamadı.'));
-    reader.onload=()=>{
-      const img=new Image();
-      img.onerror=()=>reject(Error('Logo görseli açılamadı.'));
-      img.onload=()=>{
-        const max=320;
-        const scale=Math.min(1,max/img.width,max/img.height);
-        const w=Math.max(1,Math.round(img.width*scale));
-        const h=Math.max(1,Math.round(img.height*scale));
-        const canvas=document.createElement('canvas');
-        canvas.width=w;canvas.height=h;
-        const ctx=canvas.getContext('2d');
-        ctx.clearRect(0,0,w,h);
-        ctx.drawImage(img,0,0,w,h);
-        let data='';
-        try{data=canvas.toDataURL('image/webp',.84)}catch{data=canvas.toDataURL('image/png')}
-        if(data.length>420000){reject(Error('Logo çok büyük. Daha küçük bir görsel seç.'));return}
-        resolve(data);
-      };
-      img.src=reader.result;
-    };
-    reader.readAsDataURL(file);
-  });
-}
-function setupBrandEditor(v){
-  const input=$('#venueLogoInput'),hidden=$('#venueLogoData'),preview=$('#venueLogoPreview'),remove=$('#venueLogoRemove');
-  if(!input||!hidden||!preview)return;
-  const draw=data=>{
-    hidden.value=data||'';
-    preview.innerHTML=data?`<img src="${esc(data)}" alt="Logo önizleme">`:'Logo yok';
-  };
-  draw(v?.logo_data||'');
-  input.onchange=async()=>{
-    const file=input.files?.[0];
-    if(!file)return;
-    input.disabled=true;
-    try{draw(await fileToLogoData(file));}
-    catch(e){toast(e.message)}
-    finally{input.disabled=false;input.value=''}
-  };
-  if(remove)remove.onclick=()=>draw('');
-  if(v?.id){
-    rpc('ob_branding',{vid:v.id}).then(b=>{
-      const data=b?.logo_data||'';
-      v.logo_data=data;
-      draw(data);
-    }).catch(()=>{});
-  }
-}
 
 function venueForm(v={},merchant=false){
   modal(merchant?'İşletme bilgileri':v.id?'İşletmeyi düzenle':'Yeni işletme',`
@@ -3875,22 +3822,6 @@ function venueForm(v={},merchant=false){
         ${merchant?'':`<label class="field">İşletme türü<select name="sector">${['Kafe','Spor salonu','Mağaza'].map(s=>`<option ${s===v.sector?'selected':''}>${s}</option>`).join('')}</select></label>`}
       </div>
 
-      <div class="brand-editor">
-        <div class="brand-editor-row">
-          <div class="brand-preview" id="venueLogoPreview">Logo yok</div>
-          <div class="brand-editor-info">
-            <b>İşletme logosu <span class="muted" style="font-weight:600">· isteğe bağlı</span></b>
-            <small>QR okutan müşterinin ekranının üstünde görünür. Logo eklemezsen OynaBak logosu gösterilir.</small>
-            ${v.id?'':'<small style="margin-top:5px"><b>Not:</b> Yeni işletmeyi önce kaydet; ardından düzenleyip logosunu ekleyebilirsin.</small>'}
-          </div>
-        </div>
-        <input type="hidden" name="logo_data" id="venueLogoData" value="">
-        <div class="brand-editor-actions">
-          <label class="brand-file">Logo seç<input id="venueLogoInput" type="file" accept="image/png,image/jpeg,image/webp"></label>
-          <button class="brand-remove" id="venueLogoRemove" type="button">Logoyu kaldır</button>
-        </div>
-      </div>
-
       <label class="field">Google değerlendirme bağlantısı
         <input name="review_url" type="url" maxlength="1999" placeholder="https://g.page/r/.../review" value="${esc(v.review_url||'')}">
       </label>
@@ -3898,7 +3829,6 @@ function venueForm(v={},merchant=false){
       ${merchant?'':`<div class="checks"><b>Oyunlar · ${currentTenGames(adminData?.games||[]).length} oyun</b><p class="muted" style="font-size:12px;margin:5px 0 10px">Paneldeki tüm güncel oyunlar gösterilir. İşletmede görünmesini istediklerini seç.</p>${currentGameSelectionHtml(v)}<hr><label><input type="checkbox" name="active" ${v.active?'checked':''}>İşletme yayını açık</label><label><input type="checkbox" name="licensed" ${v.licensed?'checked':''}>Ödemeyi kontrol ettim, kullanım lisansı aktif</label><p class="muted" style="font-size:13px">Bu işaret ödeme tahsil etmez. Müşteri ekranı için yayın ve lisans birlikte açık olmalı.</p></div>`}
       <button class="btn coral">Kaydet</button>
     </form>`);
-  setupBrandEditor(v);
 }
 
 function fileToGameImageData(file){
@@ -4521,13 +4451,11 @@ async function loadAnalyticsGameCatalog(id){
   return [...merged.values()];
 }
 async function stats(id,days=7){
-  const [s,a,gameCatalog]=await Promise.all([
-    rpc('ob_stats',{vid:id}),
+  const [a,gameCatalog]=await Promise.all([
     loadAnalytics(id,days),
     loadAnalyticsGameCatalog(id)
   ]);
 
-  const recent=Array.isArray(s?.recent)?s.recent:[];
   const period=analyticsPeriodLabel(days);
   const unavailable=a?.unavailable;
   const displayGame=key=>gameDisplayName(key,gameCatalog);
@@ -4576,41 +4504,6 @@ async function stats(id,days=7){
         </section>
       </div>
 
-      <div class="analytics-grid">
-        <section class="analytics-panel">
-          <h3>QR etkileşimi</h3>
-          <p class="sub">QR açılışı ve oyun etkileşimleri</p>
-          ${unavailable?'<div class="analytics-empty">Analitik veri bekleniyor.</div>':rankRows(a.tables,x=>'QR kullanımı')}
-        </section>
-
-        <section class="analytics-panel">
-          <h3>Genel oyun kaydı</h3>
-          <p class="sub">Mevcut skor sistemindeki toplam tamamlanan oyun</p>
-          <div class="metric-card" style="min-height:auto">
-            <small>Toplam kayıt</small>
-            <strong>${Number(s?.total||0)}</strong>
-            <p>Tüm zamanlar · mevcut skor tablosu</p>
-          </div>
-        </section>
-      </div>
-
-      <section class="analytics-panel analytics-table">
-        <h3>Son oyun sonuçları</h3>
-        <p class="sub">Mevcut skor sisteminden son kayıtlar</p>
-        ${recent.length?`
-          <div class="overflow">
-            <table>
-              <thead><tr><th>Oyun</th><th>Puan</th><th>QR</th><th>Tarih</th></tr></thead>
-              <tbody>
-                ${recent.map(r=>`<tr><td>${esc(displayGame(r.game))}</td><td>${r.score}</td><td>Genel QR</td><td>${esc(new Date(r.created_at).toLocaleString('tr-TR'))}</td></tr>`).join('')}
-              </tbody>
-            </table>
-          </div>`:'<div class="analytics-empty">Henüz oyun sonucu yok.</div>'}
-      </section>
-
-      <div class="analytics-note">
-        Oyun isimleri, işletmeye atanmış güncel oyun kütüphanesiyle eşleştirilir. Eski kayıtlar da mümkün olduğunda güncel oyun adıyla gösterilir.
-      </div>
     </div>`);
 }
 function qrParams(){const u=new URL(location.href);return {venueId:String(u.searchParams.get('isletme')||'').trim(),table:1}}
@@ -4842,19 +4735,8 @@ document.addEventListener('submit',async e=>{const f=e.target;if(!['authForm','p
   if(!merchant&&venueId){
     await syncVenueCustomGames(venueId,d.getAll('custom_enabled'));
   }
-
-  let logoWarn='';
-  if(venueId){
-    try{
-      await rpc('ob_branding_save',{vid:venueId,logo:d.get('logo_data')||null});
-    }catch(e){
-      logoWarn=' Logo kaydı yapılamadı; branding SQL dosyasını Supabase’de çalıştır.';
-      console.warn(e);
-    }
-  }
-
   closeModal();
-  toast('İşletme kaydedildi.'+logoWarn);
+  toast('İşletme kaydedildi.');
   await route()
 }else if(f.id==='gameForm'){
   const payload={
