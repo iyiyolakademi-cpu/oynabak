@@ -1992,6 +1992,20 @@ body.customer-mode #app{
   .customer-choice{min-height:140px;border-radius:18px}
 }
 
+
+.analytics-error-note{
+  border-color:#f0c8c8!important;
+  background:#fff5f5!important;
+  color:#7f2f2f!important;
+}
+.analytics-error-note span{
+  display:block;
+  margin-top:6px;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-size:10px;
+  word-break:break-word;
+}
+
 </style></head><body>
 <header><nav class="wrap"><a class="brand" href="#home" aria-label="OynaBak ana sayfa"><img src="/oynabak-logo.png" alt="OynaBak"></a><div class="links"><a class="desktop" href="#features">Nasıl çalışır?</a><a class="desktop" href="#faq">Merak edilenler</a><a class="btn small light" href="#panel">İşletme Paneli ↗</a></div></nav></header>
 <main id="app"></main><footer><div class="wrap row" style="justify-content:space-between;gap:18px"><div><b>OynaBak · Molana oyun kat.</b><span style="display:block;margin-top:4px">Kafe · Spor salonu · Mağaza</span><span style="display:block;margin-top:4px;color:#7b8797">© 2026 OynaBak · Tüm hakları saklıdır.</span></div><div class="footer-links"><a href="#home">Ana sayfa</a><a href="#privacy">Gizlilik</a><a href="#kvkk">KVKK</a><a href="#terms">Kullanım Koşulları</a><a href="#contact">İletişim</a></div></div></footer><a class="whatsapp" href="https://wa.me/905066403989?text=Merhaba%2C%20OynaBak%20hakk%C4%B1nda%20bilgi%20almak%20istiyorum." target="_blank" rel="noopener noreferrer">WhatsApp'tan sor ↗</a>
@@ -5599,7 +5613,15 @@ function metricValue(v,fallback='0'){return v===null||v===undefined||v===''?fall
 function chartDateLabel(v,days){const d=new Date(v+'T12:00:00');return days===1?'Bugün':days===7?d.toLocaleDateString('tr-TR',{weekday:'short'}):d.toLocaleDateString('tr-TR',{day:'2-digit',month:'2-digit'})}
 function analyticsBars(rows,days){if(!Array.isArray(rows)||!rows.length)return '<div class="analytics-empty">Bu dönem için henüz etkileşim yok.</div>';const max=Math.max(1,...rows.flatMap(x=>[Number(x.qr||0),Number(x.games||0),Number(x.reviews||0)]));return `<div class="daily-chart" style="grid-template-columns:repeat(${rows.length},minmax(6px,1fr))">${rows.map(x=>`<div class="day-col" title="${esc(chartDateLabel(x.date,days))} · QR ${Number(x.qr||0)} · Oyun ${Number(x.games||0)} · Google ${Number(x.reviews||0)}"><div class="day-bars"><span class="day-bar qr" style="height:${Math.max(2,Math.round(Number(x.qr||0)/max*100))}%"></span><span class="day-bar game" style="height:${Math.max(2,Math.round(Number(x.games||0)/max*100))}%"></span><span class="day-bar review" style="height:${Math.max(2,Math.round(Number(x.reviews||0)/max*100))}%"></span></div><span class="day-label">${esc(chartDateLabel(x.date,days))}</span></div>`).join('')}</div><div class="chart-legend"><span class="lqr">QR açılışı</span><span class="lg">Oyun</span><span class="lr">Google tıklaması</span></div>`}
 function rankRows(rows,labelFn=x=>x.label){if(!Array.isArray(rows)||!rows.length)return '<div class="analytics-empty">Henüz yeterli veri yok.</div>';const max=Math.max(1,...rows.map(x=>Number(x.count||0)));return `<div class="rank-list">${rows.slice(0,6).map(x=>`<div class="rank-row"><div class="rank-main"><div class="rank-title"><span>${esc(labelFn(x))}</span><span>${Number(x.count||0)}</span></div><div class="rank-track"><div class="rank-fill" style="width:${Math.max(4,Math.round(Number(x.count||0)/max*100))}%"></div></div></div><span class="rank-num">${Math.round(Number(x.count||0)/max*100)}%</span></div>`).join('')}</div>`}
-async function loadAnalytics(id,days){try{return await rpc('ob_analytics',{vid:id,days})}catch(e){return {unavailable:true,error:e.message}}}
+async function loadAnalytics(id,days){
+  try{
+    const data=await rpc('ob_analytics',{vid:String(id),days:Number(days||7)});
+    return data&&typeof data==='object'?data:{unavailable:true,error:'Analitik servisi boş yanıt döndürdü.'};
+  }catch(e){
+    console.error('[OynaBak Analytics] RPC hatası:',e);
+    return {unavailable:true,error:e?.message||String(e)};
+  }
+}
 async function loadAnalyticsGameCatalog(id){
   const merged=new Map();
   const add=list=>{
@@ -5651,9 +5673,9 @@ async function stats(id,days=7){
       </div>
 
       ${unavailable?`
-        <div class="analytics-note">
-          <b>Yeni analitik altyapısı henüz Supabase’e kurulmamış.</b><br>
-          Oyun sonuçları aşağıda çalışmaya devam eder. QR açılışı ve Google tıklaması gibi yeni metrikler için analitik SQL dosyasını bir kez çalıştırman gerekir.
+        <div class="analytics-note analytics-error-note">
+          <b>Analitik verisi alınamadı.</b><br>
+          <span>${esc(a?.error||'Bilinmeyen analitik hatası')}</span>
         </div>`:''}
 
       <div class="metric-grid">
@@ -5866,7 +5888,25 @@ function qrParams(){const u=new URL(location.href);return {venueId:String(u.sear
 function customerTable(){return 1}
 function validateQrContext(v=venue){const {venueId}=qrParams();if(!venueId)throw Error('Önce işletme kodunu gir.');if(v?.id&&String(v.id)!==venueId)throw Error('İşletme bağlantısı eşleşmiyor.');return {venueId,table:1}}
 function eventKey(prefix){try{return prefix+':'+crypto.randomUUID()}catch{return prefix+':'+Date.now()+':'+Math.random().toString(36).slice(2)}}
-async function trackEvent(et,{game=null,score=null,key=null}={}){const vid=String(venue?.id||qrParams().venueId||'');if(!venue||venue.demo||!vid||!db)return false;try{const ok=await rpc('ob_event',{vid,et,t:customerTable(),k:key||eventKey(et),g:game,s:score==null?null:clampScore(score)});return ok!==false}catch(e){console.warn('Analitik olayı kaydedilemedi:',et,e?.message||e);return false}}
+async function trackEvent(et,{game=null,score=null,key=null}={}){
+  const vid=String(venue?.id||qrParams().venueId||'').trim();
+  if(!venue||venue.demo||!vid||!db)return false;
+  try{
+    const ok=await rpc('ob_event',{
+      vid,
+      et:String(et||'').trim(),
+      t:customerTable(),
+      k:key||eventKey(et),
+      g:game==null?null:String(game).slice(0,140),
+      s:score==null?null:clampScore(score)
+    });
+    if(ok===false)console.warn('[OynaBak Analytics] Olay reddedildi:',et,vid);
+    return ok!==false;
+  }catch(e){
+    console.error('[OynaBak Analytics] Olay kaydedilemedi:',et,e?.message||e);
+    return false;
+  }
+}
 function businessCodeEntry(){document.body.classList.add('customer-mode');document.documentElement.style.setProperty('--accent','#ff6a00');$('#app').innerHTML=`<div class="code-entry-page"><form id="businessCodeForm" class="code-entry-card"><img class="code-entry-logo" src="/oynabak-logo.png" alt="OynaBak"><span class="eyebrow">TEK QR · HEMEN OYNA</span><h1>İşletme kodunu gir.</h1><p>Bulunduğun işletmenin OynaBak standında yazan 4 karakterlik kodu gir ve oyunlara geç.</p><input class="code-input" name="business_code" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="4" minlength="4" placeholder="A1B2" required><button class="code-submit" type="submit">Oyunları aç →</button><div class="code-help"></div></form></div>`;requestAnimationFrame(()=>$('#businessCodeForm [name=business_code]')?.focus())}
 async function resolveBusinessCode(raw){const code=String(raw||'').trim().toUpperCase().replace(/[^A-Z0-9]/g,'');if(code.length!==4)throw Error('İşletme kodu 4 karakter olmalı.');const vid=await rpc('ob_code_resolve',{p_code:code});const id=String(vid||'').trim();if(!id)throw Error('İşletme kodu bulunamadı. Kodu kontrol edip tekrar dene.');return id}
 async function customer(demo,seq){
