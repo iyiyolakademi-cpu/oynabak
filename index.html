@@ -2364,6 +2364,135 @@ body.customer-mode #app{
   .entry-icon{width:39px!important;height:39px!important}
 }
 
+
+/* =========================================================
+   OynaBak FINAL — QR sonrası siyah 3 seçenek ekranı
+   ========================================================= */
+.customer-entry-only{
+  min-height:100dvh!important;
+  background:
+    radial-gradient(circle at 50% 42%,rgba(93,74,255,.10),transparent 34%),
+    radial-gradient(circle at 80% 75%,rgba(255,103,20,.08),transparent 30%),
+    #050505!important;
+}
+
+.customer-entry-shell{
+  min-height:100dvh!important;
+  width:min(980px,100%)!important;
+  padding:
+    max(94px,calc(env(safe-area-inset-top) + 84px))
+    clamp(14px,4vw,38px)
+    max(28px,env(safe-area-inset-bottom))!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+}
+
+.customer-entry-brand{
+  background:rgba(15,15,15,.80)!important;
+  border-color:rgba(255,255,255,.10)!important;
+  box-shadow:0 14px 38px rgba(0,0,0,.40)!important;
+}
+.customer-entry-brand span{color:#fff!important}
+.customer-entry-brand small{color:#aaa!important}
+
+.customer-entry-grid{
+  width:min(930px,100%)!important;
+  margin:auto!important;
+}
+
+.entry-number{
+  display:none!important;
+}
+
+/* Ok yazıya değmesin: karta sağ tarafta özel boşluk ayır */
+.entry-choice{
+  padding:22px 72px 22px 22px!important;
+}
+.entry-copy{
+  width:100%!important;
+  max-width:calc(100% - 6px)!important;
+  padding-right:0!important;
+}
+.entry-copy strong,
+.entry-copy em,
+.entry-copy small{
+  max-width:100%!important;
+}
+.entry-arrow{
+  position:absolute!important;
+  right:20px!important;
+  bottom:22px!important;
+  margin:0!important;
+  width:40px!important;
+  height:40px!important;
+  flex:none!important;
+  z-index:3!important;
+}
+
+/* Ana kart renkleri siyah zeminde daha net */
+.entry-games{
+  background:
+    radial-gradient(circle at 88% 8%,rgba(125,119,255,.38),transparent 30%),
+    linear-gradient(145deg,#141529 0%,#25265c 54%,#4b42d5 100%)!important;
+  box-shadow:0 24px 60px rgba(45,43,160,.20)!important;
+}
+.entry-menu{
+  background:
+    radial-gradient(circle at 90% 7%,rgba(255,221,158,.32),transparent 28%),
+    linear-gradient(145deg,#8e2818 0%,#dd4d12 52%,#ff8a15 100%)!important;
+  box-shadow:0 24px 60px rgba(196,67,11,.20)!important;
+}
+.entry-review{
+  background:
+    radial-gradient(circle at 91% 6%,rgba(148,255,207,.26),transparent 28%),
+    linear-gradient(145deg,#06433f 0%,#08776b 52%,#0fa267 100%)!important;
+  box-shadow:0 24px 60px rgba(5,116,93,.20)!important;
+}
+
+/* Ana sitedeki üçüncü telefon kutusu */
+.phone .tile.green{
+  background:linear-gradient(145deg,#0b6f63,#14a06f);
+  color:#fff;
+}
+
+@media(max-width:760px){
+  .customer-entry-shell{
+    padding:
+      max(84px,calc(env(safe-area-inset-top) + 76px))
+      14px
+      max(24px,env(safe-area-inset-bottom))!important;
+    justify-content:center!important;
+  }
+
+  .entry-choice{
+    padding:17px 68px 17px 18px!important;
+  }
+
+  .entry-arrow{
+    right:16px!important;
+    bottom:16px!important;
+    width:36px!important;
+    height:36px!important;
+  }
+
+  .entry-copy{
+    max-width:100%!important;
+  }
+}
+
+@media(max-width:390px){
+  .entry-choice{
+    padding-right:62px!important;
+  }
+  .entry-copy strong{
+    font-size:23px!important;
+  }
+  .entry-copy em{
+    max-width:210px!important;
+  }
+}
+
 </style></head><body>
 <header><nav class="wrap"><a class="brand" href="#home" aria-label="OynaBak ana sayfa"><img src="oynabak-logo.png" alt="OynaBak"></a><div class="links"><a class="desktop" href="#features">Nasıl çalışır?</a><a class="desktop" href="#faq">Merak edilenler</a><a class="btn small light" href="#panel">İşletme Paneli ↗</a></div></nav></header>
 <main id="app"></main><footer><div class="wrap row" style="justify-content:space-between;gap:18px"><div><b>OynaBak · Molana oyun kat.</b><span style="display:block;margin-top:4px">Kafe · Spor salonu · Mağaza</span><span style="display:block;margin-top:4px;color:#7b8797">© 2026 OynaBak · Tüm hakları saklıdır.</span></div><div class="footer-links"><a href="#home">Ana sayfa</a><a href="#privacy">Gizlilik</a><a href="#kvkk">KVKK</a><a href="#terms">Kullanım Koşulları</a><a href="#contact">İletişim</a></div></div></footer><a class="whatsapp" href="https://wa.me/905066403989?text=Merhaba%2C%20OynaBak%20hakk%C4%B1nda%20bilgi%20almak%20istiyorum." target="_blank" rel="noopener noreferrer">WhatsApp'tan sor ↗</a>
@@ -4909,7 +5038,7 @@ function exitGameScreen(){leaveGameScreen()}
 
 async function rpc(name,args={}){if(!db)throw Error(initError||'Supabase bağlantısı henüz kurulmadı.');const {data,error}=await db.rpc(name,args);if(error)throw Error(error.message);return data}
 function wa(text){return 'https://wa.me/905066403989?text='+encodeURIComponent(text)}
-function home(){document.documentElement.style.setProperty('--accent','#ff6a00');$('#app').innerHTML=`<div class="wrap"><section class="hero"><div><span class="pill">Bir QR. Bir mola. Biraz eğlence.</span><h1>Bekleme anını<br><span>güzel bir anıya</span><br>dönüştür.</h1><p class="lead muted">Masada kahveni beklerken, antrenmana ara verirken… OynaBak ile işletmendeki küçük molalara oyun kat.</p><div class="row"><a class="btn coral" href="#pricing">İşletmem için keşfet ↗</a><a class="btn light" href="#features">Nasıl çalışır?</a></div><p class="muted" style="font-size:13px;margin-top:18px"><b>Oyunlar yalnızca işletmedeki QR kodu okutulduğunda açılır.</b><br>Uygulama indirmeden · Telefonun tarayıcısında</p></div><div class="phone"><div class="dot"></div><span class="eyebrow">MÜŞTERİ DENEYİMİ</span><h2>Biraz mola?<br>Sıra sende.</h2><div class="tile orange"><strong>▦ QR kodunu okut</strong><small>İşletmedeki oyun alanın doğrudan açılsın.</small></div><div class="tile blue"><strong>★ İşletmeyi değerlendir</strong><small>QR ekranından Google değerlendirmesine geç.</small></div></div></section><section id="features" class="section"><span class="eyebrow">İŞLETMENE KÜÇÜK BİR DOKUNUŞ</span><h2>Sen işine bak.<br>Molaları bize bırak.</h2><div class="grid"><div class="card"><span class="icon">🎲</span><h3>Oynanacak bir şey var.</h3><p class="muted">Genişleyen oyun kütüphanesiyle müşterilerine tek kişilik, iki kişilik ve grupça oynanabilen keyifli molalar sun.</p></div><div class="card"><span class="icon">★</span><h3>Görüşleri seninle kalsın.</h3><p class="muted">Müşterini işletmenin Google değerlendirme sayfasına yönlendir.</p></div><div class="card"><span class="icon">📊</span><h3>Ne kadar kullanılıyor, gör.</h3><p class="muted">QR açılışlarını, tamamlanan oyunları ve müşteri etkileşimlerini panelden takip et.</p></div></div></section><section class="section"><div class="grid"><div><span class="number">01 / KURULUM</span><h3>İşletmeni tanıtalım.</h3><p class="muted">İsmini ve değerlendirme bağlantını ekleyelim.</p></div><div><span class="number">02 / QR KOD</span><h3>Görünür bir yere yerleştir.</h3><p class="muted">Kafede görünür bir yere, spor salonunda dinlenme alanına, mağazada kasanın yanına.</p></div><div><span class="number">03 / OYNA</span><h3>Müşterin QR’ı okutsun, başlasın.</h3><p class="muted">Oyunlar normal web sitesinden açılmaz. Geçerli işletme QR bağlantısı oyun alanını doğrudan açar.</p></div></div></section><section id="pricing" class="section"><div class="price"><div><span class="pill" style="color:#174631">Lansmana özel fiyat</span><h2>İşletmene eğlenceli<br>bir başlangıç.</h2><p class="muted">OynaBak İşletme Paketi · Tek seferlik ödeme · Yıllık ücret yok.</p><div style="margin:18px 0 4px"><span style="display:block;color:#c2cede;font-size:14px;font-weight:700;margin-bottom:2px">Normal fiyat</span><span style="font-size:26px;font-weight:800;color:#c2cede;text-decoration:line-through;text-decoration-thickness:2px">5.500 TL</span></div><div class="amount">3.990 <span style="font-size:22px">TL</span></div><p style="margin:4px 0 0;font-size:13px;font-weight:800;color:#bce8cf">Lansmana özel · Tek sefer öde</p><p class="muted">OynaBak standı ve ilk kurulum pakete dahildir. İşletmeye özel ek geliştirmeler ayrıca görüşülür.</p></div><div><ul><li>İşletmene özel müşteri ekranı</li><li>Genişleyen hazır oyun kütüphanesi</li><li>Google değerlendirme yönlendirmesi</li><li>İşletme paneli ve tek QR + işletme kodu sistemi</li><li>Kullanım ve oyun istatistikleri</li><li>Kurulum ve ilk işletme ayarları</li></ul><a class="btn coral" target="_blank" rel="noopener noreferrer" href="${wa('Merhaba, OynaBak 3.990 TL lansman fiyatlı tek seferlik işletme paketi hakkında bilgi almak istiyorum.')}">Lansman fiyatından iletişime geç ↗</a><p class="muted" style="font-size:13px;margin-top:14px">Online ödeme alınmaz. Aktivasyon, ödeme kontrolünden sonra tarafımızdan yapılır. Paket yıllık abonelik değildir.</p></div></div></section><section id="faq" class="section faq"><span class="eyebrow">AKLINDA SORU KALMASIN</span><h2>Merak edilenler.</h2><details><summary>Uygulama indirmek gerekiyor mu?</summary><p>Hayır. Oyunlar yalnızca işletmedeki QR kodu okutularak telefonun tarayıcısında açılır.</p></details><details><summary>Oyunları değiştirebilir miyim?</summary><p>Oyunlar OynaBak yönetimi tarafından eklenir ve işletmelere atanır. İşletmene farklı oyunlar eklenmesini bizden isteyebilirsin.</p></details><details><summary>Oyunlara normal oynabak.com adresinden girilebilir mi?</summary><p>Hayır. Normal site OynaBak’ı tanıtır. Oyun alanı yalnızca geçerli bir işletme QR bağlantısıyla açılır.</p></details><details><summary>Kaç oyun var?</summary><p>Oyun sayısı işletmeye atanan oyun kütüphanesine göre değişir. Yeni oyunlar yönetim panelinden eklenip seçili işletmelere yayınlanabilir.</p></details><details><summary>QR kodunu nereye koyacağım?</summary><p>OynaBak paketiyle birlikte QR kodunun yer aldığı hazır stand verilir. İşletme, standı masa üstüne, kasa yanına veya müşterilerin kolayca görebileceği uygun bir alana yerleştirebilir. Ekstra bir QR baskısı hazırlaman gerekmez.</p></details><details><summary>Her işletme ayrı bir hesap mı kullanır?</summary><p>Evet. Onaylanan hesap yalnızca kendisine atanmış işletmeyi yönetebilir. Müşteriler ise QR bağlantısıyla oyun ekranını açar.</p></details><details><summary>İnternet gerekiyor mu?</summary><p>Evet. Giriş, işletme bilgilerinin alınması ve oyunların yüklenmesi için internet bağlantısı gerekir.</p></details><details><summary>Ödeme yıllık mı?</summary><p>Hayır. OynaBak İşletme Paketi tek seferlik ödeme modelindedir. Normal fiyat 5.500 TL, lansmana özel güncel fiyat 3.990 TL'dir. OynaBak standı ve ilk kurulum pakete dahildir. İşletmeye özel ek geliştirmeler ayrıca fiyatlandırılabilir.</p></details></section></div>`}
+function home(){document.documentElement.style.setProperty('--accent','#ff6a00');$('#app').innerHTML=`<div class="wrap"><section class="hero"><div><span class="pill">Bir QR. Bir mola. Biraz eğlence.</span><h1>Bekleme anını<br><span>güzel bir anıya</span><br>dönüştür.</h1><p class="lead muted">Masada kahveni beklerken, antrenmana ara verirken… OynaBak ile işletmendeki küçük molalara oyun kat.</p><div class="row"><a class="btn coral" href="#pricing">İşletmem için keşfet ↗</a><a class="btn light" href="#features">Nasıl çalışır?</a></div><p class="muted" style="font-size:13px;margin-top:18px"><b>Oyunlar yalnızca işletmedeki QR kodu okutulduğunda açılır.</b><br>Uygulama indirmeden · Telefonun tarayıcısında</p></div><div class="phone"><div class="dot"></div><span class="eyebrow">MÜŞTERİ DENEYİMİ</span><h2>Tek QR.<br>Üç seçenek.</h2><div class="tile orange"><strong>▶ Oyun Oyna</strong><small>İşletmedeki oyun alanına doğrudan geç.</small></div><div class="tile blue"><strong>☰ Menüyü Gör</strong><small>Ürünleri ve güncel fiyatları telefondan incele.</small></div><div class="tile green"><strong>★ İşletmeyi değerlendir</strong><small>Google değerlendirme sayfasına geç.</small></div></div></section><section id="features" class="section"><span class="eyebrow">İŞLETMENE KÜÇÜK BİR DOKUNUŞ</span><h2>Sen işine bak.<br>Molaları bize bırak.</h2><div class="grid"><div class="card"><span class="icon">🎲</span><h3>Oynanacak bir şey var.</h3><p class="muted">Genişleyen oyun kütüphanesiyle müşterilerine tek kişilik, iki kişilik ve grupça oynanabilen keyifli molalar sun.</p></div><div class="card"><span class="icon">☰</span><h3>Dijital menün de aynı QR’da.</h3><p class="muted">Ürünlerini, fiyatlarını, kategorilerini ve öne çıkan ürünlerini müşterilerine tek ekrandan göster.</p></div><div class="card"><span class="icon">★</span><h3>Görüşleri seninle kalsın.</h3><p class="muted">Müşterini işletmenin Google değerlendirme sayfasına yönlendir. Oyun sonunda değerlendirme ekranı da gösterilir.</p></div><div class="card"><span class="icon">📊</span><h3>Ne kadar kullanılıyor, gör.</h3><p class="muted">QR açılışlarını, oyunları, menü açılışlarını, kategori ilgisini ve değerlendirme tıklamalarını panelden takip et.</p></div></div></section><section class="section"><div class="grid"><div><span class="number">01 / KURULUM</span><h3>İşletmeni hazırlayalım.</h3><p class="muted">İşletme bilgilerini, Google değerlendirme bağlantını ve dijital menünü ekleyelim.</p></div><div><span class="number">02 / QR KOD</span><h3>Tek QR’ı görünür bir yere koy.</h3><p class="muted">Kafede masa üstüne, spor salonunda dinlenme alanına veya mağazada müşterinin kolayca görebileceği bir noktaya.</p></div><div><span class="number">03 / KULLAN</span><h3>Müşterin QR’ı okutsun.</h3><p class="muted">Ekranda yalnızca Oyun Oyna, Menüyü Gör ve İşletmeyi Puanla seçenekleri çıkar. Müşteri istediği bölüme tek dokunuşla geçer.</p></div></div></section><section id="pricing" class="section"><div class="price"><div><span class="pill" style="color:#174631">Lansmana özel fiyat</span><h2>İşletmene eğlenceli<br>bir başlangıç.</h2><p class="muted">OynaBak İşletme Paketi · Tek seferlik ödeme · Yıllık ücret yok.</p><div style="margin:18px 0 4px"><span style="display:block;color:#c2cede;font-size:14px;font-weight:700;margin-bottom:2px">Normal fiyat</span><span style="font-size:26px;font-weight:800;color:#c2cede;text-decoration:line-through;text-decoration-thickness:2px">5.500 TL</span></div><div class="amount">3.990 <span style="font-size:22px">TL</span></div><p style="margin:4px 0 0;font-size:13px;font-weight:800;color:#bce8cf">Lansmana özel · Tek sefer öde</p><p class="muted">OynaBak standı ve ilk kurulum pakete dahildir. İşletmeye özel ek geliştirmeler ayrıca görüşülür.</p></div><div><ul><li>İşletmene özel 3 seçenekli müşteri ekranı</li><li>Genişleyen hazır oyun kütüphanesi</li><li>Dijital menü, kategori ve öne çıkan ürün sistemi</li><li>Oyun sonu + ana ekrandan Google değerlendirme yönlendirmesi</li><li>İşletme paneli ve tek QR + işletme kodu sistemi</li><li>QR, oyun, menü ve değerlendirme analitiği</li><li>Kurulum ve ilk işletme ayarları</li></ul><a class="btn coral" target="_blank" rel="noopener noreferrer" href="${wa('Merhaba, OynaBak 3.990 TL lansman fiyatlı tek seferlik işletme paketi hakkında bilgi almak istiyorum.')}">Lansman fiyatından iletişime geç ↗</a><p class="muted" style="font-size:13px;margin-top:14px">Online ödeme alınmaz. Aktivasyon, ödeme kontrolünden sonra tarafımızdan yapılır. Paket yıllık abonelik değildir.</p></div></div></section><section id="faq" class="section faq"><span class="eyebrow">AKLINDA SORU KALMASIN</span><h2>Merak edilenler.</h2><details><summary>Uygulama indirmek gerekiyor mu?</summary><p>Hayır. Oyunlar yalnızca işletmedeki QR kodu okutularak telefonun tarayıcısında açılır.</p></details><details><summary>Oyunları değiştirebilir miyim?</summary><p>Oyunlar OynaBak yönetimi tarafından eklenir ve işletmelere atanır. İşletmene farklı oyunlar eklenmesini bizden isteyebilirsin.</p></details><details><summary>Dijital menü var mı?</summary><p>Evet. İşletme panelinden kategori, ürün, açıklama ve fiyat ekleyebilir; ürünleri menüde gösterebilir, tükendi olarak işaretleyebilir ve öne çıkan ürün seçebilir. Müşteri aynı QR ekranından menüye ulaşır.</p></details><details><summary>Oyunlara normal oynabak.com adresinden girilebilir mi?</summary><p>Hayır. Normal site OynaBak’ı tanıtır. Oyun alanı yalnızca geçerli bir işletme QR bağlantısıyla açılır.</p></details><details><summary>Kaç oyun var?</summary><p>Oyun sayısı işletmeye atanan oyun kütüphanesine göre değişir. Yeni oyunlar yönetim panelinden eklenip seçili işletmelere yayınlanabilir.</p></details><details><summary>QR kodunu nereye koyacağım?</summary><p>OynaBak paketiyle birlikte QR kodunun yer aldığı hazır stand verilir. İşletme, standı masa üstüne, kasa yanına veya müşterilerin kolayca görebileceği uygun bir alana yerleştirebilir. Ekstra bir QR baskısı hazırlaman gerekmez.</p></details><details><summary>Her işletme ayrı bir hesap mı kullanır?</summary><p>Evet. Onaylanan hesap yalnızca kendisine atanmış işletmeyi yönetebilir. Müşteriler ise QR bağlantısıyla oyun ekranını açar.</p></details><details><summary>İnternet gerekiyor mu?</summary><p>Evet. Giriş, işletme bilgilerinin alınması ve oyunların yüklenmesi için internet bağlantısı gerekir.</p></details><details><summary>Ödeme yıllık mı?</summary><p>Hayır. OynaBak İşletme Paketi tek seferlik ödeme modelindedir. Normal fiyat 5.500 TL, lansmana özel güncel fiyat 3.990 TL'dir. OynaBak standı ve ilk kurulum pakete dahildir. İşletmeye özel ek geliştirmeler ayrıca fiyatlandırılabilir.</p></details></section></div>`}
 
 function qrOnlyPage(){
   document.documentElement.style.setProperty('--accent','#ff6a00');
@@ -6315,7 +6444,6 @@ async function customer(demo,seq){
           <div class="customer-entry-grid">
 
             <button type="button" class="entry-choice entry-games" data-action="customer-games">
-              <span class="entry-number">01</span>
               <span class="entry-icon">
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M8 5v14l11-7z" fill="currentColor"/>
@@ -6330,7 +6458,6 @@ async function customer(demo,seq){
             </button>
 
             <button type="button" class="entry-choice entry-menu" data-action="menu-open">
-              <span class="entry-number">02</span>
               <span class="entry-icon">
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M5 6h14M5 12h14M5 18h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
@@ -6345,7 +6472,6 @@ async function customer(demo,seq){
             </button>
 
             <button type="button" class="entry-choice entry-review" data-action="review">
-              <span class="entry-number">03</span>
               <span class="entry-icon">
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                   <path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 3z" fill="currentColor"/>
