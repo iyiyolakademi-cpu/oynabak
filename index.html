@@ -4826,6 +4826,12 @@ function finishOnce(payload){
 function normalizeText(v){
   return String(v||'')
     .toLocaleLowerCase('tr-TR')
+    .replace(/ı/g,'i')
+    .replace(/ş/g,'s')
+    .replace(/ç/g,'c')
+    .replace(/ğ/g,'g')
+    .replace(/ö/g,'o')
+    .replace(/ü/g,'u')
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g,'')
     .replace(/\s+/g,' ')
@@ -4839,28 +4845,36 @@ function isVisible(el){
   return r.width>0&&r.height>0;
 }
 function terminalTextFound(){
-  if(!hasInteraction||finishSent||Date.now()-startedAt<2200||!document.body)return false;
-  const txt=normalizeText(document.body.innerText||'').slice(-12000);
+  if(!hasInteraction||finishSent||Date.now()-startedAt<1400||!document.body)return false;
+  const txt=normalizeText(document.body.innerText||'').slice(-16000);
 
-  // Yalnızca gerçek oyun sonuna işaret eden güçlü ifadeler.
   const strong=[
-    'oyun bitti','oyun tamamlandi','mac bitti','mac tamamlandi',
-    'game over','match over','victory','you win','you won',
+    'oyun bitti','oyun tamamlandi','oyun sona erdi','oyun sonu',
+    'mac bitti','mac tamamlandi','mac sona erdi','mac sonucu',
+    'game over','match over','game finished','match finished',
+    'victory','you win','you won',
     'tebrikler kazandin','tebrikler kazandiniz','sen kazandin',
-    'oyunu kazandi','macı kazandi','maci kazandi'
+    'oyunu kazandi','maci kazandi',
+    'sure doldu','zaman doldu','hamle kalmadi','final skor','final score'
   ];
   if(strong.some(k=>txt.includes(k)))return true;
 
-  // Kazanan/berabere metni varsa yanında tekrar/yeni oyun aksiyonu da aranır.
-  const outcome=/\b(kazandi|kazanan|berabere|winner|draw)\b/.test(txt);
+  // Bir kazanan / beraberlik sonucu görünüyorsa bunu da oyun sonu kabul et.
+  const outcome=/(^|\s)(kazandi|kazanan|berabere|winner|draw|galip)(\s|$|[!:.])/m.test(txt);
   if(outcome){
-    const controls=[...document.querySelectorAll('button,a,[role="button"]')]
+    const controls=[...document.querySelectorAll('button,a,[role="button"],input[type="button"],input[type="submit"]')]
       .filter(isVisible)
-      .map(el=>normalizeText(el.innerText||el.textContent||el.getAttribute('aria-label')||''));
-    const hasRestart=controls.some(t=>
-      /tekrar oyna|yeniden oyna|yeni oyun|restart|play again|new game|basa don|ana menu/.test(t)
+      .map(el=>normalizeText(el.innerText||el.textContent||el.value||el.getAttribute('aria-label')||''));
+    const hasEndAction=controls.some(t=>
+      /tekrar oyna|yeniden oyna|yeni oyun|restart|play again|new game|basa don|ana menu|menuye don|oyunlara don/.test(t)
     );
-    if(hasRestart)return true;
+    if(hasEndAction)return true;
+
+    // Sonuç ekranı/modal görünür durumdaysa yeniden-oyna butonu olmasa da yakala.
+    const visibleResult=[...document.querySelectorAll(
+      '[class*="winner"],[id*="winner"],[class*="gameover"],[id*="gameover"],[class*="game-over"],[id*="game-over"],[class*="result"],[id*="result"],dialog,[role="dialog"]'
+    )].some(el=>isVisible(el)&&/(kazandi|kazanan|berabere|winner|draw|galip)/.test(normalizeText(el.innerText||el.textContent||'')));
+    if(visibleResult)return true;
   }
   return false;
 }
@@ -4891,9 +4905,9 @@ document.addEventListener('click',function(e){
   const t=normalizeText(el.innerText||el.textContent||el.getAttribute('aria-label')||'');
   // Oyun kendi son ekranını gösterip yeniden başlatma butonuna basıldığında
   // puanlama ekranını kaçırmamak için son güvenlik katmanı.
-  if(/tekrar oyna|yeniden oyna|restart|play again/.test(t)){
+  if(/tekrar oyna|yeniden oyna|yeni oyun|restart|play again|new game/.test(t)){
     const page=normalizeText(document.body?.innerText||'');
-    if(/oyun bitti|oyun tamamlandi|game over|kazandi|kazanan|berabere|winner|victory|you win|you won/.test(page)){
+    if(/oyun bitti|oyun tamamlandi|oyun sona erdi|oyun sonu|mac bitti|game over|kazandi|kazanan|berabere|winner|victory|you win|you won|draw|galip|sure doldu|zaman doldu/.test(page)){
       finishOnce({auto:true});
     }
   }
@@ -4908,15 +4922,55 @@ addEventListener('load',function(){
 },{once:true});
 
 const nativeAlert=window.alert;
+const nativeConfirm=window.confirm;
+function terminalMessage(message){
+  const t=normalizeText(message);
+  return /oyun bitti|oyun tamamlandi|oyun sona erdi|mac bitti|mac sonucu|game over|match over|kazandi|kazandiniz|kazanan|you win|you won|victory|berabere|winner|draw|sure doldu|zaman doldu/.test(t);
+}
 window.alert=function(message){
   try{
-    const t=normalizeText(message);
-    if(hasInteraction&&/oyun bitti|oyun tamamlandi|game over|kazandi|kazandiniz|you win|you won|victory|berabere/.test(t)){
-      setTimeout(()=>finishOnce({auto:true}),0);
-    }
+    if(hasInteraction&&terminalMessage(message))setTimeout(()=>finishOnce({auto:true}),0);
   }catch(_){}
   return nativeAlert.apply(window,arguments);
 };
+window.confirm=function(message){
+  try{
+    if(hasInteraction&&terminalMessage(message))setTimeout(()=>finishOnce({auto:true}),0);
+  }catch(_){}
+  return nativeConfirm.apply(window,arguments);
+};
+
+const wrappedEndFns=new WeakSet();
+function wrapCommonEndFunctions(){
+  if(finishSent)return;
+  const names=[
+    'endGame','finishGame','gameOver','endMatch','finishMatch',
+    'completeGame','showGameOver','showWinner','declareWinner',
+    'finish','endgame','gameover'
+  ];
+  names.forEach(name=>{
+    try{
+      const fn=window[name];
+      if(typeof fn!=='function'||wrappedEndFns.has(fn))return;
+      const wrapped=function(){
+        const result=fn.apply(this,arguments);
+        setTimeout(()=>{
+          try{
+            if(hasInteraction&&!finishSent)finishOnce({auto:true,detectedBy:name});
+          }catch(_){}
+        },120);
+        return result;
+      };
+      wrappedEndFns.add(wrapped);
+      try{window[name]=wrapped}catch(_){}
+    }catch(_){}
+  });
+}
+addEventListener('load',()=>{
+  wrapCommonEndFunctions();
+  setInterval(wrapCommonEndFunctions,1200);
+},{once:true});
+
 function request(type,payload){
   return new Promise(resolve=>{
     const requestId=String(++requestSeq)+':'+Date.now();
