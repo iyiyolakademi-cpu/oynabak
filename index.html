@@ -2006,6 +2006,137 @@ body.customer-mode #app{
   word-break:break-word;
 }
 
+
+/* =========================================================
+   OynaBak - FINAL 3 SEÇENEK GİRİŞ EKRANI
+   ========================================================= */
+.customer-entry-only{
+  min-height:100dvh;
+  background:
+    radial-gradient(circle at 10% 0%,rgba(176,92,51,.13),transparent 32%),
+    radial-gradient(circle at 100% 100%,rgba(50,28,19,.07),transparent 33%),
+    linear-gradient(145deg,#f8f3ec 0%,#f2ebe1 54%,#ece2d5 100%);
+}
+.customer-entry-shell{
+  width:min(980px,100%);
+  min-height:100dvh;
+  margin:0 auto;
+  padding:clamp(18px,4vw,38px);
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+.customer-entry-brand{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  margin-bottom:22px;
+}
+.customer-entry-brand img{
+  width:42px;height:42px;object-fit:contain;border-radius:13px;
+  background:#fff;box-shadow:0 9px 24px rgba(47,31,22,.10);
+}
+.customer-entry-brand div{display:flex;flex-direction:column;align-items:flex-start}
+.customer-entry-brand span{
+  color:#211713;font-size:15px;line-height:1;font-weight:950;letter-spacing:-.3px
+}
+.customer-entry-brand small{
+  margin-top:4px;color:#927764;font-size:8px;line-height:1;
+  font-weight:850;letter-spacing:.65px;text-transform:uppercase
+}
+.customer-entry{width:100%}
+.customer-entry-grid{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px
+}
+.entry-choice{
+  position:relative;min-height:330px;padding:22px;overflow:hidden;border:0;
+  border-radius:27px;display:flex;flex-direction:column;align-items:flex-start;
+  text-align:left;cursor:pointer;box-shadow:0 22px 55px rgba(44,28,20,.11);
+  transform:translateY(0);transition:transform .18s ease,box-shadow .18s ease;
+  -webkit-tap-highlight-color:transparent
+}
+.entry-choice:active{transform:scale(.985)}
+@media(hover:hover){
+  .entry-choice:hover{transform:translateY(-5px);box-shadow:0 28px 65px rgba(44,28,20,.15)}
+}
+.entry-games{
+  color:#fff;
+  background:radial-gradient(circle at 90% 8%,rgba(255,144,73,.22),transparent 24%),
+             linear-gradient(155deg,#171311,#2f211b 72%,#3b2419)
+}
+.entry-menu{
+  color:#fff;
+  background:radial-gradient(circle at 92% 4%,rgba(255,219,171,.20),transparent 25%),
+             linear-gradient(155deg,#713a29,#a75d3b 72%,#b76b43)
+}
+.entry-review{
+  color:#2e2019;border:1px solid rgba(113,71,46,.10);
+  background:radial-gradient(circle at 90% 4%,rgba(169,103,61,.12),transparent 25%),
+             linear-gradient(155deg,#fffaf2,#ede0cf)
+}
+.entry-number{
+  position:absolute;top:18px;right:19px;font-size:9px;font-weight:950;
+  letter-spacing:1px;opacity:.45
+}
+.entry-icon{
+  width:54px;height:54px;border-radius:17px;display:grid;place-items:center;
+  background:rgba(255,255,255,.11);box-shadow:inset 0 0 0 1px rgba(255,255,255,.07)
+}
+.entry-review .entry-icon{color:#fff;background:#6e3928;box-shadow:none}
+.entry-icon svg{width:23px;height:23px}
+.entry-copy{margin-top:auto;display:flex;flex-direction:column;align-items:flex-start}
+.entry-copy small{
+  margin-bottom:8px;font-size:7px;font-weight:950;letter-spacing:1.35px;opacity:.62
+}
+.entry-copy strong{
+  font-size:clamp(24px,3vw,34px);line-height:.98;font-weight:950;letter-spacing:-1.2px
+}
+.entry-copy em{
+  margin-top:10px;max-width:210px;font-size:10px;line-height:1.5;font-style:normal;opacity:.67
+}
+.entry-arrow{margin-top:24px;font-size:22px;font-weight:500;opacity:.9}
+.customer-games-view{width:100%;animation:obViewIn .18s ease-out}
+.customer-games-view[hidden]{display:none!important}
+.customer-games-top{
+  display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;margin-bottom:18px
+}
+.customer-games-top>div{min-width:0}
+.customer-games-top small{color:#9c6c50;font-size:8px;font-weight:950;letter-spacing:1.3px}
+.customer-games-top h1{
+  margin:3px 0 0;color:#211713;font-size:clamp(29px,5vw,45px);
+  line-height:1;letter-spacing:-1.7px
+}
+.games-back-btn{
+  height:40px;padding:0 14px;border:1px solid rgba(98,69,51,.13);border-radius:12px;
+  background:rgba(255,255,255,.72);color:#493229;font-size:10px;font-weight:900;cursor:pointer
+}
+.games-back-btn span{margin-right:4px}
+.games-count{
+  padding:7px 10px;border-radius:999px;background:#2d211b;color:#fff;
+  font-size:8px;font-weight:900;white-space:nowrap
+}
+@keyframes obViewIn{
+  from{opacity:0;transform:translateY(7px)}
+  to{opacity:1;transform:none}
+}
+@media(max-width:760px){
+  .customer-entry-shell{justify-content:flex-start;padding:18px 14px 22px}
+  .customer-entry-brand{margin:4px 0 16px}
+  .customer-entry-grid{grid-template-columns:1fr;gap:10px}
+  .entry-choice{min-height:178px;border-radius:22px;padding:18px}
+  .entry-icon{width:45px;height:45px;border-radius:14px}
+  .entry-copy strong{font-size:25px}
+  .entry-copy em{margin-top:6px}
+  .entry-arrow{position:absolute;right:18px;bottom:18px;margin:0}
+  .customer-games-top{grid-template-columns:auto 1fr}
+  .games-count{display:none}
+}
+@media(max-width:430px){
+  .customer-entry-brand img{width:36px;height:36px;border-radius:11px}
+  .entry-choice{min-height:164px}
+}
+
 </style></head><body>
 <header><nav class="wrap"><a class="brand" href="#home" aria-label="OynaBak ana sayfa"><img src="/oynabak-logo.png" alt="OynaBak"></a><div class="links"><a class="desktop" href="#features">Nasıl çalışır?</a><a class="desktop" href="#faq">Merak edilenler</a><a class="btn small light" href="#panel">İşletme Paneli ↗</a></div></nav></header>
 <main id="app"></main><footer><div class="wrap row" style="justify-content:space-between;gap:18px"><div><b>OynaBak · Molana oyun kat.</b><span style="display:block;margin-top:4px">Kafe · Spor salonu · Mağaza</span><span style="display:block;margin-top:4px;color:#7b8797">© 2026 OynaBak · Tüm hakları saklıdır.</span></div><div class="footer-links"><a href="#home">Ana sayfa</a><a href="#privacy">Gizlilik</a><a href="#kvkk">KVKK</a><a href="#terms">Kullanım Koşulları</a><a href="#contact">İletişim</a></div></div></footer><a class="whatsapp" href="https://wa.me/905066403989?text=Merhaba%2C%20OynaBak%20hakk%C4%B1nda%20bilgi%20almak%20istiyorum." target="_blank" rel="noopener noreferrer">WhatsApp'tan sor ↗</a>
@@ -5942,66 +6073,83 @@ async function customer(demo,seq){
   const totalGames=customGames.length;
 
   $('#app').innerHTML=`
-    <div class="customer">
-      <section class="customer-shell">
-        <main class="customer-main">
-          <div class="customer-oynabak-brand">
-            <img src="/oynabak-logo.png" alt="OynaBak">
-            <span>${esc(venue?.name||'OynaBak')}</span>
+    <div class="customer customer-entry-only">
+      <main class="customer-entry-shell">
+
+        <div class="customer-entry-brand">
+          <img src="/oynabak-logo.png" alt="OynaBak">
+          <div>
+            <span>OynaBak</span>
+            <small>${esc(venue?.name||'İşletme')}</small>
           </div>
+        </div>
 
-          <section class="customer-welcome">
-            <span class="customer-welcome-kicker">HOŞ GELDİN</span>
-            <h1>Ne yapmak <span>istersin?</span></h1>
-            <p>Tek QR ile oyunlara, menüye ve işletme değerlendirmesine ulaş.</p>
+        <section id="customerEntry" class="customer-entry">
+          <div class="customer-entry-grid">
 
-            <div class="customer-choice-grid">
-              <button type="button" class="customer-choice games" data-action="customer-games">
-                <span class="choice-no">01</span>
-                <span class="choice-icon">▶</span>
+            <button type="button" class="entry-choice entry-games" data-action="customer-games">
+              <span class="entry-number">01</span>
+              <span class="entry-icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M8 5v14l11-7z" fill="currentColor"/>
+                </svg>
+              </span>
+              <span class="entry-copy">
                 <small>${totalGames} OYUN HAZIR</small>
                 <strong>Oyun Oyna</strong>
-                <em>Arkadaşlarınla hemen başla</em>
-                <b>Oyunlara git →</b>
-              </button>
+                <em>Arkadaşlarınla oyunlara hemen başla.</em>
+              </span>
+              <span class="entry-arrow">→</span>
+            </button>
 
-              <button type="button" class="customer-choice menu" data-action="menu-open">
-                <span class="choice-no">02</span>
-                <span class="choice-icon">≡</span>
+            <button type="button" class="entry-choice entry-menu" data-action="menu-open">
+              <span class="entry-number">02</span>
+              <span class="entry-icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M5 6h14M5 12h14M5 18h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+                </svg>
+              </span>
+              <span class="entry-copy">
                 <small>DİJİTAL MENÜ</small>
                 <strong>Menüyü Gör</strong>
-                <em>Ürün ve güncel fiyatları incele</em>
-                <b>Menüyü aç →</b>
-              </button>
+                <em>Ürünleri ve güncel fiyatları incele.</em>
+              </span>
+              <span class="entry-arrow">→</span>
+            </button>
 
-              <button type="button" class="customer-choice review" data-action="review">
-                <span class="choice-no">03</span>
-                <span class="choice-icon">★</span>
+            <button type="button" class="entry-choice entry-review" data-action="review">
+              <span class="entry-number">03</span>
+              <span class="entry-icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 3z" fill="currentColor"/>
+                </svg>
+              </span>
+              <span class="entry-copy">
                 <small>GOOGLE</small>
                 <strong>İşletmeyi Puanla</strong>
-                <em>Deneyimini birkaç saniyede paylaş</em>
-                <b>Değerlendir ↗</b>
-              </button>
+                <em>Deneyimini birkaç saniyede paylaş.</em>
+              </span>
+              <span class="entry-arrow">↗</span>
+            </button>
+
+          </div>
+        </section>
+
+        <section id="gamesView" class="customer-games-view" hidden>
+          <div class="customer-games-top">
+            <button type="button" class="games-back-btn" data-action="customer-home">
+              <span>←</span> Geri
+            </button>
+            <div>
+              <small>OYUNLAR</small>
+              <h1>Bugün ne oynuyoruz?</h1>
             </div>
-          </section>
+            <span class="games-count">${totalGames} oyun</span>
+          </div>
+          <div id="gameList"></div>
+        </section>
 
-          <section id="gamesArea" class="customer-games-area">
-            <section class="customer-intro">
-              <div>
-                <span class="customer-kicker">Oyunlar</span>
-                <h2 class="customer-title">Bugün ne <span>oynuyoruz?</span></h2>
-                <p class="customer-subtitle">Oyunu seç, ek uygulama indirmeden doğrudan başla.</p>
-              </div>
-              <div class="customer-status">
-                <div class="customer-count"><b>${totalGames}</b><span>oyun hazır</span></div>
-              </div>
-            </section>
-            <div id="gameList"></div>
-          </section>
-
-          <p class="customer-brand-note">OynaBak · Tek QR, daha iyi deneyim</p>
-        </main>
-      </section>
+      </main>
     </div>`;
 
   listGames();
@@ -6171,9 +6319,24 @@ if(menuCat){
 if(a==='merchant-review-settings'){venueForm(me?.venue||{},true);return}
 if(a==='merchant-games'){merchantGamesModal();return}
 if(a==='customer-games'){
-  trackEvent('games_open').catch(()=>{});
-  const target=$('#gamesArea');
-  if(target)target.scrollIntoView({behavior:'smooth',block:'start'});
+  await trackEvent('games_open');
+  const entry=$('#customerEntry');
+  const games=$('#gamesView');
+  if(entry)entry.hidden=true;
+  if(games){
+    games.hidden=false;
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  return
+}
+if(a==='customer-home'){
+  const entry=$('#customerEntry');
+  const games=$('#gamesView');
+  if(games)games.hidden=true;
+  if(entry){
+    entry.hidden=false;
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
   return
 }
 if(a==='menu-open'){await openCustomerMenu();return}
