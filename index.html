@@ -4507,7 +4507,7 @@ function reviewUrl(){
 function reviewUrlSafe(){
   try{return reviewUrl()||''}catch{return ''}
 }
-function openReviewPage(){
+async function openReviewPage(){
   let url='';
   try{url=reviewUrl()}catch(e){
     toast(e.message||'Google değerlendirme bağlantısı geçersiz.');
@@ -4517,7 +4517,7 @@ function openReviewPage(){
     toast('Bu işletme için Google değerlendirme bağlantısı henüz eklenmemiş.');
     return;
   }
-  trackEvent('review_click').catch(()=>{});
+  await trackEvent('review_click');
   try{
     const w=window.open(url,'_blank','noopener,noreferrer');
     if(!w)location.href=url;
@@ -5615,10 +5615,10 @@ function analyticsBars(rows,days){if(!Array.isArray(rows)||!rows.length)return '
 function rankRows(rows,labelFn=x=>x.label){if(!Array.isArray(rows)||!rows.length)return '<div class="analytics-empty">Henüz yeterli veri yok.</div>';const max=Math.max(1,...rows.map(x=>Number(x.count||0)));return `<div class="rank-list">${rows.slice(0,6).map(x=>`<div class="rank-row"><div class="rank-main"><div class="rank-title"><span>${esc(labelFn(x))}</span><span>${Number(x.count||0)}</span></div><div class="rank-track"><div class="rank-fill" style="width:${Math.max(4,Math.round(Number(x.count||0)/max*100))}%"></div></div></div><span class="rank-num">${Math.round(Number(x.count||0)/max*100)}%</span></div>`).join('')}</div>`}
 async function loadAnalytics(id,days){
   try{
-    const data=await rpc('ob_analytics',{vid:String(id),days:Number(days||7)});
+    const data=await rpc('ob_analytics_v3',{vid:String(id),days:Number(days||7)});
     return data&&typeof data==='object'?data:{unavailable:true,error:'Analitik servisi boş yanıt döndürdü.'};
   }catch(e){
-    console.error('[OynaBak Analytics] RPC hatası:',e);
+    console.error('[OynaBak Analytics V3] RPC hatası:',e);
     return {unavailable:true,error:e?.message||String(e)};
   }
 }
@@ -5845,8 +5845,8 @@ function menuPublicHtml(menu=venue?.menu){
     </div>
   </div>`;
 }
-function openCustomerMenu(){
-  trackEvent('menu_open').catch(()=>{});
+async function openCustomerMenu(){
+  await trackEvent('menu_open');
   modal('Menü',menuPublicHtml());
   const m=$('#modal');
   m.classList.add('menu-full');
@@ -5892,7 +5892,7 @@ async function trackEvent(et,{game=null,score=null,key=null}={}){
   const vid=String(venue?.id||qrParams().venueId||'').trim();
   if(!venue||venue.demo||!vid||!db)return false;
   try{
-    const ok=await rpc('ob_event',{
+    const ok=await rpc('ob_event_v3',{
       vid,
       et:String(et||'').trim(),
       t:customerTable(),
@@ -6136,7 +6136,7 @@ document.addEventListener('click',async e=>{const b=e.target.closest('[data-acti
 const menuCat=b.dataset.menuCategory;
 if(menuCat){
   const menuCatName=String(b.dataset.menuCategoryName||menuCat);
-  trackEvent('menu_category',{game:menuCatName}).catch(()=>{});
+  await trackEvent('menu_category',{game:menuCatName});
   const root=$('#modal');
   const buttons=[...root.querySelectorAll('[data-menu-category]')];
   const sections=[...root.querySelectorAll('[data-menu-section]')];
@@ -6176,7 +6176,7 @@ if(a==='customer-games'){
   if(target)target.scrollIntoView({behavior:'smooth',block:'start'});
   return
 }
-if(a==='menu-open'){openCustomerMenu();return}
+if(a==='menu-open'){await openCustomerMenu();return}
 if(a==='menu-manage'){await menuManager(id||me?.venue?.id);return}
 if(a==='menu-add-category'){const box=$('#menuAdminCategories');box?.insertAdjacentHTML('beforeend',menuAdminCategoryHtml({id:menuId('cat'),name:'Yeni Kategori',items:[]}));return}
 if(a==='menu-remove-category'){b.closest('[data-menu-cat]')?.remove();return}
