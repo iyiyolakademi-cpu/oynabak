@@ -4336,9 +4336,109 @@ function gameDisplayName(key,extraGames=[]){
 }
 function gameBridgeCode(){return `<script>(function(){'use strict';
 const SOURCE='${GAME_BRIDGE_SOURCE}',HOST='${GAME_BRIDGE_HOST}',VERSION=${GAME_BRIDGE_VERSION};
-let context=null,requestSeq=0;
+let context=null,requestSeq=0,finishSent=false,hasInteraction=false,startedAt=Date.now();
 const initHandlers=[],pending=new Map();
 function send(type,payload){parent.postMessage({source:SOURCE,version:VERSION,type:type,payload:payload||{}},'*')}
+function finishOnce(payload){
+  if(finishSent)return false;
+  finishSent=true;
+  send('finish',payload||{});
+  return true;
+}
+function normalizeText(v){
+  return String(v||'')
+    .toLocaleLowerCase('tr-TR')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g,'')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+function isVisible(el){
+  if(!el||el.nodeType!==1)return false;
+  const s=getComputedStyle(el);
+  if(s.display==='none'||s.visibility==='hidden'||Number(s.opacity)===0)return false;
+  const r=el.getBoundingClientRect();
+  return r.width>0&&r.height>0;
+}
+function terminalTextFound(){
+  if(!hasInteraction||finishSent||Date.now()-startedAt<2200||!document.body)return false;
+  const txt=normalizeText(document.body.innerText||'').slice(-12000);
+
+  // Yalnızca gerçek oyun sonuna işaret eden güçlü ifadeler.
+  const strong=[
+    'oyun bitti','oyun tamamlandi','mac bitti','mac tamamlandi',
+    'game over','match over','victory','you win','you won',
+    'tebrikler kazandin','tebrikler kazandiniz','sen kazandin',
+    'oyunu kazandi','macı kazandi','maci kazandi'
+  ];
+  if(strong.some(k=>txt.includes(k)))return true;
+
+  // Kazanan/berabere metni varsa yanında tekrar/yeni oyun aksiyonu da aranır.
+  const outcome=/\b(kazandi|kazanan|berabere|winner|draw)\b/.test(txt);
+  if(outcome){
+    const controls=[...document.querySelectorAll('button,a,[role="button"]')]
+      .filter(isVisible)
+      .map(el=>normalizeText(el.innerText||el.textContent||el.getAttribute('aria-label')||''));
+    const hasRestart=controls.some(t=>
+      /tekrar oyna|yeniden oyna|yeni oyun|restart|play again|new game|basa don|ana menu/.test(t)
+    );
+    if(hasRestart)return true;
+  }
+  return false;
+}
+let detectTimer=0;
+function scheduleFinishDetect(){
+  clearTimeout(detectTimer);
+  detectTimer=setTimeout(()=>{
+    try{
+      if(terminalTextFound())finishOnce({auto:true});
+    }catch(_){}
+  },420);
+}
+function markInteraction(){
+  if(!hasInteraction){
+    hasInteraction=true;
+    startedAt=Date.now();
+    send('start',{});
+  }
+}
+addEventListener('pointerdown',markInteraction,{capture:true,passive:true});
+addEventListener('keydown',markInteraction,{capture:true});
+addEventListener('touchstart',markInteraction,{capture:true,passive:true});
+
+document.addEventListener('click',function(e){
+  if(finishSent||!hasInteraction)return;
+  const el=e.target&&e.target.closest?e.target.closest('button,a,[role="button"]'):null;
+  if(!el)return;
+  const t=normalizeText(el.innerText||el.textContent||el.getAttribute('aria-label')||'');
+  // Oyun kendi son ekranını gösterip yeniden başlatma butonuna basıldığında
+  // puanlama ekranını kaçırmamak için son güvenlik katmanı.
+  if(/tekrar oyna|yeniden oyna|restart|play again/.test(t)){
+    const page=normalizeText(document.body?.innerText||'');
+    if(/oyun bitti|oyun tamamlandi|game over|kazandi|kazanan|berabere|winner|victory|you win|you won/.test(page)){
+      finishOnce({auto:true});
+    }
+  }
+},true);
+
+addEventListener('load',function(){
+  try{
+    const obs=new MutationObserver(scheduleFinishDetect);
+    obs.observe(document.documentElement,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['hidden','class','style','aria-hidden']});
+    scheduleFinishDetect();
+  }catch(_){}
+},{once:true});
+
+const nativeAlert=window.alert;
+window.alert=function(message){
+  try{
+    const t=normalizeText(message);
+    if(hasInteraction&&/oyun bitti|oyun tamamlandi|game over|kazandi|kazandiniz|you win|you won|victory|berabere/.test(t)){
+      setTimeout(()=>finishOnce({auto:true}),0);
+    }
+  }catch(_){}
+  return nativeAlert.apply(window,arguments);
+};
 function request(type,payload){
   return new Promise(resolve=>{
     const requestId=String(++requestSeq)+':'+Date.now();
@@ -4357,7 +4457,7 @@ window.OynaBak={
   ready(){send('ready')},
   start(data){send('start',data||{})},
   score(value,data){send('score',Object.assign({},data||{},{score:value}))},
-  finish(data){send('finish',data||{})},
+  finish(data){finishOnce(data||{})},
   expand(){send('expand')},
   collapse(){send('collapse')},
   fullscreen(){return requestFS()},
@@ -4374,6 +4474,9 @@ addEventListener('message',function(event){
   if(!d||d.source!==HOST||d.version!==VERSION)return;
   if(d.type==='init'){
     context=d.context||{};
+    finishSent=false;
+    hasInteraction=false;
+    startedAt=Date.now();
     while(initHandlers.length){try{initHandlers.shift()(context)}catch(e){}}
     return;
   }
@@ -4385,6 +4488,9 @@ addEventListener('message',function(event){
 });
 window.OynaBak.ready();
 })();<\/script>`}
+// Evrensel oyun-sonu köprüsü:
+ // OynaBak.finish kullanan oyunları doğrudan,
+ // kullanmayan eski/özel oyunları ise görünür bitiş metni ve yeniden-oyna durumundan yakalar.
 function normalizeGameDocument(code,bridge){
   let src=String(code??'').replace(/^\uFEFF/,'').trim();
 
