@@ -154,6 +154,44 @@ body.customer-mode #app{
   padding:30px 20px 34px;
   overflow-x:hidden;
 }
+
+.customer-oynabak-brand{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:16px;
+  padding:7px 11px 7px 8px;
+  border:1px solid rgba(255,112,91,.14);
+  border-radius:14px;
+  background:rgba(255,255,255,.80);
+  box-shadow:0 8px 22px rgba(25,20,17,.07);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+}
+.customer-oynabak-brand img{
+  width:88px;
+  height:auto;
+  display:block;
+  object-fit:contain;
+}
+.customer-oynabak-brand span{
+  color:#6f6f6f;
+  font-size:8px;
+  font-weight:850;
+  letter-spacing:.25px;
+  white-space:nowrap;
+}
+@media(max-width:560px){
+  .customer-oynabak-brand{
+    margin-bottom:13px;
+    padding:6px 9px 6px 7px;
+    border-radius:12px;
+    gap:8px;
+  }
+  .customer-oynabak-brand img{width:76px}
+  .customer-oynabak-brand span{font-size:7px}
+}
+
 .customer-intro{
   display:grid;
   grid-template-columns:minmax(0,1fr) auto;
@@ -598,6 +636,43 @@ body.customer-mode #app{
 }
 .game-card:nth-child(3n+2):before{background:linear-gradient(90deg,#4b8cff,#68d7ff)}
 .game-card:nth-child(3n+3):before{background:linear-gradient(90deg,#8c5cff,#d572ff)}
+
+.priority-game{
+  border-color:rgba(255,112,91,.32);
+  box-shadow:0 14px 30px rgba(255,92,65,.13);
+}
+.priority-game:before{
+  height:4px;
+  background:linear-gradient(90deg,#ff5f49,#ffad43,#ffd15b);
+}
+.priority-badge{
+  position:absolute;
+  z-index:5;
+  top:10px;
+  right:10px;
+  padding:5px 7px;
+  border-radius:999px;
+  background:rgba(255,255,255,.94);
+  color:#d94936;
+  font-size:6px;
+  line-height:1;
+  font-weight:950;
+  letter-spacing:.8px;
+  box-shadow:0 5px 14px rgba(0,0,0,.14);
+}
+.priority-featured{
+  border-color:rgba(255,104,72,.42);
+  box-shadow:0 22px 48px rgba(255,94,61,.18);
+}
+@media(max-width:560px){
+  .priority-badge{
+    top:8px;
+    right:8px;
+    padding:4px 6px;
+    font-size:5.5px;
+  }
+}
+
 .game-card:hover{
   transform:translateY(-3px);
   border-color:rgba(255,112,91,.34);
@@ -1198,6 +1273,23 @@ body.customer-mode #app{
 .venue-code-actions button{border:1px solid #dbe1e8;background:#fff;border-radius:9px;padding:7px 9px;font-size:10px;font-weight:900}
 .venue-code-actions button.danger-lite{color:#9b2c22;border-color:#efceca;background:#fff}
 @media(max-width:520px){.venue-code-inline{align-items:flex-start;flex-direction:column}.venue-code-actions{width:100%;justify-content:flex-start}.code-entry-logo{width:170px}}
+
+
+@media(max-width:560px){
+  .customer-main{
+    width:min(100% - 22px,1180px);
+    padding-top:24px;
+  }
+  .customer-main:before{
+    inset:8px -2px auto;
+    height:190px;
+    border-radius:22px;
+  }
+  .library-tools{
+    padding:12px;
+    border-radius:15px;
+  }
+}
 
 </style></head><body>
 <header><nav class="wrap"><a class="brand" href="#home" aria-label="OynaBak ana sayfa"><img src="/oynabak-logo.png" alt="OynaBak"></a><div class="links"><a class="desktop" href="#features">Nasıl çalışır?</a><a class="desktop" href="#faq">Merak edilenler</a><a class="btn small light" href="#panel">İşletme Paneli ↗</a></div></nav></header>
@@ -4638,6 +4730,11 @@ async function customer(demo,seq){
     <div class="customer">
       <section class="customer-shell">
 <main class="customer-main">
+          <div class="customer-oynabak-brand">
+            <img src="/oynabak-logo.png" alt="OynaBak">
+            <span>OynaBak Oyun Alanı</span>
+          </div>
+
           <section class="customer-intro">
             <div>
               <span class="customer-kicker">Oyunlar</span>
@@ -4702,7 +4799,19 @@ function listGames(){
     });
   });
 
-  const visible=items;
+  const gamePriority=name=>{
+    const n=normalizeGameName(name||'');
+    if(n.includes('tabu'))return 0;
+    if(n.includes('bilardo'))return 1;
+    if(n.includes('tavla'))return 2;
+    if(n.includes('satranç')||n.includes('satranc'))return 3;
+    if(n.includes('gol arena')||(n.includes('gol')&&n.includes('arena')))return 4;
+    return 99;
+  };
+
+  const visible=items
+    .map((item,index)=>({...item,_originalIndex:index,_priority:gamePriority(item.name)}))
+    .sort((a,b)=>(a._priority-b._priority)||(a._originalIndex-b._originalIndex));
 
   if(!visible.length){
     $('#gameList').innerHTML=`
@@ -4730,9 +4839,11 @@ function listGames(){
       item.time?`<span>${metaIcons.time}${esc(item.time)}</span>`:''
     ].join('');
 
+    const isPriority=item._priority<5;
     return `
-      <button class="game-card" type="button" ${action}>
+      <button class="game-card${isPriority?' priority-game':''}" type="button" ${action}>
         <span class="game-cover">${item.cover}</span>
+        ${isPriority?'<span class="priority-badge">ÖNE ÇIKAN</span>':''}
         <span class="game-card-content">
           <span class="game-card-topline">
             <span>
@@ -4750,7 +4861,7 @@ function listGames(){
     <section class="featured-wrap">
       <div class="section-heading"><h2>Öne çıkan</h2><span>Tek dokunuşla başla</span></div>
 
-      <button class="featured-game" type="button" ${featuredAction}>
+      <button class="featured-game priority-featured" type="button" ${featuredAction}>
         <span class="featured-media">${featured.cover}</span>
         <span class="featured-content">
           <span class="featured-badge">${esc(featured.type)}</span>
