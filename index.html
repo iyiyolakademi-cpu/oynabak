@@ -5051,8 +5051,23 @@ let recoveryFailure=authFragment.has('error')||authLanding.searchParams.has('err
 const configured=Boolean(SUPABASE_URL&&SUPABASE_PUBLISHABLE_KEY);let db=null,initError='';
 try{if(configured){if(!window.supabase)throw Error('Bağlantı kütüphanesi yüklenemedi. İnternet bağlantınızı kontrol edin.');db=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY)}}catch(e){initError=e.message}
 let me=null,adminData=null,tab='venues',venue=null,gameCleanup=()=>{},routeSeq=0,toastTimer,adminGameMedia={};
-let waiterChannel=null,waiterAudioCtx=null,waiterSoundEnabled=false,waiterAlertTimer=null,waiterPollTimer=null,waiterKnownIds=new Set();
+let waiterChannel=null,waiterAudioCtx=null,waiterSoundEnabled=false,waiterAlertTimer=null,waiterPollTimer=null,waiterKnownIds=new Set(),waiterAlarmTimer=null,waiterAlarmActive=false;
 try{waiterSoundEnabled=localStorage.getItem('ob_waiter_sound')==='1'}catch(_){}
+function stopWaiterAlarm(){
+  waiterAlarmActive=false;
+  if(waiterAlarmTimer){clearInterval(waiterAlarmTimer);waiterAlarmTimer=null}
+}
+function startWaiterAlarm(){
+  if(!waiterSoundEnabled)return;
+  stopWaiterAlarm();
+  waiterAlarmActive=true;
+  waiterBeep();
+  // Bekleyen çağrı olduğu sürece yaklaşık her 2.2 saniyede yeniden çal.
+  waiterAlarmTimer=setInterval(()=>{
+    if(!waiterAlarmActive||!waiterSoundEnabled){stopWaiterAlarm();return}
+    waiterBeep();
+  },2200);
+}
 function updateWaiterSoundButton(){
   const btn=document.querySelector('[data-action="waiter-sound"]');
   if(!btn)return;
@@ -5062,6 +5077,7 @@ function updateWaiterSoundButton(){
 async function toggleWaiterSound(){
   if(waiterSoundEnabled){
     waiterSoundEnabled=false;
+    stopWaiterAlarm();
     try{localStorage.setItem('ob_waiter_sound','0')}catch(_){}
     updateWaiterSoundButton();
     toast('Garson çağrı sesi kapatıldı.');
@@ -5075,7 +5091,8 @@ async function toggleWaiterSound(){
     waiterSoundEnabled=true;
     try{localStorage.setItem('ob_waiter_sound','1')}catch(_){}
     updateWaiterSoundButton();
-    waiterBeep();
+    const pending=document.querySelectorAll('#waiterLiveList .waiter-call').length;
+    if(pending)startWaiterAlarm(); else waiterBeep();
     toast('Sesli bildirimler açıldı.');
   }catch(e){
     waiterSoundEnabled=false;
@@ -5482,11 +5499,12 @@ async function loadWaiterCalls({notifyNew=false}={}){
     const fresh=list.filter(c=>c?.id&&!waiterKnownIds.has(String(c.id)));
     if(fresh.length){
       const newest=fresh[fresh.length-1];
-      waiterBeep();
+      startWaiterAlarm();
       showWaiterAlert(newest);
     }
   }
   waiterKnownIds=new Set(list.filter(c=>c?.id).map(c=>String(c.id)));
+  if(!list.length)stopWaiterAlarm();
   const box=$('#waiterLiveList');if(!box)return;
   box.innerHTML=list.length?list.map(c=>`<div class="waiter-call new"><div><strong>Masa ${esc(c.table_no)} · ${esc(waiterRequestLabel(c.request_type))}</strong><small>${new Date(c.created_at).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})} · Bekliyor</small></div><button class="waiter-done" data-action="waiter-done" data-id="${esc(c.id)}">✓ Tamamlandı</button></div>`).join(''):'<div class="analytics-empty">Şu anda bekleyen çağrı yok.</div>';
 }
@@ -5494,6 +5512,7 @@ function stopWaiterRealtime(){
   if(waiterChannel&&db){try{db.removeChannel(waiterChannel)}catch(_){}}
   waiterChannel=null;
   if(waiterPollTimer){clearInterval(waiterPollTimer);waiterPollTimer=null}
+  stopWaiterAlarm();
 }
 async function startWaiterRealtime(){
   setTimeout(updateWaiterSoundButton,0);
@@ -5503,7 +5522,7 @@ async function startWaiterRealtime(){
     .on('postgres_changes',{event:'INSERT',schema:'public',table:'waiter_calls',filter:'venue_id=eq.'+vid},payload=>{
       const c=payload.new||{};
       if(c?.id)waiterKnownIds.add(String(c.id));
-      waiterBeep();showWaiterAlert(c);loadWaiterCalls().catch(()=>{});
+      startWaiterAlarm();showWaiterAlert(c);loadWaiterCalls().catch(()=>{});
     })
     .subscribe();
   // Realtime tarayıcı/telefon tarafından askıya alınırsa çağrı kaybolmasın:
