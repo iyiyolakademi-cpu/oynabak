@@ -5051,20 +5051,20 @@ let recoveryFailure=authFragment.has('error')||authLanding.searchParams.has('err
 const configured=Boolean(SUPABASE_URL&&SUPABASE_PUBLISHABLE_KEY);let db=null,initError='';
 try{if(configured){if(!window.supabase)throw Error('Bağlantı kütüphanesi yüklenemedi. İnternet bağlantınızı kontrol edin.');db=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY)}}catch(e){initError=e.message}
 let me=null,adminData=null,tab='venues',venue=null,gameCleanup=()=>{},routeSeq=0,toastTimer,adminGameMedia={};
-let waiterChannel=null,waiterAudioCtx=null,waiterSoundEnabled=false,waiterAlertTimer=null,waiterPollTimer=null,waiterKnownIds=new Set(),waiterAlarmTimer=null,waiterAlarmActive=false;
+let waiterChannel=null,waiterAudioCtx=null,waiterSoundEnabled=false,waiterAlertTimer=null,waiterPollTimer=null,waiterKnownIds=new Set(),waiterAlarmTimer=null,waiterAlarmActive=false,waiterMutedCalls=new Set(),waiterPendingCalls=[];
 try{waiterSoundEnabled=localStorage.getItem('ob_waiter_sound')==='1'}catch(_){}
 function stopWaiterAlarm(){
   waiterAlarmActive=false;
   if(waiterAlarmTimer){clearInterval(waiterAlarmTimer);waiterAlarmTimer=null}
 }
 function startWaiterAlarm(){
-  if(!waiterSoundEnabled)return;
+  if(!waiterSoundEnabled||!waiterPendingCalls.some(c=>!waiterMutedCalls.has(String(c.id))))return;
   stopWaiterAlarm();
   waiterAlarmActive=true;
   waiterBeep();
   // Bekleyen çağrı olduğu sürece yaklaşık her 2.2 saniyede yeniden çal.
   waiterAlarmTimer=setInterval(()=>{
-    if(!waiterAlarmActive||!waiterSoundEnabled){stopWaiterAlarm();return}
+    if(!waiterAlarmActive||!waiterSoundEnabled||!waiterPendingCalls.some(c=>!waiterMutedCalls.has(String(c.id)))){stopWaiterAlarm();return}
     waiterBeep();
   },2200);
 }
@@ -5091,8 +5091,7 @@ async function toggleWaiterSound(){
     waiterSoundEnabled=true;
     try{localStorage.setItem('ob_waiter_sound','1')}catch(_){}
     updateWaiterSoundButton();
-    const pending=document.querySelectorAll('#waiterLiveList .waiter-call').length;
-    if(pending)startWaiterAlarm(); else waiterBeep();
+    if(waiterPendingCalls.some(c=>!waiterMutedCalls.has(String(c.id))))startWaiterAlarm(); else waiterBeep();
     toast('Sesli bildirimler açıldı.');
   }catch(e){
     waiterSoundEnabled=false;
@@ -5489,14 +5488,30 @@ async function enableWaiterSound(){
   try{waiterAudioCtx=waiterAudioCtx||new (window.AudioContext||window.webkitAudioContext)();await waiterAudioCtx.resume();waiterSoundEnabled=true;waiterBeep();toast('Sesli garson bildirimleri açıldı.');const b=$('[data-action="waiter-sound"]');if(b){b.classList.add('on');b.textContent='🔊 Ses açık'}}catch(e){throw Error('Ses açılamadı: '+e.message)}
 }
 function showWaiterAlert(call){
+  if(!call?.id||waiterMutedCalls.has(String(call.id)))return;
   document.querySelector('.waiter-alert')?.remove();clearTimeout(waiterAlertTimer);
-  const el=document.createElement('div');el.className='waiter-alert';el.innerHTML=`🔔 MASA ${esc(call.table_no)} — ${esc(waiterRequestLabel(call.request_type).toUpperCase())}`;document.body.appendChild(el);waiterAlertTimer=setTimeout(()=>el.remove(),6500);
+  const el=document.createElement('div');el.className='waiter-alert';
+  el.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;text-align:left';
+  el.innerHTML=`<span>🔔 MASA ${esc(call.table_no)} — ${esc(waiterRequestLabel(call.request_type).toUpperCase())}</span><button type="button" data-action="waiter-mute-call" data-id="${esc(call.id)}" style="background:#fff;color:#17263c;border:0;border-radius:10px;padding:11px 15px;font-weight:900;cursor:pointer;white-space:nowrap">🔇 Sesi Kapat</button>`;
+  document.body.appendChild(el);
+}
+function refreshWaiterAlarm(){
+  const audible=waiterPendingCalls.filter(c=>!waiterMutedCalls.has(String(c.id)));
+  if(!audible.length){stopWaiterAlarm();document.querySelector('.waiter-alert')?.remove();return}
+  if(waiterSoundEnabled&&!waiterAlarmActive)startWaiterAlarm();
+  if(!document.querySelector('.waiter-alert'))showWaiterAlert(audible[audible.length-1]);
+}
+function muteWaiterCall(id){
+  const key=String(id||'');if(!key)return;
+  waiterMutedCalls.add(key);stopWaiterAlarm();document.querySelector('.waiter-alert')?.remove();
+  refreshWaiterAlarm();toast('Bu masanın çağrı sesi kapatıldı. Çağrı panelde duruyor.');
 }
 async function loadWaiterCalls({notifyNew=false}={}){
   const rows=await rpc('ob_waiter_list');
   const list=Array.isArray(rows)?rows:[];
+  waiterPendingCalls=list;
   if(notifyNew){
-    const fresh=list.filter(c=>c?.id&&!waiterKnownIds.has(String(c.id)));
+    const fresh=list.filter(c=>c?.id&&!waiterKnownIds.has(String(c.id))&&!waiterMutedCalls.has(String(c.id)));
     if(fresh.length){
       const newest=fresh[fresh.length-1];
       startWaiterAlarm();
@@ -5504,9 +5519,9 @@ async function loadWaiterCalls({notifyNew=false}={}){
     }
   }
   waiterKnownIds=new Set(list.filter(c=>c?.id).map(c=>String(c.id)));
-  if(!list.length)stopWaiterAlarm();
+  if(!list.some(c=>!waiterMutedCalls.has(String(c.id))))stopWaiterAlarm();
   const box=$('#waiterLiveList');if(!box)return;
-  box.innerHTML=list.length?list.map(c=>`<div class="waiter-call new"><div><strong>Masa ${esc(c.table_no)} · ${esc(waiterRequestLabel(c.request_type))}</strong><small>${new Date(c.created_at).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})} · Bekliyor</small></div><button class="waiter-done" data-action="waiter-done" data-id="${esc(c.id)}">✓ Tamamlandı</button></div>`).join(''):'<div class="analytics-empty">Şu anda bekleyen çağrı yok.</div>';
+  box.innerHTML=list.length?list.map(c=>`<div class="waiter-call new"><div><strong>Masa ${esc(c.table_no)} · ${esc(waiterRequestLabel(c.request_type))}</strong><small>${new Date(c.created_at).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})} · Bekliyor</small></div><button class="waiter-done" data-action="waiter-done" data-id="${esc(c.id)}">✓ Tamamlandı</button>${waiterMutedCalls.has(String(c.id))?`<small>🔇 Susturuldu</small>`:`<button class="waiter-sound" data-action="waiter-mute-call" data-id="${esc(c.id)}">🔇 Sesi Kapat</button>`}</div>`).join(''):'<div class="analytics-empty">Şu anda bekleyen çağrı yok.</div>';
 }
 function stopWaiterRealtime(){
   if(waiterChannel&&db){try{db.removeChannel(waiterChannel)}catch(_){}}
@@ -5522,7 +5537,7 @@ async function startWaiterRealtime(){
     .on('postgres_changes',{event:'INSERT',schema:'public',table:'waiter_calls',filter:'venue_id=eq.'+vid},payload=>{
       const c=payload.new||{};
       if(c?.id)waiterKnownIds.add(String(c.id));
-      startWaiterAlarm();showWaiterAlert(c);loadWaiterCalls().catch(()=>{});
+      if(!waiterMutedCalls.has(String(c.id))){waiterPendingCalls.push(c);startWaiterAlarm();showWaiterAlert(c)}loadWaiterCalls().catch(()=>{});
     })
     .subscribe();
   // Realtime tarayıcı/telefon tarafından askıya alınırsa çağrı kaybolmasın:
@@ -5531,7 +5546,7 @@ async function startWaiterRealtime(){
 }
 async function waiterPanel(){
   modal('Canlı Garson Çağrıları',`<div class="waiter-live-head"><div><b>${esc(me?.venue?.name||'İşletme')}</b><div class="waiter-note">Bu ekran açıkken yeni çağrılar anında görünür.</div></div><button type="button" class="waiter-sound ${waiterSoundEnabled?'on':''}" data-action="waiter-sound">${waiterSoundEnabled?'🔊 Ses açık':'🔔 Sesli bildirimleri aç'}</button></div><div id="waiterLiveList" class="waiter-live-list"><div class="analytics-empty">Çağrılar yükleniyor…</div></div>`);
-  await loadWaiterCalls();await startWaiterRealtime();
+  await loadWaiterCalls();updateWaiterSoundButton();await startWaiterRealtime();
 }
 
 function drawMerchant(email){
@@ -7032,7 +7047,8 @@ if(menuCat){
 if(a==='waiter-open'){openWaiterRequest();return}
 if(a==='waiter-panel'){await waiterPanel();return}
 if(a==='waiter-sound'){await toggleWaiterSound();return}
-if(a==='waiter-done'){await rpc('ob_waiter_done',{p_id:String(id)});await loadWaiterCalls();return}
+if(a==='waiter-mute-call'){muteWaiterCall(id);await loadWaiterCalls();return}
+if(a==='waiter-done'){await rpc('ob_waiter_done',{p_id:String(id)});waiterMutedCalls.delete(String(id));await loadWaiterCalls();refreshWaiterAlarm();return}
 if(a==='merchant-review-settings'){venueForm(me?.venue||{},true);return}
 if(a==='merchant-games'){merchantGamesModal();return}
 if(a==='customer-games'){
