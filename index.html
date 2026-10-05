@@ -6114,6 +6114,44 @@ function normalizeGameDocument(code,bridge){
 <style>
 html,body{margin:0;width:100%;min-height:100%;height:100%;overflow:auto}
 body{min-height:100dvh}
+
+/* OynaBak · Modern yatay menü kategorileri */
+.menu-categories{
+  display:flex!important;
+  flex-wrap:nowrap!important;
+  gap:9px!important;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+  scroll-snap-type:x proximity;
+  position:sticky;
+  top:max(0px,env(safe-area-inset-top));
+  z-index:40;
+  padding:10px 14px 12px!important;
+  margin:0 -14px 14px!important;
+  background:rgba(255,255,255,.96);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  border-bottom:1px solid rgba(15,23,42,.06);
+}
+.menu-categories::-webkit-scrollbar{display:none}
+.menu-categories [data-menu-category]{
+  flex:0 0 auto!important;
+  white-space:nowrap!important;
+  scroll-snap-align:center;
+  min-height:40px;
+  padding:10px 15px!important;
+  border-radius:999px!important;
+  transition:transform .18s ease,background .18s ease,color .18s ease,box-shadow .18s ease!important;
+  touch-action:manipulation;
+}
+.menu-categories [data-menu-category]:active{transform:scale(.96)}
+.menu-categories [data-menu-category].on,
+.menu-categories [data-menu-category][aria-selected="true"]{
+  box-shadow:0 5px 16px rgba(15,23,42,.12);
+}
+
 </style>
 <script>
 (function(){
@@ -7249,4 +7287,23 @@ document.addEventListener('submit',async e=>{const f=e.target;if(!['authForm','p
 }else if(f.classList.contains('assignForm')){await rpc('ob_assign_account',{uid:f.dataset.id,vid:d.get('venue')||null,new_status:mode});toast('Hesap erişimi güncellendi.');await route()}}catch(err){toast(err.message)}finally{f.querySelectorAll('button').forEach(b=>b.disabled=false)}});
 if(db)db.auth.onAuthStateChange(event=>{if(event==='PASSWORD_RECOVERY'){recoveryMode=true;recoveryFailure=false;setTimeout(()=>{history.replaceState(null,'',location.pathname+'?recovery=1#panel');route()},0)}if(event==='SIGNED_OUT'){me=null;adminData=null}});
 route();
-</script></body></html>
+</script><script>
+function obCenterActiveMenuCategory(el){
+  if(!el)return;
+  try{el.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'})}catch(_){}
+  const row=el.parentElement;
+  if(row){
+    row.querySelectorAll('[data-menu-category]').forEach(x=>{
+      const active=x===el;
+      x.setAttribute('aria-selected',active?'true':'false');
+      if(active)x.classList.add('on');else x.classList.remove('on');
+    });
+  }
+}
+document.addEventListener('click',e=>{
+  const cat=e.target.closest?.('[data-menu-category]');
+  if(!cat)return;
+  requestAnimationFrame(()=>obCenterActiveMenuCategory(cat));
+});
+</script>
+</body></html>
