@@ -5305,7 +5305,7 @@ function recoveryView(valid){if(!valid){$('#app').innerHTML=`<div class="wrap pa
 async function panel(seq){if(!db){authView();return}const {data:{session},error}=await db.auth.getSession();if(seq!==routeSeq)return;if(recoveryMode||recoveryFailure){recoveryView(Boolean(session)&&!error&&!recoveryFailure);return}if(error)throw error;if(!session){authView();return}me=await rpc('ob_me');if(seq!==routeSeq)return;
  if(me.role==='admin'){adminData=await rpc('ob_admin_data');if(seq!==routeSeq)return;adminGameMedia=await fetchGameMedia((adminData.games||[]).map(g=>g.id));(adminData.games||[]).forEach(g=>g.image_data=adminGameMedia[String(g.id)]?.image_data||'');if(seq!==routeSeq)return;drawAdmin();hydrateVenueCodes()}else{if(me?.venue?.id)await loadVenueFeatures(me.venue.id);drawMerchant(session.user.email);hydrateVenueCodes()}}
 function panelTop(title){return `<div class="row" style="justify-content:space-between"><div><span class="eyebrow">OYNABAK PANEL</span><h2>${esc(title)}</h2></div><button data-action="logout" class="btn small light">Çıkış yap</button></div>`}
-function drawAdmin(){ $('#app').innerHTML=`<div class="wrap page">${panelTop('Her işletme, tek bir yerden.')}<div class="tabs"><button class="${tab==='venues'?'on':''}" data-tab="venues">İşletmeler · ${adminData.venues.length}</button><button class="${tab==='games'?'on':''}" data-tab="games">Oyun kütüphanesi</button><button class="${tab==='accounts'?'on':''}" data-tab="accounts">Hesap talepleri</button></div><div id="panelBody"></div></div>`;const body=$('#panelBody');if(tab==='venues'){body.innerHTML=`<div class="row" style="justify-content:space-between;margin-bottom:20px"><p class="muted">İşletme oluştur, oyunlarını seç, QR kodunu paylaş.</p><button class="btn coral" data-action="venue-new">+ İşletme ekle</button></div><div class="grid">${adminData.venues.map(v=>`<div class="card"><span class="badge ${v.active&&v.licensed?'good':''}">${v.active&&v.licensed?'Aktif':'Kapalı / Lisans bekliyor'}</span><h3 style="margin-top:15px">${esc(v.name)}</h3><p class="muted">${esc(v.sector)} · Tek QR sistemi</p><div class="venue-code-inline"><div><small>İşletme kodu</small><b data-venue-code="${esc(v.id)}">Yükleniyor…</b></div><div class="venue-code-actions"><button type="button" data-action="copy-venue-code" data-id="${esc(v.id)}">Kopyala</button><button type="button" class="danger-lite" data-action="regen-venue-code" data-id="${esc(v.id)}">Kodu yenile</button></div></div><div class="row"><button class="btn small light" data-action="venue-edit" data-id="${v.id}">Düzenle</button><button class="btn small light" data-action="menu-manage" data-id="${v.id}">Menü</button><button class="btn small light" data-action="qr" data-id="${v.id}">QR</button><button class="btn small light" data-action="stats" data-id="${v.id}">Sonuçlar</button><a class="btn small light" href="${customerURL(v.id)}" target="_blank" rel="noopener">Aç ↗</a></div></div>`).join('')||'<div class="empty full">İlk işletmeni ekleyerek başla.</div>'}</div>`}else if(tab==='games'){body.innerHTML=`<div class="row" style="justify-content:space-between;margin-bottom:20px"><p class="muted">Oyun kodunu ve kapak resmini ekle, işletmelere ata.</p><button class="btn coral" data-action="game-new">+ Oyun ekle</button></div><div class="list">${currentTenGames(adminData.games).map(g=>`<div class="item"><div class="row" style="align-items:center"><div class="admin-game-thumb">${g.image_data?`<img src="${esc(g.image_data)}" alt="${esc(g.name)}">`:'<div class="noimg">Resim<br>yok</div>'}</div><div style="flex:1;min-width:0"><b>${esc(g.name)}</b><div class="muted">${g.published?'Yayında':'Taslak'} · ${(g.venue_ids||[]).length} işletme · sürüm ${g.revision}</div></div><div class="row" style="gap:8px;flex:none"><button class="btn small light" data-action="game-edit" data-id="${g.id}">Düzenle</button><button class="btn small" style="background:#b42318;color:#fff" data-action="game-delete" data-id="${g.id}" data-name="${esc(g.name)}">Sil</button></div></div></div>`).join('')||'<div class="empty">Henüz güncel oyun eklenmedi.</div>'}</div>`}else{body.innerHTML=`<div class="list">${adminData.accounts.map(a=>`<form class="item assignForm" data-id="${a.user_id}"><h3>${esc(a.business_name)}</h3><p class="muted">${esc(a.email)} · ${esc(a.status==='active'?'Onaylandı':a.status==='revoked'?'Erişim kapalı':'Onay bekliyor')}</p><label class="field">Atanacak işletme<select name="venue">${venueOptions(a.venue_id)}</select></label><div class="row"><button class="btn small coral" name="mode" value="active">Erişimi aç / güncelle</button><button class="btn small light" name="mode" value="revoked">Erişimi kapat</button></div></form>`).join('')||'<div class="empty">Henüz hesap talebi yok.</div>'}</div>`}}
+function drawAdmin(){ $('#app').innerHTML=`<div class="wrap page">${panelTop('Her işletme, tek bir yerden.')}<div class="tabs"><button class="${tab==='venues'?'on':''}" data-tab="venues">İşletmeler · ${adminData.venues.length}</button><button class="${tab==='games'?'on':''}" data-tab="games">Oyun kütüphanesi</button><button class="${tab==='accounts'?'on':''}" data-tab="accounts">Hesap talepleri</button></div><div id="panelBody"></div></div>`;const body=$('#panelBody');if(tab==='venues'){body.innerHTML=`<div class="row" style="justify-content:space-between;margin-bottom:20px"><p class="muted">İşletme oluştur, oyunlarını seç, QR kodunu paylaş.</p><button class="btn coral" data-action="venue-new">+ İşletme ekle</button></div><div class="grid">${adminData.venues.map(v=>`<div class="card"><span class="badge ${v.active&&v.licensed?'good':''}">${v.active&&v.licensed?'Aktif':'Kapalı / Lisans bekliyor'}</span><h3 style="margin-top:15px">${esc(v.name)}</h3><p class="muted">${esc(v.sector)} · Tek QR sistemi</p><div data-feature-summary style="display:flex;gap:5px;flex-wrap:wrap;margin:10px 0">${OB_FEATURES.map(([k,label])=>`<span class="badge ${featureOn(v,k)?'good':''}" style="font-size:10px">${featureOn(v,k)?'✓':'—'} ${esc(label.replace(/^[^ ]+ /,''))}</span>`).join('')}</div><div class="venue-code-inline"><div><small>İşletme kodu</small><b data-venue-code="${esc(v.id)}">Yükleniyor…</b></div><div class="venue-code-actions"><button type="button" data-action="copy-venue-code" data-id="${esc(v.id)}">Kopyala</button><button type="button" class="danger-lite" data-action="regen-venue-code" data-id="${esc(v.id)}">Kodu yenile</button></div></div><div class="row"><button class="btn small light" data-action="venue-edit" data-id="${v.id}">Düzenle</button><button class="btn small light" data-action="menu-manage" data-id="${v.id}">Menü</button><button class="btn small light" data-action="qr" data-id="${v.id}">QR</button><button class="btn small light" data-action="stats" data-id="${v.id}">Sonuçlar</button><a class="btn small light" href="${customerURL(v.id)}" target="_blank" rel="noopener">Aç ↗</a></div></div>`).join('')||'<div class="empty full">İlk işletmeni ekleyerek başla.</div>'}</div>`}else if(tab==='games'){body.innerHTML=`<div class="row" style="justify-content:space-between;margin-bottom:20px"><p class="muted">Oyun kodunu ve kapak resmini ekle, işletmelere ata.</p><button class="btn coral" data-action="game-new">+ Oyun ekle</button></div><div class="list">${currentTenGames(adminData.games).map(g=>`<div class="item"><div class="row" style="align-items:center"><div class="admin-game-thumb">${g.image_data?`<img src="${esc(g.image_data)}" alt="${esc(g.name)}">`:'<div class="noimg">Resim<br>yok</div>'}</div><div style="flex:1;min-width:0"><b>${esc(g.name)}</b><div class="muted">${g.published?'Yayında':'Taslak'} · ${(g.venue_ids||[]).length} işletme · sürüm ${g.revision}</div></div><div class="row" style="gap:8px;flex:none"><button class="btn small light" data-action="game-edit" data-id="${g.id}">Düzenle</button><button class="btn small" style="background:#b42318;color:#fff" data-action="game-delete" data-id="${g.id}" data-name="${esc(g.name)}">Sil</button></div></div></div>`).join('')||'<div class="empty">Henüz güncel oyun eklenmedi.</div>'}</div>`}else{body.innerHTML=`<div class="list">${adminData.accounts.map(a=>`<form class="item assignForm" data-id="${a.user_id}"><h3>${esc(a.business_name)}</h3><p class="muted">${esc(a.email)} · ${esc(a.status==='active'?'Onaylandı':a.status==='revoked'?'Erişim kapalı':'Onay bekliyor')}</p><label class="field">Atanacak işletme<select name="venue">${venueOptions(a.venue_id)}</select></label><div class="row"><button class="btn small coral" name="mode" value="active">Erişimi aç / güncelle</button><button class="btn small light" name="mode" value="revoked">Erişimi kapat</button></div></form>`).join('')||'<div class="empty">Henüz hesap talebi yok.</div>'}</div>`}}
 function venueOptions(id){return '<option value="">İşletme seçin</option>'+adminData.venues.map(v=>`<option value="${v.id}" ${v.id===id?'selected':''}>${esc(v.name)}</option>`).join('')}
 
 const CURRENT_GAME_ORDER=[
@@ -5578,24 +5578,24 @@ function drawMerchant(email){
       </div>
 
       <div class="merchant-control-grid">
-        <button class="merchant-control-card" data-action="menu-manage" data-id="${v.id}">
+        ${featureOn(v,'menu')?`<button class="merchant-control-card" data-action="menu-manage" data-id="${v.id}">
           <span>01</span><b>Menüyü yönet</b><small>Kategori, ürün, fiyat ve önerilen ürünler</small>
-        </button>
-        <button class="merchant-control-card" data-action="merchant-review-settings">
+        </button>`:''}
+        ${featureOn(v,'review')?`<button class="merchant-control-card" data-action="merchant-review-settings">
           <span>02</span><b>Google değerlendirme</b><small>Değerlendirme bağlantını düzenle</small>
-        </button>
-        <button class="merchant-control-card" data-action="merchant-games">
+        </button>`:''}
+        ${featureOn(v,'games')?`<button class="merchant-control-card" data-action="merchant-games">
           <span>03</span><b>Oyunlarım</b><small>İşletmende aktif oyunları görüntüle</small>
-        </button>
+        </button>`:''}
         <button class="merchant-control-card" data-action="stats" data-id="${v.id}">
           <span>04</span><b>Analitik</b><small>QR, oyun, menü ve değerlendirme verileri</small>
         </button>
         <button class="merchant-control-card" data-action="qr" data-id="${v.id}">
           <span>05</span><b>QR ve işletme kodu</b><small>Müşteri erişim bilgilerini görüntüle</small>
         </button>
-        <button class="merchant-control-card" data-action="waiter-panel" data-id="${v.id}">
+        ${featureOn(v,'waiter')?`<button class="merchant-control-card" data-action="waiter-panel" data-id="${v.id}">
           <span>06</span><b>🔔 Canlı garson çağrıları</b><small>Masa çağrılarını anlık gör ve sesli uyarı al</small>
-        </button>
+        </button>`:''}
       </div>
     `:a?.user_id?`
       <div class="notice"><b>${a.status==='revoked'?'İşletme erişimin kapatılmış.':'İşletme talebin alındı.'}</b><br>${esc(a.business_name)} için ${a.status==='revoked'?'bizimle iletişime geçebilirsin.':'OynaBak yönetiminin onayını bekliyorsun.'}</div>
@@ -7092,15 +7092,19 @@ if(menuCat){
   return;
 }
 
+if(a==='waiter-open'&&!featureOn(venue,'waiter')){toast('Bu işletmede Garson Çağırma özelliği aktif değil.');return}
+if(a==='menu-open'&&!featureOn(venue,'menu')){toast('Bu işletmede Dijital Menü aktif değil.');return}
+if(a==='customer-games'&&!featureOn(venue,'games')){toast('Bu işletmede Oyunlar aktif değil.');return}
+if(a==='review'&&!featureOn(venue,'review')){toast('Bu işletmede değerlendirme özelliği aktif değil.');return}
+if(a==='waiter-panel'&&!featureOn(me?.venue,'waiter')){toast('Garson Çağırma özelliği bu işletmede aktif değil.');return}
+if(a==='menu-manage'&&me?.role!=='admin'&&!featureOn(me?.venue,'menu')){toast('Dijital Menü bu işletmede aktif değil.');return}
+if(a==='merchant-review-settings'&&!featureOn(me?.venue,'review')){toast('Google değerlendirme özelliği aktif değil.');return}
+if(a==='merchant-games'&&!featureOn(me?.venue,'games')){toast('Oyunlar özelliği aktif değil.');return}
 if(a==='waiter-open'){openWaiterRequest();return}
 if(a==='waiter-panel'){await waiterPanel();return}
 if(a==='waiter-sound'){await toggleWaiterSound();return}
 if(a==='waiter-mute-call'){muteWaiterCall(id);return}
 if(a==='waiter-done'){await rpc('ob_waiter_done',{p_id:String(id)});waiterMutedCalls.delete(String(id));await loadWaiterCalls();refreshWaiterAlarm();return}
-if(a==='waiter-open'&&!featureOn(venue,'waiter')){toast('Bu işletmede Garson Çağırma özelliği aktif değil.');return}
-if(a==='menu-open'&&!featureOn(venue,'menu')){toast('Bu işletmede Dijital Menü aktif değil.');return}
-if(a==='customer-games'&&!featureOn(venue,'games')){toast('Bu işletmede Oyunlar aktif değil.');return}
-if(a==='review'&&!featureOn(venue,'review')){toast('Bu işletmede değerlendirme özelliği aktif değil.');return}
 if(a==='merchant-review-settings'){venueForm(me?.venue||{},true);return}
 if(a==='merchant-games'){merchantGamesModal();return}
 if(a==='customer-games'){
