@@ -2684,6 +2684,13 @@ body.games-mode .customer-entry-brand small{
   }
 }
 
+
+/* ===== OynaBak Garson Çağırma · v1 ===== */
+.entry-waiter{background:linear-gradient(135deg,#17263c,#253b58)!important;color:#fff!important}
+.entry-waiter .entry-icon{background:#fff!important;color:#17263c!important}
+.waiter-form{display:grid;gap:14px}.waiter-form .field{margin:0}.waiter-types{display:grid;grid-template-columns:1fr 1fr;gap:9px}.waiter-type{border:1px solid #dfe5ec;background:#fff;border-radius:14px;padding:13px;text-align:left;font-weight:850}.waiter-type:has(input:checked){border-color:#17263c;box-shadow:0 0 0 2px #17263c18;background:#f5f8fc}.waiter-type input{margin-right:7px}.waiter-submit{width:100%;min-height:52px;border:0;border-radius:14px;background:#17263c;color:#fff;font-weight:900}.waiter-note{font-size:11px;color:#7a8798;margin:0}.waiter-live-head{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}.waiter-live-list{display:grid;gap:10px}.waiter-call{border:1px solid #e1e6ed;border-radius:16px;padding:15px;background:#fff;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center}.waiter-call.new{border-color:#efb44d;background:#fffaf0;box-shadow:0 8px 24px #a66b1415}.waiter-call strong{display:block;font-size:17px}.waiter-call small{display:block;color:#7b8796;margin-top:3px}.waiter-done{border:0;border-radius:11px;padding:10px 12px;background:#17263c;color:#fff;font-weight:850}.waiter-sound{border:1px solid #dbe2ea;background:#fff;border-radius:11px;padding:9px 12px;font-weight:850}.waiter-sound.on{background:#eaf7ef;color:#23643b;border-color:#c8ead4}.waiter-alert{position:fixed;top:max(16px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:200000;width:min(92vw,520px);padding:16px 18px;border-radius:16px;background:#17263c;color:#fff;box-shadow:0 18px 50px #0004;font-weight:850;text-align:center;animation:waiterPop .22s ease-out}@keyframes waiterPop{from{transform:translate(-50%,-12px);opacity:0}to{transform:translate(-50%,0);opacity:1}}
+@media(max-width:520px){.waiter-types{grid-template-columns:1fr}.waiter-call{grid-template-columns:1fr}.waiter-done{width:100%}}
+
 </style></head><body>
 <header><nav class="wrap"><a class="brand" href="#home" aria-label="OynaBak ana sayfa"><img src="oynabak-logo.png" alt="OynaBak"></a><div class="links"><a class="desktop" href="#features">Nasıl çalışır?</a><a class="desktop" href="#faq">Merak edilenler</a><a class="btn small light" href="#panel">İşletme Paneli ↗</a></div></nav></header>
 <main id="app"></main><footer><div class="wrap row" style="justify-content:space-between;gap:18px"><div><b>OynaBak · Molana oyun kat.</b><span style="display:block;margin-top:4px">Kafe · Spor salonu · Mağaza</span><span style="display:block;margin-top:4px;color:#7b8797">© 2026 OynaBak · Tüm hakları saklıdır.</span></div><div class="footer-links"><a href="#home">Ana sayfa</a><a href="#privacy">Gizlilik</a><a href="#kvkk">KVKK</a><a href="#terms">Kullanım Koşulları</a><a href="#contact">İletişim</a></div></div></footer><a class="whatsapp" href="https://wa.me/905066403989?text=Merhaba%2C%20OynaBak%20hakk%C4%B1nda%20bilgi%20almak%20istiyorum." target="_blank" rel="noopener noreferrer">WhatsApp'tan sor ↗</a>
@@ -5044,6 +5051,7 @@ let recoveryFailure=authFragment.has('error')||authLanding.searchParams.has('err
 const configured=Boolean(SUPABASE_URL&&SUPABASE_PUBLISHABLE_KEY);let db=null,initError='';
 try{if(configured){if(!window.supabase)throw Error('Bağlantı kütüphanesi yüklenemedi. İnternet bağlantınızı kontrol edin.');db=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY)}}catch(e){initError=e.message}
 let me=null,adminData=null,tab='venues',venue=null,gameCleanup=()=>{},routeSeq=0,toastTimer,adminGameMedia={};
+let waiterChannel=null,waiterAudioCtx=null,waiterSoundEnabled=false,waiterAlertTimer=null;
 const legacyGameNames={
   "tabu":"Tabu",
   "g2048":"2048",
@@ -5400,6 +5408,57 @@ function merchantGamesModal(){
       </div>
     </div>`);
 }
+function waiterRequestLabel(type){return ({waiter:'Garson çağırıyor',bill:'Hesap istiyor',water:'Su istiyor',napkin:'Peçete istiyor'})[String(type)]||'Garson çağrısı'}
+function openWaiterRequest(){
+  const lastTable=localStorage.getItem('oynabak_table_'+String(venue?.id||''))||'';
+  modal('Garson Çağır',`<form id="waiterCallForm" class="waiter-form">
+    <p class="waiter-note">İsteğin doğrudan işletmenin OynaBak paneline iletilir.</p>
+    <label class="field">Masa numarası<input name="table_no" inputmode="numeric" pattern="[0-9]{1,3}" maxlength="3" min="1" placeholder="Örn. 12" value="${esc(lastTable)}" required></label>
+    <div class="waiter-types">
+      <label class="waiter-type"><input type="radio" name="request_type" value="waiter" checked>🔔 Garson çağır</label>
+      <label class="waiter-type"><input type="radio" name="request_type" value="bill">🧾 Hesap iste</label>
+      <label class="waiter-type"><input type="radio" name="request_type" value="water">💧 Su iste</label>
+      <label class="waiter-type"><input type="radio" name="request_type" value="napkin">🧻 Peçete iste</label>
+    </div>
+    <button class="waiter-submit" type="submit">İsteği Gönder</button>
+    <p class="waiter-note">Aynı masadan kısa süre içinde tekrar çağrı gönderilemez.</p>
+  </form>`);
+}
+function waiterBeep(){
+  if(!waiterSoundEnabled)return;
+  try{
+    waiterAudioCtx=waiterAudioCtx||new (window.AudioContext||window.webkitAudioContext)();
+    if(waiterAudioCtx.state==='suspended')waiterAudioCtx.resume();
+    const now=waiterAudioCtx.currentTime;
+    [[880,now,.13],[1175,now+.16,.18]].forEach(([freq,start,dur])=>{
+      const o=waiterAudioCtx.createOscillator(),g=waiterAudioCtx.createGain();
+      o.type='sine';o.frequency.value=freq;g.gain.setValueAtTime(.0001,start);g.gain.exponentialRampToValueAtTime(.22,start+.015);g.gain.exponentialRampToValueAtTime(.0001,start+dur);o.connect(g);g.connect(waiterAudioCtx.destination);o.start(start);o.stop(start+dur+.02);
+    });
+    if(navigator.vibrate)navigator.vibrate([120,70,120]);
+  }catch(_){}
+}
+async function enableWaiterSound(){
+  try{waiterAudioCtx=waiterAudioCtx||new (window.AudioContext||window.webkitAudioContext)();await waiterAudioCtx.resume();waiterSoundEnabled=true;waiterBeep();toast('Sesli garson bildirimleri açıldı.');const b=$('[data-action="waiter-sound"]');if(b){b.classList.add('on');b.textContent='🔊 Ses açık'}}catch(e){throw Error('Ses açılamadı: '+e.message)}
+}
+function showWaiterAlert(call){
+  document.querySelector('.waiter-alert')?.remove();clearTimeout(waiterAlertTimer);
+  const el=document.createElement('div');el.className='waiter-alert';el.innerHTML=`🔔 MASA ${esc(call.table_no)} — ${esc(waiterRequestLabel(call.request_type).toUpperCase())}`;document.body.appendChild(el);waiterAlertTimer=setTimeout(()=>el.remove(),6500);
+}
+async function loadWaiterCalls(){
+  const rows=await rpc('ob_waiter_list');
+  const box=$('#waiterLiveList');if(!box)return;
+  box.innerHTML=(rows||[]).length?(rows||[]).map(c=>`<div class="waiter-call new"><div><strong>Masa ${esc(c.table_no)} · ${esc(waiterRequestLabel(c.request_type))}</strong><small>${new Date(c.created_at).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})} · Bekliyor</small></div><button class="waiter-done" data-action="waiter-done" data-id="${esc(c.id)}">✓ Tamamlandı</button></div>`).join(''):'<div class="analytics-empty">Şu anda bekleyen çağrı yok.</div>';
+}
+function stopWaiterRealtime(){if(waiterChannel&&db){try{db.removeChannel(waiterChannel)}catch(_){}}waiterChannel=null}
+async function startWaiterRealtime(){
+  stopWaiterRealtime();const vid=String(me?.venue?.id||'');if(!vid||!db)return;
+  waiterChannel=db.channel('waiter-'+vid).on('postgres_changes',{event:'INSERT',schema:'public',table:'waiter_calls',filter:'venue_id=eq.'+vid},payload=>{const c=payload.new||{};waiterBeep();showWaiterAlert(c);loadWaiterCalls().catch(()=>{});}).subscribe();
+}
+async function waiterPanel(){
+  modal('Canlı Garson Çağrıları',`<div class="waiter-live-head"><div><b>${esc(me?.venue?.name||'İşletme')}</b><div class="waiter-note">Bu ekran açıkken yeni çağrılar anında görünür.</div></div><button type="button" class="waiter-sound ${waiterSoundEnabled?'on':''}" data-action="waiter-sound">${waiterSoundEnabled?'🔊 Ses açık':'🔔 Sesli bildirimleri aç'}</button></div><div id="waiterLiveList" class="waiter-live-list"><div class="analytics-empty">Çağrılar yükleniyor…</div></div>`);
+  await loadWaiterCalls();await startWaiterRealtime();
+}
+
 function drawMerchant(email){
   const a=me.account,v=me.venue;
   $('#app').innerHTML=`<div class="wrap page">
@@ -5430,6 +5489,9 @@ function drawMerchant(email){
         </button>
         <button class="merchant-control-card" data-action="qr" data-id="${v.id}">
           <span>05</span><b>QR ve işletme kodu</b><small>Müşteri erişim bilgilerini görüntüle</small>
+        </button>
+        <button class="merchant-control-card" data-action="waiter-panel" data-id="${v.id}">
+          <span>06</span><b>🔔 Canlı garson çağrıları</b><small>Masa çağrılarını anlık gör ve sesli uyarı al</small>
         </button>
       </div>
     `:a?.user_id?`
@@ -6663,6 +6725,16 @@ async function customer(demo,seq){
               <span class="entry-arrow">→</span>
             </button>
 
+            <button type="button" class="entry-choice entry-waiter" data-action="waiter-open">
+              <span class="entry-icon">🔔</span>
+              <span class="entry-copy">
+                <small>MASADAN İSTEK GÖNDER</small>
+                <strong>Garson Çağır</strong>
+                <em>Garson, hesap, su veya peçete iste.</em>
+              </span>
+              <span class="entry-arrow">→</span>
+            </button>
+
             <button type="button" class="entry-choice entry-review" data-action="review">
               <span class="entry-icon">
                 <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -6815,6 +6887,7 @@ function listGames(){
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 async function route(){
   const seq=++routeSeq;
+  stopWaiterRealtime();
 
   // Route değişiminde açık oyun/modal kalıntısı bırakma.
   // Normal closeModal aktif oyunda bitiş ekranına yönlendirebildiği için
@@ -6881,6 +6954,10 @@ if(menuCat){
   return;
 }
 
+if(a==='waiter-open'){openWaiterRequest();return}
+if(a==='waiter-panel'){await waiterPanel();return}
+if(a==='waiter-sound'){await enableWaiterSound();return}
+if(a==='waiter-done'){await rpc('ob_waiter_done',{p_id:String(id)});await loadWaiterCalls();return}
 if(a==='merchant-review-settings'){venueForm(me?.venue||{},true);return}
 if(a==='merchant-games'){merchantGamesModal();return}
 if(a==='customer-games'){
@@ -6922,7 +6999,7 @@ if(a==='copy-venue-code'){const code=await businessCodeForVenue(id||me?.venue?.i
   return
 }if(a==='logout'){const {error}=await db.auth.signOut();if(error)throw error;me=null;adminData=null;await route()}if(a==='reset'){const email=$('#authForm [name=email]').value;if(!email)throw Error('Önce e-posta adresini yaz.');const redirect=new URL(location.href);redirect.search='?recovery=1';redirect.hash='';const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo:redirect.href});if(error)throw error;toast('Hesabın varsa şifre yenileme bağlantısı gönderilecek.')}if(a==='venue-new')venueForm();if(a==='venue-edit')venueForm(getVenue(id));if(a==='merchant-edit')venueForm(me.venue,true);if(a==='game-new')gameForm();if(a==='game-edit')gameForm(adminData.games.find(g=>g.id===id));if(a==='game-delete'){const game=adminData.games.find(g=>String(g.id)===String(id));const gameName=String(game?.name||b.dataset.name||'Bu oyun');const ok=window.confirm(`“${gameName}” oyununu kalıcı olarak silmek istediğine emin misin?\n\nBu işlem geri alınamaz ve oyun atandığı tüm işletmelerden de kaldırılır.`);if(!ok)return;b.disabled=true;try{await rpc('ob_delete_game',{gid:String(id)});toast('Oyun silindi.');await route()}finally{b.disabled=false}return}if(a==='preview-code')safeFrame($('#gameForm [name=code]').value,$('#codePreview'),{gameName:$('#gameForm [name=name]').value||'Önizleme',preview:true});if(a==='qr')qrView(id);if(a==='stats')await stats(id,7);if(a==='stats-period')await stats(id,Number(b.dataset.days||7));if(a==='games'){trackEvent('games_open');const box=$('#gameList');if(!box.innerHTML.trim())listGames();box.scrollIntoView({behavior:'smooth',block:'start'})}if(a==='review')openReviewPage();}catch(err){toast(err.message)}});
 document.addEventListener('input',e=>{const input=e.target.closest?.('#businessCodeForm [name=business_code]');if(!input)return;const next=String(input.value||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,4);if(input.value!==next)input.value=next});
-document.addEventListener('submit',async e=>{const f=e.target;if(!['authForm','passwordForm','recoveryRequestForm','requestForm','venueForm','gameForm','businessCodeForm','menuForm'].includes(f.id)&&!f.classList.contains('assignForm'))return;e.preventDefault();const button=e.submitter,mode=button?.value,d=new FormData(f);f.querySelectorAll('button').forEach(b=>b.disabled=true);try{if(f.id==='businessCodeForm'){const id=await resolveBusinessCode(d.get('business_code'));const u=new URL(location.href);u.search='';u.searchParams.set('isletme',id);u.hash='play';history.replaceState(null,'',u.href);await route()}else if(f.id==='recoveryRequestForm'){const redirect=new URL(location.pathname,location.origin);redirect.search='?recovery=1';redirect.hash='';const {error}=await db.auth.resetPasswordForEmail(d.get('email').trim(),{redirectTo:redirect.href});if(error)throw error;toast('Hesabın varsa yeni bağlantı gönderilecek. En son gelen e-postayı aç.')}else if(f.id==='authForm'){const credentials={email:d.get('email').trim(),password:d.get('password')};let r;if(mode==='signup'){const u=new URL(location.href);u.search='';u.hash='panel';r=await db.auth.signUp({...credentials,options:{emailRedirectTo:u.href}})}else r=await db.auth.signInWithPassword(credentials);if(r.error)throw r.error;if(mode==='signup'&&!r.data.session){toast('E-postanı kontrol et ve hesabını doğrula. Ardından giriş yap.');return}await route()}else if(f.id==='passwordForm'){if(d.get('password')!==d.get('confirm_password'))throw Error('Şifreler aynı olmalı.');const {error}=await db.auth.updateUser({password:d.get('password')});if(error)throw error;recoveryMode=false;recoveryFailure=false;history.replaceState(null,'',location.pathname+'#panel');toast('Şifren güncellendi.');await route()}else if(f.id==='requestForm'){await rpc('ob_request',{business_name:d.get('business_name')});toast('İşletme talebin alındı.');await route()}else if(f.id==='venueForm'){
+document.addEventListener('submit',async e=>{const f=e.target;if(!['authForm','passwordForm','recoveryRequestForm','requestForm','venueForm','gameForm','businessCodeForm','menuForm','waiterCallForm'].includes(f.id)&&!f.classList.contains('assignForm'))return;e.preventDefault();const button=e.submitter,mode=button?.value,d=new FormData(f);f.querySelectorAll('button').forEach(b=>b.disabled=true);try{if(f.id==='waiterCallForm'){const vid=String(venue?.id||qrParams().venueId||'');if(!vid)throw Error('İşletme bulunamadı.');const tableNo=String(d.get('table_no')||'').replace(/\D/g,'').slice(0,3);if(!tableNo||Number(tableNo)<1)throw Error('Geçerli bir masa numarası yaz.');const requestType=String(d.get('request_type')||'waiter');await rpc('ob_waiter_create',{p_venue_id:vid,p_table_no:tableNo,p_request_type:requestType});localStorage.setItem('oynabak_table_'+vid,tableNo);closeModal();toast('🔔 İsteğin işletmeye iletildi.');return}else if(f.id==='businessCodeForm'){const id=await resolveBusinessCode(d.get('business_code'));const u=new URL(location.href);u.search='';u.searchParams.set('isletme',id);u.hash='play';history.replaceState(null,'',u.href);await route()}else if(f.id==='recoveryRequestForm'){const redirect=new URL(location.pathname,location.origin);redirect.search='?recovery=1';redirect.hash='';const {error}=await db.auth.resetPasswordForEmail(d.get('email').trim(),{redirectTo:redirect.href});if(error)throw error;toast('Hesabın varsa yeni bağlantı gönderilecek. En son gelen e-postayı aç.')}else if(f.id==='authForm'){const credentials={email:d.get('email').trim(),password:d.get('password')};let r;if(mode==='signup'){const u=new URL(location.href);u.search='';u.hash='panel';r=await db.auth.signUp({...credentials,options:{emailRedirectTo:u.href}})}else r=await db.auth.signInWithPassword(credentials);if(r.error)throw r.error;if(mode==='signup'&&!r.data.session){toast('E-postanı kontrol et ve hesabını doğrula. Ardından giriş yap.');return}await route()}else if(f.id==='passwordForm'){if(d.get('password')!==d.get('confirm_password'))throw Error('Şifreler aynı olmalı.');const {error}=await db.auth.updateUser({password:d.get('password')});if(error)throw error;recoveryMode=false;recoveryFailure=false;history.replaceState(null,'',location.pathname+'#panel');toast('Şifren güncellendi.');await route()}else if(f.id==='requestForm'){await rpc('ob_request',{business_name:d.get('business_name')});toast('İşletme talebin alındı.');await route()}else if(f.id==='venueForm'){
   const rawReview=String(d.get('review_url')||'').trim();
   const p={
     id:f.dataset.id,
