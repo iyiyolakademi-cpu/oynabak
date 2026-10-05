@@ -5051,7 +5051,7 @@ let recoveryFailure=authFragment.has('error')||authLanding.searchParams.has('err
 const configured=Boolean(SUPABASE_URL&&SUPABASE_PUBLISHABLE_KEY);let db=null,initError='';
 try{if(configured){if(!window.supabase)throw Error('Bağlantı kütüphanesi yüklenemedi. İnternet bağlantınızı kontrol edin.');db=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY)}}catch(e){initError=e.message}
 let me=null,adminData=null,tab='venues',venue=null,gameCleanup=()=>{},routeSeq=0,toastTimer,adminGameMedia={};
-let waiterChannel=null,waiterAudioCtx=null,waiterSoundEnabled=false,waiterAlertTimer=null;
+let waiterChannel=null,waiterAudioCtx=null,waiterSoundEnabled=false,waiterAlertTimer=null,waiterPollTimer=null,waiterKnownIds=new Set();
 const legacyGameNames={
   "tabu":"Tabu",
   "g2048":"2048",
@@ -5444,15 +5444,39 @@ function showWaiterAlert(call){
   document.querySelector('.waiter-alert')?.remove();clearTimeout(waiterAlertTimer);
   const el=document.createElement('div');el.className='waiter-alert';el.innerHTML=`🔔 MASA ${esc(call.table_no)} — ${esc(waiterRequestLabel(call.request_type).toUpperCase())}`;document.body.appendChild(el);waiterAlertTimer=setTimeout(()=>el.remove(),6500);
 }
-async function loadWaiterCalls(){
+async function loadWaiterCalls({notifyNew=false}={}){
   const rows=await rpc('ob_waiter_list');
+  const list=Array.isArray(rows)?rows:[];
+  if(notifyNew){
+    const fresh=list.filter(c=>c?.id&&!waiterKnownIds.has(String(c.id)));
+    if(fresh.length){
+      const newest=fresh[fresh.length-1];
+      waiterBeep();
+      showWaiterAlert(newest);
+    }
+  }
+  waiterKnownIds=new Set(list.filter(c=>c?.id).map(c=>String(c.id)));
   const box=$('#waiterLiveList');if(!box)return;
-  box.innerHTML=(rows||[]).length?(rows||[]).map(c=>`<div class="waiter-call new"><div><strong>Masa ${esc(c.table_no)} · ${esc(waiterRequestLabel(c.request_type))}</strong><small>${new Date(c.created_at).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})} · Bekliyor</small></div><button class="waiter-done" data-action="waiter-done" data-id="${esc(c.id)}">✓ Tamamlandı</button></div>`).join(''):'<div class="analytics-empty">Şu anda bekleyen çağrı yok.</div>';
+  box.innerHTML=list.length?list.map(c=>`<div class="waiter-call new"><div><strong>Masa ${esc(c.table_no)} · ${esc(waiterRequestLabel(c.request_type))}</strong><small>${new Date(c.created_at).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})} · Bekliyor</small></div><button class="waiter-done" data-action="waiter-done" data-id="${esc(c.id)}">✓ Tamamlandı</button></div>`).join(''):'<div class="analytics-empty">Şu anda bekleyen çağrı yok.</div>';
 }
-function stopWaiterRealtime(){if(waiterChannel&&db){try{db.removeChannel(waiterChannel)}catch(_){}}waiterChannel=null}
+function stopWaiterRealtime(){
+  if(waiterChannel&&db){try{db.removeChannel(waiterChannel)}catch(_){}}
+  waiterChannel=null;
+  if(waiterPollTimer){clearInterval(waiterPollTimer);waiterPollTimer=null}
+}
 async function startWaiterRealtime(){
-  stopWaiterRealtime();const vid=String(me?.venue?.id||'');if(!vid||!db)return;
-  waiterChannel=db.channel('waiter-'+vid).on('postgres_changes',{event:'INSERT',schema:'public',table:'waiter_calls',filter:'venue_id=eq.'+vid},payload=>{const c=payload.new||{};waiterBeep();showWaiterAlert(c);loadWaiterCalls().catch(()=>{});}).subscribe();
+  stopWaiterRealtime();
+  const vid=String(me?.venue?.id||'');if(!vid||!db)return;
+  waiterChannel=db.channel('waiter-'+vid)
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'waiter_calls',filter:'venue_id=eq.'+vid},payload=>{
+      const c=payload.new||{};
+      if(c?.id)waiterKnownIds.add(String(c.id));
+      waiterBeep();showWaiterAlert(c);loadWaiterCalls().catch(()=>{});
+    })
+    .subscribe();
+  // Realtime tarayıcı/telefon tarafından askıya alınırsa çağrı kaybolmasın:
+  // 3 saniyelik yedek kontrol de çalışır.
+  waiterPollTimer=setInterval(()=>loadWaiterCalls({notifyNew:true}).catch(()=>{}),3000);
 }
 async function waiterPanel(){
   modal('Canlı Garson Çağrıları',`<div class="waiter-live-head"><div><b>${esc(me?.venue?.name||'İşletme')}</b><div class="waiter-note">Bu ekran açıkken yeni çağrılar anında görünür.</div></div><button type="button" class="waiter-sound ${waiterSoundEnabled?'on':''}" data-action="waiter-sound">${waiterSoundEnabled?'🔊 Ses açık':'🔔 Sesli bildirimleri aç'}</button></div><div id="waiterLiveList" class="waiter-live-list"><div class="analytics-empty">Çağrılar yükleniyor…</div></div>`);
