@@ -5052,6 +5052,37 @@ const configured=Boolean(SUPABASE_URL&&SUPABASE_PUBLISHABLE_KEY);let db=null,ini
 try{if(configured){if(!window.supabase)throw Error('Bağlantı kütüphanesi yüklenemedi. İnternet bağlantınızı kontrol edin.');db=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY)}}catch(e){initError=e.message}
 let me=null,adminData=null,tab='venues',venue=null,gameCleanup=()=>{},routeSeq=0,toastTimer,adminGameMedia={};
 let waiterChannel=null,waiterAudioCtx=null,waiterSoundEnabled=false,waiterAlertTimer=null,waiterPollTimer=null,waiterKnownIds=new Set();
+try{waiterSoundEnabled=localStorage.getItem('ob_waiter_sound')==='1'}catch(_){}
+function updateWaiterSoundButton(){
+  const btn=document.querySelector('[data-action="waiter-sound"]');
+  if(!btn)return;
+  btn.textContent=waiterSoundEnabled?'🔇 Sesi Kapat':'🔊 Sesli Bildirimleri Aç';
+  btn.setAttribute('aria-pressed',waiterSoundEnabled?'true':'false');
+}
+async function toggleWaiterSound(){
+  if(waiterSoundEnabled){
+    waiterSoundEnabled=false;
+    try{localStorage.setItem('ob_waiter_sound','0')}catch(_){}
+    updateWaiterSoundButton();
+    toast('Garson çağrı sesi kapatıldı.');
+    return;
+  }
+  try{
+    const AC=window.AudioContext||window.webkitAudioContext;
+    if(!AC)throw Error('Bu cihaz sesli bildirimleri desteklemiyor.');
+    if(!waiterAudioCtx)waiterAudioCtx=new AC();
+    if(waiterAudioCtx.state==='suspended')await waiterAudioCtx.resume();
+    waiterSoundEnabled=true;
+    try{localStorage.setItem('ob_waiter_sound','1')}catch(_){}
+    updateWaiterSoundButton();
+    waiterBeep();
+    toast('Sesli bildirimler açıldı.');
+  }catch(e){
+    waiterSoundEnabled=false;
+    updateWaiterSoundButton();
+    toast(e?.message||'Ses açılamadı.');
+  }
+}
 const legacyGameNames={
   "tabu":"Tabu",
   "g2048":"2048",
@@ -5465,6 +5496,7 @@ function stopWaiterRealtime(){
   if(waiterPollTimer){clearInterval(waiterPollTimer);waiterPollTimer=null}
 }
 async function startWaiterRealtime(){
+  setTimeout(updateWaiterSoundButton,0);
   stopWaiterRealtime();
   const vid=String(me?.venue?.id||'');if(!vid||!db)return;
   waiterChannel=db.channel('waiter-'+vid)
@@ -6980,7 +7012,7 @@ if(menuCat){
 
 if(a==='waiter-open'){openWaiterRequest();return}
 if(a==='waiter-panel'){await waiterPanel();return}
-if(a==='waiter-sound'){await enableWaiterSound();return}
+if(a==='waiter-sound'){await toggleWaiterSound();return}
 if(a==='waiter-done'){await rpc('ob_waiter_done',{p_id:String(id)});await loadWaiterCalls();return}
 if(a==='merchant-review-settings'){venueForm(me?.venue||{},true);return}
 if(a==='merchant-games'){merchantGamesModal();return}
