@@ -2688,6 +2688,8 @@ body.games-mode .customer-entry-brand small{
 /* ===== OynaBak Garson Çağırma · v1 ===== */
 .entry-waiter{background:linear-gradient(135deg,#17263c,#253b58)!important;color:#fff!important}
 .entry-waiter .entry-icon{background:#fff!important;color:#17263c!important}
+.entry-instagram{background:linear-gradient(135deg,#833ab4,#fd1d1d 50%,#fcb045)!important;color:#fff!important}
+.entry-instagram .entry-icon{background:#fff!important;color:#c13584!important}
 .waiter-form{display:grid;gap:14px}.waiter-form .field{margin:0}.waiter-types{display:grid;grid-template-columns:1fr 1fr;gap:9px}.waiter-type{border:1px solid #dfe5ec;background:#fff;border-radius:14px;padding:13px;text-align:left;font-weight:850}.waiter-type:has(input:checked){border-color:#17263c;box-shadow:0 0 0 2px #17263c18;background:#f5f8fc}.waiter-type input{margin-right:7px}.waiter-submit{width:100%;min-height:52px;border:0;border-radius:14px;background:#17263c;color:#fff;font-weight:900}.waiter-note{font-size:11px;color:#7a8798;margin:0}.waiter-live-head{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}.waiter-live-list{display:grid;gap:10px}.waiter-call{border:1px solid #e1e6ed;border-radius:16px;padding:15px;background:#fff;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center}.waiter-call.new{border-color:#efb44d;background:#fffaf0;box-shadow:0 8px 24px #a66b1415}.waiter-call strong{display:block;font-size:17px}.waiter-call small{display:block;color:#7b8796;margin-top:3px}.waiter-done{border:0;border-radius:11px;padding:10px 12px;background:#17263c;color:#fff;font-weight:850}.waiter-sound{border:1px solid #dbe2ea;background:#fff;border-radius:11px;padding:9px 12px;font-weight:850}.waiter-sound.on{background:#eaf7ef;color:#23643b;border-color:#c8ead4}.waiter-alert{position:fixed;top:max(16px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:200000;width:min(92vw,520px);padding:16px 18px;border-radius:16px;background:#17263c;color:#fff;box-shadow:0 18px 50px #0004;font-weight:850;text-align:center;animation:waiterPop .22s ease-out}@keyframes waiterPop{from{transform:translate(-50%,-12px);opacity:0}to{transform:translate(-50%,0);opacity:1}}
 @media(max-width:520px){.waiter-types{grid-template-columns:1fr}.waiter-call{grid-template-columns:1fr}.waiter-done{width:100%}}
 
@@ -5244,6 +5246,43 @@ function reviewUrl(){
 function reviewUrlSafe(){
   try{return reviewUrl()||''}catch{return ''}
 }
+function isInstagramHost(host){
+  host=String(host||'').toLowerCase().replace(/\.$/,'');
+  return host==='instagram.com'||host==='www.instagram.com';
+}
+function normalizeInstagramUrl(raw){
+  const value=String(raw||'').trim();
+  if(!value)return '';
+  let u;
+  try{u=new URL(value)}catch{throw Error('Instagram bağlantısı geçerli bir URL olmalı.')}
+  if(u.protocol!=='https:'||!isInstagramHost(u.hostname)){
+    throw Error('Yalnızca güvenli Instagram profil bağlantısı kullanılabilir.');
+  }
+  u.hash='';
+  return u.href;
+}
+function instagramUrl(){
+  const raw=venue?.instagram_url||'https://www.instagram.com/berke_yuksekdag';
+  return normalizeInstagramUrl(raw);
+}
+async function openInstagramPage(){
+  let url='';
+  try{url=instagramUrl()}catch(e){
+    toast(e.message||'Instagram bağlantısı geçersiz.');
+    return;
+  }
+  if(!url){
+    toast('Bu işletme için Instagram hesabı henüz eklenmemiş.');
+    return;
+  }
+  await trackEvent('instagram_click').catch(()=>{});
+  try{
+    const w=window.open(url,'_blank','noopener,noreferrer');
+    if(!w)location.href=url;
+  }catch{
+    location.href=url;
+  }
+}
 async function openReviewPage(){
   let url='';
   try{url=reviewUrl()}catch(e){
@@ -5686,10 +5725,10 @@ function brandingLogoHtml(v){
 
 const OB_FEATURES=[
   ['games','🎮 Oyunlar'],['menu','🍽️ Dijital Menü'],
-  ['review','⭐ Google Değerlendirme'],['waiter','🔔 Garson Çağırma']
+  ['review','⭐ Google Değerlendirme'],['instagram','📸 Instagram Hesabı'],['waiter','🔔 Garson Çağırma']
 ];
 const featureCache=new Map();
-function defaultFeatures(){return {games:true,menu:true,review:true,waiter:false}}
+function defaultFeatures(){return {games:true,menu:true,review:true,instagram:true,waiter:false}}
 function featureOn(v,key){
   const id=String(v?.id||'');
   return (featureCache.get(id)||defaultFeatures())[key]===true;
@@ -5698,7 +5737,7 @@ async function loadVenueFeatures(vid){
   vid=String(vid||''); if(!vid)return defaultFeatures();
   try{
     const f=await rpc('ob_features_get',{vid});
-    const out={games:f?.games!==false,menu:f?.menu!==false,review:f?.review!==false,waiter:f?.waiter===true};
+    const out={games:f?.games!==false,menu:f?.menu!==false,review:f?.review!==false,instagram:f?.instagram!==false,waiter:f?.waiter===true};
     featureCache.set(vid,out); return out;
   }catch(_){const f=defaultFeatures();featureCache.set(vid,f);return f}
 }
@@ -5728,6 +5767,9 @@ function venueForm(v={},merchant=false){
 
       <label class="field">Google değerlendirme bağlantısı
         <input name="review_url" type="url" maxlength="1999" placeholder="https://g.page/r/.../review" value="${esc(v.review_url||'')}">
+      </label>
+      <label class="field">Instagram hesabı bağlantısı
+        <input name="instagram_url" type="url" maxlength="1999" placeholder="https://www.instagram.com/berke_yuksekdag" value="${esc(v.instagram_url||'https://www.instagram.com/berke_yuksekdag')}">
       </label>
 
       ${merchant?'':`${featureChecksHtml(v)}<div class="checks"><b>Oyunlar · ${currentTenGames(adminData?.games||[]).length} oyun</b><p class="muted" style="font-size:12px;margin:5px 0 10px">Paneldeki tüm güncel oyunlar gösterilir. İşletmede görünmesini istediklerini seç.</p>${currentGameSelectionHtml(v)}<hr><label><input type="checkbox" name="active" ${v.active?'checked':''}>İşletme yayını açık</label><label><input type="checkbox" name="licensed" ${v.licensed?'checked':''}>Ödemeyi kontrol ettim, kullanım lisansı aktif</label><p class="muted" style="font-size:13px">Bu işaret ödeme tahsil etmez. Müşteri ekranı için yayın ve lisans birlikte açık olmalı.</p></div>`}
@@ -6989,6 +7031,22 @@ async function customer(demo,seq){
               <span class="entry-arrow">↗</span>
             </button>
 
+            <button type="button" class="entry-choice entry-instagram" data-action="instagram" ${featureOn(venue,'instagram')?'':'hidden'}>
+              <span class="entry-icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <rect x="4" y="4" width="16" height="16" rx="5" fill="none" stroke="currentColor" stroke-width="2"/>
+                  <circle cx="12" cy="12" r="3.4" fill="none" stroke="currentColor" stroke-width="2"/>
+                  <circle cx="16.8" cy="7.2" r="1.1" fill="currentColor"/>
+                </svg>
+              </span>
+              <span class="entry-copy">
+                <small>INSTAGRAM</small>
+                <strong>Instagram Hesabı</strong>
+                <em>İşletmenin paylaşımlarını ve duyurularını gör.</em>
+              </span>
+              <span class="entry-arrow">↗</span>
+            </button>
+
           </div>
         </section>
 
@@ -7198,6 +7256,7 @@ if(a==='waiter-open'&&!featureOn(venue,'waiter')){toast('Bu işletmede Garson Ç
 if(a==='menu-open'&&!featureOn(venue,'menu')){toast('Bu işletmede Dijital Menü aktif değil.');return}
 if(a==='customer-games'&&!featureOn(venue,'games')){toast('Bu işletmede Oyunlar aktif değil.');return}
 if(a==='review'&&!featureOn(venue,'review')){toast('Bu işletmede değerlendirme özelliği aktif değil.');return}
+if(a==='instagram'&&!featureOn(venue,'instagram')){toast('Bu işletmede Instagram özelliği aktif değil.');return}
 if(a==='waiter-panel'&&!featureOn(me?.venue,'waiter')){toast('Garson Çağırma özelliği bu işletmede aktif değil.');return}
 if(a==='menu-manage'&&me?.role!=='admin'&&!featureOn(me?.venue,'menu')){toast('Dijital Menü bu işletmede aktif değil.');return}
 if(a==='merchant-review-settings'&&!featureOn(me?.venue,'review')){toast('Google değerlendirme özelliği aktif değil.');return}
@@ -7207,6 +7266,7 @@ if(a==='waiter-panel'){await waiterPanel();return}
 if(a==='waiter-sound'){await toggleWaiterSound();return}
 if(a==='waiter-mute-call'){muteWaiterCall(id);return}
 if(a==='waiter-done'){await rpc('ob_waiter_done',{p_id:String(id)});waiterMutedCalls.delete(String(id));await loadWaiterCalls();refreshWaiterAlarm();return}
+if(a==='instagram'){await openInstagramPage();return}
 if(a==='merchant-review-settings'){venueForm(me?.venue||{},true);return}
 if(a==='merchant-games'){merchantGamesModal();return}
 if(a==='customer-games'){
@@ -7250,11 +7310,13 @@ if(a==='copy-venue-code'){const code=await businessCodeForVenue(id||me?.venue?.i
 document.addEventListener('input',e=>{const input=e.target.closest?.('#businessCodeForm [name=business_code]');if(!input)return;const next=String(input.value||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,4);if(input.value!==next)input.value=next});
 document.addEventListener('submit',async e=>{const f=e.target;if(!['authForm','passwordForm','recoveryRequestForm','requestForm','venueForm','gameForm','businessCodeForm','menuForm','waiterCallForm'].includes(f.id)&&!f.classList.contains('assignForm'))return;e.preventDefault();const button=e.submitter,mode=button?.value,d=new FormData(f);f.querySelectorAll('button').forEach(b=>b.disabled=true);try{if(f.id==='waiterCallForm'){const vid=String(venue?.id||qrParams().venueId||'');if(!vid)throw Error('İşletme bulunamadı.');const tableNo=String(d.get('table_no')||'').replace(/\D/g,'').slice(0,3);if(!tableNo||Number(tableNo)<1)throw Error('Geçerli bir masa numarası yaz.');const requestType=String(d.get('request_type')||'waiter');await rpc('ob_waiter_create',{p_venue_id:vid,p_table_no:tableNo,p_request_type:requestType});localStorage.setItem('oynabak_table_'+vid,tableNo);closeModal();toast('🔔 İsteğin işletmeye iletildi.');return}else if(f.id==='businessCodeForm'){const id=await resolveBusinessCode(d.get('business_code'));const u=new URL(location.href);u.search='';u.searchParams.set('isletme',id);u.hash='play';history.replaceState(null,'',u.href);await route()}else if(f.id==='recoveryRequestForm'){const redirect=new URL(location.pathname,location.origin);redirect.search='?recovery=1';redirect.hash='';const {error}=await db.auth.resetPasswordForEmail(d.get('email').trim(),{redirectTo:redirect.href});if(error)throw error;toast('Hesabın varsa yeni bağlantı gönderilecek. En son gelen e-postayı aç.')}else if(f.id==='authForm'){const credentials={email:d.get('email').trim(),password:d.get('password')};let r;if(mode==='signup'){const u=new URL(location.href);u.search='';u.hash='panel';r=await db.auth.signUp({...credentials,options:{emailRedirectTo:u.href}})}else r=await db.auth.signInWithPassword(credentials);if(r.error)throw r.error;if(mode==='signup'&&!r.data.session){toast('E-postanı kontrol et ve hesabını doğrula. Ardından giriş yap.');return}await route()}else if(f.id==='passwordForm'){if(d.get('password')!==d.get('confirm_password'))throw Error('Şifreler aynı olmalı.');const {error}=await db.auth.updateUser({password:d.get('password')});if(error)throw error;recoveryMode=false;recoveryFailure=false;history.replaceState(null,'',location.pathname+'#panel');toast('Şifren güncellendi.');await route()}else if(f.id==='requestForm'){await rpc('ob_request',{business_name:d.get('business_name')});toast('İşletme talebin alındı.');await route()}else if(f.id==='venueForm'){
   const rawReview=String(d.get('review_url')||'').trim();
+  const rawInstagram=String(d.get('instagram_url')||'').trim();
   const p={
     id:f.dataset.id,
     name:d.get('name'),
     color:(f.dataset.id ? (getVenue(f.dataset.id)?.color||'#ff705b') : (me?.venue?.color||'#ff705b')),
     review_url:rawReview?normalizeReviewUrl(rawReview):'',
+    instagram_url:rawInstagram?normalizeInstagramUrl(rawInstagram):'',
     tables:1
   };
 
@@ -7285,7 +7347,7 @@ document.addEventListener('submit',async e=>{const f=e.target;if(!['authForm','p
   if(!merchant&&venueId){
     await saveVenueFeatures(venueId,{
       games:d.has('feature_games'),menu:d.has('feature_menu'),
-      review:d.has('feature_review'),waiter:d.has('feature_waiter')
+      review:d.has('feature_review'),instagram:d.has('feature_instagram'),waiter:d.has('feature_waiter')
     });
     await syncVenueCustomGames(venueId,d.getAll('custom_enabled'));
   }
