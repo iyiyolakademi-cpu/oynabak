@@ -5279,7 +5279,7 @@ function normalizeInstagramUrl(raw){
 }
 const FREED_INSTAGRAM_URL='https://www.instagram.com/freedizmir/';
 function isFreedVenue(v){
-  return /(^|[^a-z0-9])freed([^a-z0-9]|$)/i.test(String(v?.name||'').normalize('NFD').replace(/[\u0300-\u036f]/g,''));
+  return /freed/i.test(String(v?.name||'').normalize('NFD').replace(/[\u0300-\u036f]/g,''));
 }
 function venueInstagramUrl(v){
   if(isFreedVenue(v))return FREED_INSTAGRAM_URL;
@@ -5289,23 +5289,12 @@ function instagramUrl(){
   const raw=venueInstagramUrl(venue);
   return normalizeInstagramUrl(raw);
 }
-async function openInstagramPage(){
+function openInstagramPage(){
   let url='';
-  try{url=instagramUrl()}catch(e){
-    toast(e.message||'Instagram bağlantısı geçersiz.');
-    return;
-  }
-  if(!url){
-    toast('Bu işletme için Instagram hesabı henüz eklenmemiş.');
-    return;
-  }
-  await trackEvent('instagram_click').catch(()=>{});
-  try{
-    const w=window.open(url,'_blank','noopener,noreferrer');
-    if(!w)location.href=url;
-  }catch{
-    location.href=url;
-  }
+  try{url=instagramUrl()}catch(e){toast(e.message||'Instagram bağlantısı geçersiz.');return;}
+  if(!url){toast('Bu işletme için Instagram hesabı henüz eklenmemiş.');return;}
+  // Tek tıklama, tek yönlendirme: yeni sekme ve ikinci pencere açılmaz.
+  location.assign(url);
 }
 async function openReviewPage(){
   let url='';
@@ -7242,6 +7231,13 @@ function hasQrGameAccess(){
   }
 }
 window.addEventListener('hashchange',route);
+document.addEventListener('click',e=>{
+  const btn=e.target.closest?.('[data-action="instagram"]');
+  if(!btn || btn.disabled || btn.hidden)return;
+  e.preventDefault();e.stopImmediatePropagation();
+  if(!featureOn(venue,'instagram')){toast('Bu işletmede Instagram özelliği aktif değil.');return;}
+  openInstagramPage();
+},true);
 document.addEventListener('click',async e=>{const b=e.target.closest('[data-action],[data-tab],[data-game],[data-custom],[data-menu-category]');if(!b||b.disabled)return;try{if(b.dataset.tab){tab=b.dataset.tab;drawAdmin();hydrateVenueCodes();return}if(b.dataset.game){const key=b.dataset.game;if(!hasQrGameAccess()){toast('Bu oyun yalnızca işletme QR koduyla açılır.');return}if(!venue||!venue.enabled.includes(key))return;await trackEvent('game_open',{game:key});if(embeddedGameBase64[key]){openEmbeddedGame(key);return}return}if(b.dataset.custom){if(!hasQrGameAccess()){toast('Bu oyun yalnızca işletme QR koduyla açılır.');return}const vid=String(venue?.id||qrParams().venueId||''),gid=b.dataset.custom,gmeta=venue.games.find(g=>String(g.id)===String(gid)),gname=gmeta?.name||'Oyun';if(!vid){toast('İşletme bağlantısı bulunamadı. QR kodunu yeniden okut.');return}await trackEvent('game_open',{game:'custom:'+gid});modal(gname,'<div id="customGame"><p style="padding:24px">Oyun yükleniyor…</p></div>');enterGameScreen();const token=++gameLoadSeq;try{const code=await rpc('ob_game',{vid,gid});if(token!==gameLoadSeq||!$('#modal').open)return;safeFrame(code,$('#customGame'),{gameId:gid,gameName:gname})}catch(error){if(token===gameLoadSeq){$('#customGame').innerHTML=`<div style="padding:24px;font:14px/1.5 system-ui;color:#fff;background:#111;min-height:100%"><b>Oyun yüklenemedi.</b><br>${esc(error?.message||'Bilinmeyen hata')}</div>`}}return}const a=b.dataset.action,id=b.dataset.id;
 
 const menuCat=b.dataset.menuCategory;
@@ -7293,7 +7289,7 @@ if(a==='waiter-panel'){await waiterPanel();return}
 if(a==='waiter-sound'){await toggleWaiterSound();return}
 if(a==='waiter-mute-call'){muteWaiterCall(id);return}
 if(a==='waiter-done'){await rpc('ob_waiter_done',{p_id:String(id)});waiterMutedCalls.delete(String(id));await loadWaiterCalls();refreshWaiterAlarm();return}
-if(a==='instagram'){await openInstagramPage();return}
+if(a==='instagram'){openInstagramPage();return}
 if(a==='merchant-review-settings'){venueForm(me?.venue||{},true);return}
 if(a==='merchant-games'){merchantGamesModal();return}
 if(a==='customer-games'){
