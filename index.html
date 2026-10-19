@@ -5067,16 +5067,16 @@ function startWaiterAlarm(){
   stopWaiterAlarm();
   waiterAlarmActive=true;
   waiterBeep();
-  // Bekleyen çağrı olduğu sürece yaklaşık her 2.2 saniyede yeniden çal.
+  // Bekleyen çağrı olduğu sürece yaklaşık her 1.8 saniyede yeniden çal.
   waiterAlarmTimer=setInterval(()=>{
     if(!waiterAlarmActive||!waiterSoundEnabled||!waiterPendingCalls.some(c=>c?.id&&!waiterMutedCalls.has(String(c.id)))){stopWaiterAlarm();return}
     waiterBeep();
-  },2200);
+  },1800);
 }
 function updateWaiterSoundButton(){
   const btn=document.querySelector('[data-action="waiter-sound"]');
   if(!btn)return;
-  btn.textContent=waiterSoundEnabled?'🔇 Sesi Kapat':'🔊 Sesli Bildirimleri Aç';
+  btn.textContent=waiterSoundEnabled?'🔇 Sesi Kapat':'🔊 POS Alarmını Aç';
   btn.setAttribute('aria-pressed',waiterSoundEnabled?'true':'false');
 }
 async function toggleWaiterSound(){
@@ -5096,9 +5096,8 @@ async function toggleWaiterSound(){
     waiterSoundEnabled=true;
     try{localStorage.setItem('ob_waiter_sound','1')}catch(_){}
     updateWaiterSoundButton();
-    const pending=document.querySelectorAll('#waiterLiveList .waiter-call').length;
-    if(pending)startWaiterAlarm(); else waiterBeep();
-    toast('Sesli bildirimler açıldı.');
+    if(waiterPendingCalls.some(c=>c?.id&&!waiterMutedCalls.has(String(c.id))))startWaiterAlarm(); else waiterBeep();
+    toast('POS sipariş alarmı açıldı. Bekleyen çağrılar susturulana kadar çalar.');
   }catch(e){
     waiterSoundEnabled=false;
     updateWaiterSoundButton();
@@ -5575,21 +5574,33 @@ function openWaiterRequest(){
     <p class="waiter-note">Aynı masadan kısa süre içinde tekrar çağrı gönderilemez.</p>
   </form>`);
 }
+// POS siparis bildirimi: tok, belirgin, cift tonlu zil.
+// Ses kullanici etkilesimi ile acilir; bekleyen cagri susturulana veya tamamlanana kadar tekrarlar.
 function waiterBeep(){
-  if(!waiterSoundEnabled)return;
+  if(!waiterSoundEnabled||!waiterAudioCtx||waiterAudioCtx.state!=='running')return;
   try{
-    waiterAudioCtx=waiterAudioCtx||new (window.AudioContext||window.webkitAudioContext)();
-    if(waiterAudioCtx.state==='suspended')waiterAudioCtx.resume();
-    const now=waiterAudioCtx.currentTime;
-    [[880,now,.13],[1175,now+.16,.18]].forEach(([freq,start,dur])=>{
-      const o=waiterAudioCtx.createOscillator(),g=waiterAudioCtx.createGain();
-      o.type='sine';o.frequency.value=freq;g.gain.setValueAtTime(.0001,start);g.gain.exponentialRampToValueAtTime(.22,start+.015);g.gain.exponentialRampToValueAtTime(.0001,start+dur);o.connect(g);g.connect(waiterAudioCtx.destination);o.start(start);o.stop(start+dur+.02);
+    const ctx=waiterAudioCtx, now=ctx.currentTime+.015;
+    const master=ctx.createGain();
+    master.gain.value=.78;
+    master.connect(ctx.destination);
+    // Iki belirgin POS vurusunun her birinde tok ana ton ve parlak ust harmonik.
+    [[0,.23],[.34,.27]].forEach(([offset,duration])=>{
+      [[740,.44,'triangle'],[1110,.22,'sine'],[1480,.08,'sine']].forEach(([frequency,level,wave])=>{
+        const osc=ctx.createOscillator(), gain=ctx.createGain();
+        const start=now+offset, end=start+duration;
+        osc.type=wave;osc.frequency.setValueAtTime(frequency,start);
+        gain.gain.setValueAtTime(.0001,start);
+        gain.gain.exponentialRampToValueAtTime(level,start+.012);
+        gain.gain.exponentialRampToValueAtTime(level*.65,start+.08);
+        gain.gain.exponentialRampToValueAtTime(.0001,end);
+        osc.connect(gain);gain.connect(master);
+        osc.start(start);osc.stop(end+.02);
+      });
     });
-    if(navigator.vibrate)navigator.vibrate([120,70,120]);
-  }catch(_){}
-}
-async function enableWaiterSound(){
-  try{waiterAudioCtx=waiterAudioCtx||new (window.AudioContext||window.webkitAudioContext)();await waiterAudioCtx.resume();waiterSoundEnabled=true;waiterBeep();toast('Sesli garson bildirimleri açıldı.');const b=$('[data-action="waiter-sound"]');if(b){b.classList.add('on');b.textContent='🔊 Ses açık'}}catch(e){throw Error('Ses açılamadı: '+e.message)}
+    // Tekrar araligi titreşimden uzundur; ses seviyesi cihazdan daha yukari zorlanamaz.
+    if(navigator.vibrate)navigator.vibrate([160,110,180]);
+    setTimeout(()=>{try{master.disconnect()}catch(_){}},1000);
+  }catch(e){console.warn('POS alarm sesi calinamadi:',e)}
 }
 function showWaiterAlert(call){
   if(!call?.id||waiterMutedCalls.has(String(call.id)))return;
@@ -5625,6 +5636,8 @@ async function loadWaiterCalls({notifyNew=false}={}){
   const rows=await rpc('ob_waiter_list');
   const list=Array.isArray(rows)?rows:[];
   waiterPendingCalls=list;
+  const activeIds=new Set(list.filter(c=>c?.id).map(c=>String(c.id)));
+  for(const id of waiterMutedCalls){if(!activeIds.has(id))waiterMutedCalls.delete(id)}
   if(notifyNew){
     const fresh=list.filter(c=>c?.id&&!waiterKnownIds.has(String(c.id))&&!waiterMutedCalls.has(String(c.id)));
     if(fresh.length){
@@ -5634,7 +5647,7 @@ async function loadWaiterCalls({notifyNew=false}={}){
     }
   }
   waiterKnownIds=new Set(list.filter(c=>c?.id).map(c=>String(c.id)));
-  if(!list.some(c=>c?.id&&!waiterMutedCalls.has(String(c.id))))stopWaiterAlarm();
+  refreshWaiterAlarm();
   const box=$('#waiterLiveList');if(!box)return;
   box.innerHTML=list.length?list.map(c=>`<div class="waiter-call new"><div><strong>Masa ${esc(c.table_no)} · ${esc(waiterRequestLabel(c.request_type))}</strong><small>${new Date(c.created_at).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})} · Bekliyor</small></div><button class="waiter-done" data-action="waiter-done" data-id="${esc(c.id)}">✓ Tamamlandı</button></div>`).join(''):'<div class="analytics-empty">Şu anda bekleyen çağrı yok.</div>';
 }
@@ -5661,7 +5674,7 @@ async function startWaiterRealtime(){
   waiterPollTimer=setInterval(()=>loadWaiterCalls({notifyNew:true}).catch(()=>{}),3000);
 }
 async function waiterPanel(){
-  modal('Canlı Garson Çağrıları',`<div class="waiter-live-head"><div><b>${esc(me?.venue?.name||'İşletme')}</b><div class="waiter-note">Bu ekran açıkken yeni çağrılar anında görünür.</div></div><button type="button" class="waiter-sound ${waiterSoundEnabled?'on':''}" data-action="waiter-sound">${waiterSoundEnabled?'🔊 Ses açık':'🔔 Sesli bildirimleri aç'}</button></div><div id="waiterLiveList" class="waiter-live-list"><div class="analytics-empty">Çağrılar yükleniyor…</div></div>`);
+  modal('Canlı Garson Çağrıları',`<div class="waiter-live-head"><div><b>${esc(me?.venue?.name||'İşletme')}</b><div class="waiter-note">Bu ekran açıkken yeni çağrılar anında görünür.</div></div><button type="button" class="waiter-sound ${waiterSoundEnabled?'on':''}" data-action="waiter-sound">${waiterSoundEnabled?'🔊 Ses açık':'🔊 POS alarmını aç'}</button></div><div id="waiterLiveList" class="waiter-live-list"><div class="analytics-empty">Çağrılar yükleniyor…</div></div>`);
   await loadWaiterCalls();await startWaiterRealtime();
 }
 
