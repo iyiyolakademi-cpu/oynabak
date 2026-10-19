@@ -5884,22 +5884,13 @@ function savedGameId(saved,fallback){
 }
 
 async function saveGameSafely(payload){
-  try{
-    return await rpc('ob_save_game',{p:payload});
-  }catch(err){
-    const msg=String(err?.message||err||'');
-    // Panel uzun süre açık kaldıysa revision eski kalabiliyor.
-    // Güncel revision'ı çekip aynı form verisini bir kez daha kaydet.
-    if(payload?.id&&/Oyun değişmiş/i.test(msg)){
-      const fresh=await rpc('ob_admin_data');
-      const latest=(fresh?.games||[]).find(x=>String(x?.id)===String(payload.id));
-      if(latest){
-        payload={...payload,revision:Number(latest.revision||0)};
-        return await rpc('ob_save_game',{p:payload});
-      }
-    }
-    throw err;
-  }
+  // The database RPC MUST save game and image in one PostgreSQL transaction.
+  // No fallback to the legacy two-call sequence: partial saves are unsafe.
+  const result=await rpc('ob_save_game_atomic',{p:payload});
+  const id=savedGameId(result,null);
+  if(!id)throw Error('Sunucu kesin oyun kimliği döndürmedi. İşlem doğrulanamadı.');
+  if(payload.id&&String(id)!==String(payload.id))throw Error('Sunucu farklı oyun kimliği döndürdü.');
+  return {id,revision:result?.revision??null};
 }
 
 function gameForm(g={}){
@@ -6564,20 +6555,14 @@ async function finishCustomGame(state,payload={}){
     replayId
   });
 
+  // A sandboxed iframe can claim any score. Treat it as untrusted display-only
+  // data. Never send it to ob_score or game_finish analytics as verified.
+  // To enable verified scores, implement a server-authoritative game engine
+  // with server-side session, rules, move validation, and replay protection.
   if(!venue?.demo){
-    trackEvent('game_finish',{game:scoreKey,score}).catch(()=>{});
-    try{
-      const t=customerTable()||1;
-      await rpc('ob_score',{
-        vid:String(venue?.id||qrParams().venueId),
-        g:scoreKey,
-        s:score,
-        t,
-        rid:crypto.randomUUID()
-      });
-    }catch(e){
-      console.warn('Skor kaydı yapılamadı:',e?.message||e);
-    }
+    console.info('[OynaBak] Oyun tamamlandı; istemci puanı doğrulanmadığı için kaydedilmedi.',{
+      game:scoreKey, claimedScore:score, duration
+    });
   }
 }
 window.addEventListener('message' ,async e=>{const d=e.data,state=activeCustomGame;if(!state||e.source!==state.frame.contentWindow||!d||d.source!==GAME_BRIDGE_SOURCE||d.version!==GAME_BRIDGE_VERSION)return;const p=d.payload&&typeof d.payload==='object'?d.payload:{};if(d.type==='ready'){sendGameInit(state);return}if(d.type==='runtime-error'){console.error('[OynaBak]',state.gameName,'runtime error:',p.message||'Bilinmeyen hata');return}if(d.type==='storage-get'||d.type==='storage-set'||d.type==='storage-remove'){handleGameStorage(state,d.type,p);return}if(d.type==='expand'){enterGameScreen();return}if(d.type==='collapse'){exitGameScreen();return}if(d.type==='start'){state.players=clampPlayers(p.players??state.players);state.startedAt=Date.now();state.finished=false;return}if(d.type==='score'){state.lastScore=clampScore(p.score);if(p.players!=null)state.players=clampPlayers(p.players);if(p.winner!=null)state.winner=String(p.winner).slice(0,80);return}if(d.type==='finish'){if(p.players!=null)state.players=clampPlayers(p.players);if(p.winner!=null)state.winner=String(p.winner).slice(0,80);finishCustomGame(state,p).catch(err=>toast(err.message))}});
@@ -7376,36 +7361,11 @@ document.addEventListener('submit',async e=>{const f=e.target;if(!['authForm','p
   if(payload.name.length<2)throw Error('Oyun adı en az 2 karakter olmalı.');
   if(!payload.code.trim())throw Error('Oyun kodu boş olamaz.');
 
+  // image_data is included in the same transaction as game fields.
+  payload.image_data=String(d.get('image_data')||'')||null;
   const saved=await saveGameSafely(payload);
-  let gid=savedGameId(saved,f.dataset.id);
-
-  // RPC herhangi bir nedenle ID döndürmezse, kaydedilen oyunu panelden yeniden bul.
-  if(!gid){
-    const fresh=await rpc('ob_admin_data');
-    const same=(fresh.games||[])
-      .filter(x=>normalizeGameName(x?.name)===normalizeGameName(payload.name))
-      .sort((a,b)=>{
-        const rev=(Number(b?.revision)||0)-(Number(a?.revision)||0);
-        if(rev)return rev;
-        return (Date.parse(b?.updated_at||0)||0)-(Date.parse(a?.updated_at||0)||0);
-      });
-    gid=same[0]?.id?String(same[0].id):null;
-  }
-
-  if(!gid)throw Error('Oyun kaydedildi fakat oyun kimliği alınamadı. Paneli yenileyip tekrar deneyin.');
-
-  // Kapak resmini oyun kaydından sonra ayrı ve doğrulanabilir şekilde kaydet.
-  const imageData=String(d.get('image_data')||'');
-  try{
-    await rpc('ob_game_media_save',{gid:String(gid),image:imageData||null});
-    const check=await rpc('ob_game_media',{gid:String(gid)});
-    const stored=String(check?.image_data||'');
-    if(imageData&&!stored)throw Error('Kapak resmi sunucudan doğrulanamadı.');
-    if(!imageData&&stored)throw Error('Kapak resmi kaldırılamadı.');
-  }catch(mediaError){
-    console.error('Oyun kapak resmi kaydı:',mediaError);
-    throw Error('Oyun kodu kaydedildi fakat kapak resmi kaydedilemedi: '+String(mediaError?.message||mediaError));
-  }
+  const gid=saved.id;
+  // Exact ID only: no matching by game name, revision or timestamp.
 
   closeModal();
   toast('Oyun ve kapak resmi güncellendi.');
