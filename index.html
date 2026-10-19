@@ -2696,11 +2696,6 @@ body.games-mode .customer-entry-brand small{
 /* ===== OynaBak Blog ===== */
 .blog-page{padding:48px 0 76px}.blog-hero{max-width:760px;margin-bottom:28px}.blog-hero h1{font-size:clamp(38px,5vw,58px);letter-spacing:-1.8px}.blog-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}.blog-card{display:flex;flex-direction:column;min-height:245px;text-decoration:none;background:#fff;border:1px solid var(--line);border-radius:18px;padding:24px;transition:.18s ease}.blog-card:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:0 14px 35px rgba(23,38,60,.08)}.blog-card .badge{width:max-content;margin-bottom:18px}.blog-card h2{font-size:24px;margin:0 0 12px;letter-spacing:-.6px}.blog-card p{margin:0;color:var(--muted)}.blog-card .read{margin-top:auto;padding-top:22px;font-weight:850;color:#c64a37}.blog-post{max-width:840px;margin:auto;padding:44px 0 78px}.blog-post-head{margin-bottom:28px}.blog-post-head h1{font-size:clamp(36px,5vw,58px);letter-spacing:-1.8px}.blog-back{display:inline-flex;margin-bottom:22px;text-decoration:none;font-weight:850;color:#c64a37}.blog-article{background:#fff;border:1px solid var(--line);border-radius:20px;padding:34px}.blog-article h2{font-size:28px;margin:28px 0 10px}.blog-article h2:first-child{margin-top:0}.blog-article p,.blog-article li{color:#526176}.blog-article strong{color:var(--navy)}.blog-article ul{padding-left:22px}.blog-note{background:#fff4ec;border:1px solid #ffd7c8;border-radius:16px;padding:18px;margin:24px 0;color:#7b3727}@media(max-width:760px){.blog-list{grid-template-columns:1fr}.blog-page{padding:32px 0 56px}.blog-article{padding:22px;border-radius:16px}.blog-post{padding:32px 0 58px}.blog-card{min-height:auto}}
 
-
-/* Ana sayfa ile uyumlu üç ana seçenek ve isteğe bağlı hizmetler */
-.customer-extras{width:100%;margin-top:24px;padding-top:18px;border-top:1px solid rgba(255,255,255,.14)}
-.customer-extras-label{color:#a8a8a8;font-size:10px;font-weight:850;letter-spacing:1.4px;text-align:center;margin:0 0 14px}
-.customer-extras .customer-entry-grid{max-width:930px;margin:auto}
 </style></head><body>
 <header><nav class="wrap"><a class="brand" href="#home" aria-label="OynaBak ana sayfa"><img src="oynabak-logo.png" alt="OynaBak"></a><div class="links"><a class="desktop" href="#features">Nasıl çalışır?</a><a class="desktop" href="#faq">Merak edilenler</a><a class="desktop" href="#blog">Blog</a><a class="btn small light" href="#panel">İşletme Paneli ↗</a></div></nav></header>
 <main id="app"></main><footer><div class="wrap row" style="justify-content:space-between;gap:18px"><div><b>OynaBak · Molana oyun kat.</b><span style="display:block;margin-top:4px">Kafe · Spor salonu · Mağaza</span><span style="display:block;margin-top:4px;color:#7b8797">© 2026 OynaBak · Tüm hakları saklıdır.</span></div><div class="footer-links"><a href="#home">Ana sayfa</a><a href="#blog">Blog</a><a href="#privacy">Gizlilik</a><a href="#kvkk">KVKK</a><a href="#terms">Kullanım Koşulları</a><a href="#contact">İletişim</a></div></div></footer><a class="whatsapp" href="https://wa.me/905066403989?text=Merhaba%2C%20OynaBak%20hakk%C4%B1nda%20bilgi%20almak%20istiyorum." target="_blank" rel="noopener noreferrer">WhatsApp'tan sor ↗</a>
@@ -5283,7 +5278,7 @@ function normalizeInstagramUrl(raw){
   return u.href;
 }
 function instagramUrl(){
-  const raw=venue?.instagram_url||'';
+  const raw=venue?.instagram_url||'https://www.instagram.com/berke_yuksekdag';
   return normalizeInstagramUrl(raw);
 }
 async function openInstagramPage(){
@@ -5348,7 +5343,7 @@ function exitGameScreen(){leaveGameScreen()}
 
 async function rpc(name,args={}){if(!db)throw Error(initError||'Supabase bağlantısı henüz kurulmadı.');const {data,error}=await db.rpc(name,args);if(error)throw Error(error.message);return data}
 function wa(text){return 'https://wa.me/905066403989?text='+encodeURIComponent(text)}
-function home(){document.title='OynaBak Sistemini Kim Geliştirdi? | Berke Deniz Yüksekdağ';document.documentElement.style.setProperty('--accent','#ff6a00');$('#app').innerHTML=`<div class="wrap"><section class="hero"><div><span class="pill">Bir QR. Bir mola. Biraz eğlence.</span><h1>Bekleme anını<br><span>güzel bir anıya</span><br>dönüştür.</h1><p class="lead muted">Masada kahveni beklerken, antrenmana ara verirken… OynaBak ile işletmendeki küçük molalara oyun kat.</p><div class="row"><a class="btn coral" href="#pricing">İşletmem için keşfet ↗</a><a class="btn light" href="#features">Nasıl çalışır?</a></div><p class="muted" style="font-size:13px;margin-top:18px"><b>Oyunlar yalnızca işletmedeki QR kodu okutulduğunda açılır.</b><br>Uygulama indirmeden · Telefonun tarayıcısında</p></div><div class="phone"><div class="dot"></div><span class="eyebrow">MÜŞTERİ DENEYİMİ</span><h2>Tek QR.<br>Üç ana seçenek.</h2><div class="tile orange"><strong>▶ Oyun Oyna</strong><small>İşletmedeki oyun alanına doğrudan geç.</small></div><div class="tile blue"><strong>☰ Menüyü Gör</strong><small>Ürünleri ve güncel fiyatları telefondan incele.</small></div><div class="tile green"><strong>★ İşletmeyi değerlendir</strong><small>Google değerlendirme sayfasına geç.</small></div></div></section><section id="features" class="section"><span class="eyebrow">İŞLETMENE KÜÇÜK BİR DOKUNUŞ</span><h2>Sen işine bak.<br>Molaları bize bırak.</h2><div class="grid"><div class="card"><span class="icon">🎲</span><h3>Oynanacak bir şey var.</h3><p class="muted">Genişleyen oyun kütüphanesiyle müşterilerine tek kişilik, iki kişilik ve grupça oynanabilen keyifli molalar sun.</p></div><div class="card"><span class="icon">☰</span><h3>Dijital menün de aynı QR’da.</h3><p class="muted">Ürünlerini, fiyatlarını, kategorilerini ve öne çıkan ürünlerini müşterilerine tek ekrandan göster.</p></div><div class="card"><span class="icon">★</span><h3>Görüşleri seninle kalsın.</h3><p class="muted">Müşterini işletmenin Google değerlendirme sayfasına yönlendir. Oyun sonunda değerlendirme ekranı da gösterilir.</p></div><div class="card"><span class="icon">📊</span><h3>Ne kadar kullanılıyor, gör.</h3><p class="muted">QR açılışlarını, oyunları, menü açılışlarını, kategori ilgisini ve değerlendirme tıklamalarını panelden takip et.</p></div></div></section><section class="section"><div class="grid"><div><span class="number">01 / KURULUM</span><h3>İşletmeni hazırlayalım.</h3><p class="muted">İşletme bilgilerini, Google değerlendirme bağlantını ve dijital menünü ekleyelim.</p></div><div><span class="number">02 / QR KOD</span><h3>Tek QR’ı görünür bir yere koy.</h3><p class="muted">Kafede masa üstüne, spor salonunda dinlenme alanına veya mağazada müşterinin kolayca görebileceği bir noktaya.</p></div><div><span class="number">03 / KULLAN</span><h3>Müşterin QR’ı okutsun.</h3><p class="muted">Ekranda Oyun Oyna, Menüyü Gör ve İşletmeyi Puanla ana seçenekleri çıkar. Etkinleştirilen ek hizmetler ayrı gösterilir. Müşteri istediği bölüme tek dokunuşla geçer.</p></div></div></section><section id="pricing" class="section"><div class="price"><div><span class="pill" style="color:#174631">Lansmana özel fiyat</span><h2>İşletmene eğlenceli<br>bir başlangıç.</h2><p class="muted">OynaBak İşletme Paketi · Tek seferlik ödeme · Yıllık ücret yok.</p><div style="margin:18px 0 4px"><span style="display:block;color:#c2cede;font-size:14px;font-weight:700;margin-bottom:2px">Normal fiyat</span><span style="font-size:26px;font-weight:800;color:#c2cede;text-decoration:line-through;text-decoration-thickness:2px">5.500 TL</span></div><div class="amount">4.000 <span style="font-size:22px">TL</span></div><p style="margin:4px 0 0;font-size:13px;font-weight:800;color:#bce8cf">Lansmana özel · Tek sefer öde</p><p class="muted">OynaBak standı ve ilk kurulum pakete dahildir. İşletmeye özel ek geliştirmeler ayrıca görüşülür.</p></div><div><ul><li>İşletmene özel 3 ana seçenekli müşteri ekranı</li><li>Genişleyen hazır oyun kütüphanesi</li><li>Dijital menü, kategori ve öne çıkan ürün sistemi</li><li>Oyun sonu + ana ekrandan Google değerlendirme yönlendirmesi</li><li>İşletme paneli ve tek QR + işletme kodu sistemi</li><li>QR, oyun, menü ve değerlendirme analitiği</li><li>Kurulum ve ilk işletme ayarları</li></ul><a class="btn coral" target="_blank" rel="noopener noreferrer" href="${wa('Merhaba, OynaBak 4.000 TL lansman fiyatlı tek seferlik işletme paketi hakkında bilgi almak istiyorum.')}">Lansman fiyatından iletişime geç ↗</a><p class="muted" style="font-size:13px;margin-top:14px">Online ödeme alınmaz. Aktivasyon, ödeme kontrolünden sonra tarafımızdan yapılır. Paket yıllık abonelik değildir.</p></div></div></section><section id="faq" class="section faq"><span class="eyebrow">AKLINDA SORU KALMASIN</span><h2>Merak edilenler.</h2><details><summary>Uygulama indirmek gerekiyor mu?</summary><p>Hayır. Oyunlar yalnızca işletmedeki QR kodu okutularak telefonun tarayıcısında açılır.</p></details><details><summary>Oyunları değiştirebilir miyim?</summary><p>Oyunlar OynaBak yönetimi tarafından eklenir ve işletmelere atanır. İşletmene farklı oyunlar eklenmesini bizden isteyebilirsin.</p></details><details><summary>Dijital menü var mı?</summary><p>Evet. İşletme panelinden kategori, ürün, açıklama ve fiyat ekleyebilir; ürünleri menüde gösterebilir, tükendi olarak işaretleyebilir ve öne çıkan ürün seçebilir. Müşteri aynı QR ekranından menüye ulaşır.</p></details><details><summary>Oyunlara normal oynabak.com adresinden girilebilir mi?</summary><p>Hayır. Normal site OynaBak’ı tanıtır. Oyun alanı yalnızca geçerli bir işletme QR bağlantısıyla açılır.</p></details><details><summary>Kaç oyun var?</summary><p>Oyun sayısı işletmeye atanan oyun kütüphanesine göre değişir. Yeni oyunlar yönetim panelinden eklenip seçili işletmelere yayınlanabilir.</p></details><details><summary>QR kodunu nereye koyacağım?</summary><p>OynaBak paketiyle birlikte QR kodunun yer aldığı hazır stand verilir. İşletme, standı masa üstüne, kasa yanına veya müşterilerin kolayca görebileceği uygun bir alana yerleştirebilir. Ekstra bir QR baskısı hazırlaman gerekmez.</p></details><details><summary>Her işletme ayrı bir hesap mı kullanır?</summary><p>Evet. Onaylanan hesap yalnızca kendisine atanmış işletmeyi yönetebilir. Müşteriler ise QR bağlantısıyla oyun ekranını açar.</p></details><details><summary>İnternet gerekiyor mu?</summary><p>Evet. Giriş, işletme bilgilerinin alınması ve oyunların yüklenmesi için internet bağlantısı gerekir.</p></details><details><summary>Ödeme yıllık mı?</summary><p>Hayır. OynaBak İşletme Paketi tek seferlik ödeme modelindedir. Normal fiyat 5.500 TL, lansmana özel güncel fiyat 4.000 TL'dir. OynaBak standı ve ilk kurulum pakete dahildir. İşletmeye özel ek geliştirmeler ayrıca fiyatlandırılabilir.</p></details></section></div>`}
+function home(){document.title='OynaBak Sistemini Kim Geliştirdi? | Berke Deniz Yüksekdağ';document.documentElement.style.setProperty('--accent','#ff6a00');$('#app').innerHTML=`<div class="wrap"><section class="hero"><div><span class="pill">Bir QR. Bir mola. Biraz eğlence.</span><h1>Bekleme anını<br><span>güzel bir anıya</span><br>dönüştür.</h1><p class="lead muted">Masada kahveni beklerken, antrenmana ara verirken… OynaBak ile işletmendeki küçük molalara oyun kat.</p><div class="row"><a class="btn coral" href="#pricing">İşletmem için keşfet ↗</a><a class="btn light" href="#features">Nasıl çalışır?</a></div><p class="muted" style="font-size:13px;margin-top:18px"><b>Oyunlar yalnızca işletmedeki QR kodu okutulduğunda açılır.</b><br>Uygulama indirmeden · Telefonun tarayıcısında</p></div><div class="phone"><div class="dot"></div><span class="eyebrow">MÜŞTERİ DENEYİMİ</span><h2>Tek QR.<br>Üç seçenek.</h2><div class="tile orange"><strong>▶ Oyun Oyna</strong><small>İşletmedeki oyun alanına doğrudan geç.</small></div><div class="tile blue"><strong>☰ Menüyü Gör</strong><small>Ürünleri ve güncel fiyatları telefondan incele.</small></div><div class="tile green"><strong>★ İşletmeyi değerlendir</strong><small>Google değerlendirme sayfasına geç.</small></div></div></section><section id="features" class="section"><span class="eyebrow">İŞLETMENE KÜÇÜK BİR DOKUNUŞ</span><h2>Sen işine bak.<br>Molaları bize bırak.</h2><div class="grid"><div class="card"><span class="icon">🎲</span><h3>Oynanacak bir şey var.</h3><p class="muted">Genişleyen oyun kütüphanesiyle müşterilerine tek kişilik, iki kişilik ve grupça oynanabilen keyifli molalar sun.</p></div><div class="card"><span class="icon">☰</span><h3>Dijital menün de aynı QR’da.</h3><p class="muted">Ürünlerini, fiyatlarını, kategorilerini ve öne çıkan ürünlerini müşterilerine tek ekrandan göster.</p></div><div class="card"><span class="icon">★</span><h3>Görüşleri seninle kalsın.</h3><p class="muted">Müşterini işletmenin Google değerlendirme sayfasına yönlendir. Oyun sonunda değerlendirme ekranı da gösterilir.</p></div><div class="card"><span class="icon">📊</span><h3>Ne kadar kullanılıyor, gör.</h3><p class="muted">QR açılışlarını, oyunları, menü açılışlarını, kategori ilgisini ve değerlendirme tıklamalarını panelden takip et.</p></div></div></section><section class="section"><div class="grid"><div><span class="number">01 / KURULUM</span><h3>İşletmeni hazırlayalım.</h3><p class="muted">İşletme bilgilerini, Google değerlendirme bağlantını ve dijital menünü ekleyelim.</p></div><div><span class="number">02 / QR KOD</span><h3>Tek QR’ı görünür bir yere koy.</h3><p class="muted">Kafede masa üstüne, spor salonunda dinlenme alanına veya mağazada müşterinin kolayca görebileceği bir noktaya.</p></div><div><span class="number">03 / KULLAN</span><h3>Müşterin QR’ı okutsun.</h3><p class="muted">Ekranda yalnızca Oyun Oyna, Menüyü Gör ve İşletmeyi Puanla seçenekleri çıkar. Müşteri istediği bölüme tek dokunuşla geçer.</p></div></div></section><section id="pricing" class="section"><div class="price"><div><span class="pill" style="color:#174631">Lansmana özel fiyat</span><h2>İşletmene eğlenceli<br>bir başlangıç.</h2><p class="muted">OynaBak İşletme Paketi · Tek seferlik ödeme · Yıllık ücret yok.</p><div style="margin:18px 0 4px"><span style="display:block;color:#c2cede;font-size:14px;font-weight:700;margin-bottom:2px">Normal fiyat</span><span style="font-size:26px;font-weight:800;color:#c2cede;text-decoration:line-through;text-decoration-thickness:2px">5.500 TL</span></div><div class="amount">4.000 <span style="font-size:22px">TL</span></div><p style="margin:4px 0 0;font-size:13px;font-weight:800;color:#bce8cf">Lansmana özel · Tek sefer öde</p><p class="muted">OynaBak standı ve ilk kurulum pakete dahildir. İşletmeye özel ek geliştirmeler ayrıca görüşülür.</p></div><div><ul><li>İşletmene özel 3 seçenekli müşteri ekranı</li><li>Genişleyen hazır oyun kütüphanesi</li><li>Dijital menü, kategori ve öne çıkan ürün sistemi</li><li>Oyun sonu + ana ekrandan Google değerlendirme yönlendirmesi</li><li>İşletme paneli ve tek QR + işletme kodu sistemi</li><li>QR, oyun, menü ve değerlendirme analitiği</li><li>Kurulum ve ilk işletme ayarları</li></ul><a class="btn coral" target="_blank" rel="noopener noreferrer" href="${wa('Merhaba, OynaBak 4.000 TL lansman fiyatlı tek seferlik işletme paketi hakkında bilgi almak istiyorum.')}">Lansman fiyatından iletişime geç ↗</a><p class="muted" style="font-size:13px;margin-top:14px">Online ödeme alınmaz. Aktivasyon, ödeme kontrolünden sonra tarafımızdan yapılır. Paket yıllık abonelik değildir.</p></div></div></section><section id="faq" class="section faq"><span class="eyebrow">AKLINDA SORU KALMASIN</span><h2>Merak edilenler.</h2><details><summary>Uygulama indirmek gerekiyor mu?</summary><p>Hayır. Oyunlar yalnızca işletmedeki QR kodu okutularak telefonun tarayıcısında açılır.</p></details><details><summary>Oyunları değiştirebilir miyim?</summary><p>Oyunlar OynaBak yönetimi tarafından eklenir ve işletmelere atanır. İşletmene farklı oyunlar eklenmesini bizden isteyebilirsin.</p></details><details><summary>Dijital menü var mı?</summary><p>Evet. İşletme panelinden kategori, ürün, açıklama ve fiyat ekleyebilir; ürünleri menüde gösterebilir, tükendi olarak işaretleyebilir ve öne çıkan ürün seçebilir. Müşteri aynı QR ekranından menüye ulaşır.</p></details><details><summary>Oyunlara normal oynabak.com adresinden girilebilir mi?</summary><p>Hayır. Normal site OynaBak’ı tanıtır. Oyun alanı yalnızca geçerli bir işletme QR bağlantısıyla açılır.</p></details><details><summary>Kaç oyun var?</summary><p>Oyun sayısı işletmeye atanan oyun kütüphanesine göre değişir. Yeni oyunlar yönetim panelinden eklenip seçili işletmelere yayınlanabilir.</p></details><details><summary>QR kodunu nereye koyacağım?</summary><p>OynaBak paketiyle birlikte QR kodunun yer aldığı hazır stand verilir. İşletme, standı masa üstüne, kasa yanına veya müşterilerin kolayca görebileceği uygun bir alana yerleştirebilir. Ekstra bir QR baskısı hazırlaman gerekmez.</p></details><details><summary>Her işletme ayrı bir hesap mı kullanır?</summary><p>Evet. Onaylanan hesap yalnızca kendisine atanmış işletmeyi yönetebilir. Müşteriler ise QR bağlantısıyla oyun ekranını açar.</p></details><details><summary>İnternet gerekiyor mu?</summary><p>Evet. Giriş, işletme bilgilerinin alınması ve oyunların yüklenmesi için internet bağlantısı gerekir.</p></details><details><summary>Ödeme yıllık mı?</summary><p>Hayır. OynaBak İşletme Paketi tek seferlik ödeme modelindedir. Normal fiyat 5.500 TL, lansmana özel güncel fiyat 4.000 TL'dir. OynaBak standı ve ilk kurulum pakete dahildir. İşletmeye özel ek geliştirmeler ayrıca fiyatlandırılabilir.</p></details></section></div>`}
 
 function blogListPage(){
   document.documentElement.style.setProperty('--accent','#ff6a00');
@@ -5767,7 +5762,7 @@ const OB_FEATURES=[
   ['review','⭐ Google Değerlendirme'],['instagram','📸 Instagram Hesabı'],['waiter','🔔 Garson Çağırma']
 ];
 const featureCache=new Map();
-function defaultFeatures(){return {games:true,menu:true,review:true,instagram:false,waiter:false}}
+function defaultFeatures(){return {games:true,menu:true,review:true,instagram:true,waiter:false}}
 function featureOn(v,key){
   const id=String(v?.id||'');
   return (featureCache.get(id)||defaultFeatures())[key]===true;
@@ -5776,7 +5771,7 @@ async function loadVenueFeatures(vid){
   vid=String(vid||''); if(!vid)return defaultFeatures();
   try{
     const f=await rpc('ob_features_get',{vid});
-    const out={games:f?.games!==false,menu:f?.menu!==false,review:f?.review!==false,instagram:f?.instagram===true,waiter:f?.waiter===true};
+    const out={games:f?.games!==false,menu:f?.menu!==false,review:f?.review!==false,instagram:f?.instagram!==false,waiter:f?.waiter===true};
     featureCache.set(vid,out); return out;
   }catch(_){const f=defaultFeatures();featureCache.set(vid,f);return f}
 }
@@ -5789,15 +5784,11 @@ function featureChecksHtml(v){
   const f=featureCache.get(String(v?.id||''))||defaultFeatures();
   return `<div class="checks"><b>İşletme özellikleri</b>
   <p class="muted" style="font-size:12px;margin:5px 0 10px">Bu işletmede açık olacak özellikleri seç.</p>
-  ${OB_FEATURES.map(([k,label])=>`<label><input type="checkbox" name="feature_${k}" ${(k==='instagram' ? (f.instagram || !!v?.instagram_url) : f[k])?'checked':''}>${label}</label>`).join('')}</div>`;
+  ${OB_FEATURES.map(([k,label])=>`<label><input type="checkbox" name="feature_${k}" ${f[k]?'checked':''}>${label}</label>`).join('')}</div>`;
 }
 async function adminVenueFeatures(v){
   await loadVenueFeatures(v?.id);
   venueForm(v);
-}
-async function adminVenueFeaturesMerchant(v){
-  await loadVenueFeatures(v?.id);
-  venueForm(v,true);
 }
 function venueForm(v={},merchant=false){
   modal(merchant?'İşletme bilgileri':v.id?'İşletmeyi düzenle':'Yeni işletme',`
@@ -5811,11 +5802,11 @@ function venueForm(v={},merchant=false){
       <label class="field">Google değerlendirme bağlantısı
         <input name="review_url" type="url" maxlength="1999" placeholder="https://g.page/r/.../review" value="${esc(v.review_url||'')}">
       </label>
-      <label class="field">Instagram hesabı bağlantısı (Instagram seçeneğini de işaretleyin)
-        <input name="instagram_url" type="url" maxlength="1999" placeholder="https://www.instagram.com/isletmehesabi" value="${esc(v.instagram_url||'')}">
+      <label class="field">Instagram hesabı bağlantısı
+        <input name="instagram_url" type="url" maxlength="1999" placeholder="https://www.instagram.com/berke_yuksekdag" value="${esc(v.instagram_url||'https://www.instagram.com/berke_yuksekdag')}">
       </label>
 
-      ${merchant?featureChecksHtml(v):`${featureChecksHtml(v)}<div class="checks"><b>Oyunlar · ${currentTenGames(adminData?.games||[]).length} oyun</b><p class="muted" style="font-size:12px;margin:5px 0 10px">Paneldeki tüm güncel oyunlar gösterilir. İşletmede görünmesini istediklerini seç.</p>${currentGameSelectionHtml(v)}<hr><label><input type="checkbox" name="active" ${v.active?'checked':''}>İşletme yayını açık</label><label><input type="checkbox" name="licensed" ${v.licensed?'checked':''}>Ödemeyi kontrol ettim, kullanım lisansı aktif</label><p class="muted" style="font-size:13px">Bu işaret ödeme tahsil etmez. Müşteri ekranı için yayın ve lisans birlikte açık olmalı.</p></div>`}
+      ${merchant?'':`${featureChecksHtml(v)}<div class="checks"><b>Oyunlar · ${currentTenGames(adminData?.games||[]).length} oyun</b><p class="muted" style="font-size:12px;margin:5px 0 10px">Paneldeki tüm güncel oyunlar gösterilir. İşletmede görünmesini istediklerini seç.</p>${currentGameSelectionHtml(v)}<hr><label><input type="checkbox" name="active" ${v.active?'checked':''}>İşletme yayını açık</label><label><input type="checkbox" name="licensed" ${v.licensed?'checked':''}>Ödemeyi kontrol ettim, kullanım lisansı aktif</label><p class="muted" style="font-size:13px">Bu işaret ödeme tahsil etmez. Müşteri ekranı için yayın ve lisans birlikte açık olmalı.</p></div>`}
       <button class="btn coral">Kaydet</button>
     </form>`);
 }
@@ -7035,6 +7026,16 @@ async function customer(demo,seq){
               <span class="entry-arrow">→</span>
             </button>
 
+            <button type="button" class="entry-choice entry-waiter" data-action="waiter-open" ${featureOn(venue,'waiter')?'':'hidden'}>
+              <span class="entry-icon">🔔</span>
+              <span class="entry-copy">
+                <small>MASADAN İSTEK GÖNDER</small>
+                <strong>Garson Çağır</strong>
+                <em>Garson, hesap, su veya peçete iste.</em>
+              </span>
+              <span class="entry-arrow">→</span>
+            </button>
+
             <button type="button" class="entry-choice entry-review" data-action="review" ${featureOn(venue,'review')?'':'hidden'}>
               <span class="entry-icon">
                 <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -7047,17 +7048,6 @@ async function customer(demo,seq){
                 <em>Deneyimini birkaç saniyede paylaş.</em>
               </span>
               <span class="entry-arrow">↗</span>
-            </button>
-
-          </div>
-          ${(featureOn(venue,'waiter')||featureOn(venue,'instagram'))?`<div class="customer-extras"><div class="customer-entry-grid">            <button type="button" class="entry-choice entry-waiter" data-action="waiter-open" ${featureOn(venue,'waiter')?'':'hidden'}>
-              <span class="entry-icon">🔔</span>
-              <span class="entry-copy">
-                <small>MASADAN İSTEK GÖNDER</small>
-                <strong>Garson Çağır</strong>
-                <em>Garson, hesap, su veya peçete iste.</em>
-              </span>
-              <span class="entry-arrow">→</span>
             </button>
 
             <button type="button" class="entry-choice entry-instagram" data-action="instagram" ${featureOn(venue,'instagram')?'':'hidden'}>
@@ -7075,7 +7065,8 @@ async function customer(demo,seq){
               </span>
               <span class="entry-arrow">↗</span>
             </button>
-</div></div>`:''}
+
+          </div>
         </section>
 
         <section id="gamesView" class="customer-games-view" hidden>
@@ -7334,7 +7325,7 @@ if(a==='copy-venue-code'){const code=await businessCodeForVenue(id||me?.venue?.i
   }
   closeModal();
   return
-}if(a==='logout'){const {error}=await db.auth.signOut();if(error)throw error;me=null;adminData=null;await route()}if(a==='reset'){const email=$('#authForm [name=email]').value;if(!email)throw Error('Önce e-posta adresini yaz.');const redirect=new URL(location.href);redirect.search='?recovery=1';redirect.hash='';const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo:redirect.href});if(error)throw error;toast('Hesabın varsa şifre yenileme bağlantısı gönderilecek.')}if(a==='venue-new')venueForm();if(a==='venue-edit')await adminVenueFeatures(getVenue(id));if(a==='merchant-edit')await adminVenueFeaturesMerchant(me.venue);if(a==='game-new')gameForm();if(a==='game-edit')gameForm(adminData.games.find(g=>g.id===id));if(a==='game-delete'){const game=adminData.games.find(g=>String(g.id)===String(id));const gameName=String(game?.name||b.dataset.name||'Bu oyun');const ok=window.confirm(`“${gameName}” oyununu kalıcı olarak silmek istediğine emin misin?\n\nBu işlem geri alınamaz ve oyun atandığı tüm işletmelerden de kaldırılır.`);if(!ok)return;b.disabled=true;try{await rpc('ob_delete_game',{gid:String(id)});toast('Oyun silindi.');await route()}finally{b.disabled=false}return}if(a==='preview-code')safeFrame($('#gameForm [name=code]').value,$('#codePreview'),{gameName:$('#gameForm [name=name]').value||'Önizleme',preview:true});if(a==='qr')qrView(id);if(a==='stats')await stats(id,7);if(a==='stats-period')await stats(id,Number(b.dataset.days||7));if(a==='games'){trackEvent('games_open');const box=$('#gameList');if(!box.innerHTML.trim())listGames();box.scrollIntoView({behavior:'smooth',block:'start'})}if(a==='review')openReviewPage();}catch(err){toast(err.message)}});
+}if(a==='logout'){const {error}=await db.auth.signOut();if(error)throw error;me=null;adminData=null;await route()}if(a==='reset'){const email=$('#authForm [name=email]').value;if(!email)throw Error('Önce e-posta adresini yaz.');const redirect=new URL(location.href);redirect.search='?recovery=1';redirect.hash='';const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo:redirect.href});if(error)throw error;toast('Hesabın varsa şifre yenileme bağlantısı gönderilecek.')}if(a==='venue-new')venueForm();if(a==='venue-edit')await adminVenueFeatures(getVenue(id));if(a==='merchant-edit')venueForm(me.venue,true);if(a==='game-new')gameForm();if(a==='game-edit')gameForm(adminData.games.find(g=>g.id===id));if(a==='game-delete'){const game=adminData.games.find(g=>String(g.id)===String(id));const gameName=String(game?.name||b.dataset.name||'Bu oyun');const ok=window.confirm(`“${gameName}” oyununu kalıcı olarak silmek istediğine emin misin?\n\nBu işlem geri alınamaz ve oyun atandığı tüm işletmelerden de kaldırılır.`);if(!ok)return;b.disabled=true;try{await rpc('ob_delete_game',{gid:String(id)});toast('Oyun silindi.');await route()}finally{b.disabled=false}return}if(a==='preview-code')safeFrame($('#gameForm [name=code]').value,$('#codePreview'),{gameName:$('#gameForm [name=name]').value||'Önizleme',preview:true});if(a==='qr')qrView(id);if(a==='stats')await stats(id,7);if(a==='stats-period')await stats(id,Number(b.dataset.days||7));if(a==='games'){trackEvent('games_open');const box=$('#gameList');if(!box.innerHTML.trim())listGames();box.scrollIntoView({behavior:'smooth',block:'start'})}if(a==='review')openReviewPage();}catch(err){toast(err.message)}});
 document.addEventListener('input',e=>{const input=e.target.closest?.('#businessCodeForm [name=business_code]');if(!input)return;const next=String(input.value||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,4);if(input.value!==next)input.value=next});
 document.addEventListener('submit',async e=>{const f=e.target;if(!['authForm','passwordForm','recoveryRequestForm','requestForm','venueForm','gameForm','businessCodeForm','menuForm','waiterCallForm'].includes(f.id)&&!f.classList.contains('assignForm'))return;e.preventDefault();const button=e.submitter,mode=button?.value,d=new FormData(f);f.querySelectorAll('button').forEach(b=>b.disabled=true);try{if(f.id==='waiterCallForm'){const vid=String(venue?.id||qrParams().venueId||'');if(!vid)throw Error('İşletme bulunamadı.');const tableNo=String(d.get('table_no')||'').replace(/\D/g,'').slice(0,3);if(!tableNo||Number(tableNo)<1)throw Error('Geçerli bir masa numarası yaz.');const requestType=String(d.get('request_type')||'waiter');await rpc('ob_waiter_create',{p_venue_id:vid,p_table_no:tableNo,p_request_type:requestType});localStorage.setItem('oynabak_table_'+vid,tableNo);closeModal();toast('🔔 İsteğin işletmeye iletildi.');return}else if(f.id==='businessCodeForm'){const id=await resolveBusinessCode(d.get('business_code'));const u=new URL(location.href);u.search='';u.searchParams.set('isletme',id);u.hash='play';history.replaceState(null,'',u.href);await route()}else if(f.id==='recoveryRequestForm'){const redirect=new URL(location.pathname,location.origin);redirect.search='?recovery=1';redirect.hash='';const {error}=await db.auth.resetPasswordForEmail(d.get('email').trim(),{redirectTo:redirect.href});if(error)throw error;toast('Hesabın varsa yeni bağlantı gönderilecek. En son gelen e-postayı aç.')}else if(f.id==='authForm'){const credentials={email:d.get('email').trim(),password:d.get('password')};let r;if(mode==='signup'){const u=new URL(location.href);u.search='';u.hash='panel';r=await db.auth.signUp({...credentials,options:{emailRedirectTo:u.href}})}else r=await db.auth.signInWithPassword(credentials);if(r.error)throw r.error;if(mode==='signup'&&!r.data.session){toast('E-postanı kontrol et ve hesabını doğrula. Ardından giriş yap.');return}await route()}else if(f.id==='passwordForm'){if(d.get('password')!==d.get('confirm_password'))throw Error('Şifreler aynı olmalı.');const {error}=await db.auth.updateUser({password:d.get('password')});if(error)throw error;recoveryMode=false;recoveryFailure=false;history.replaceState(null,'',location.pathname+'#panel');toast('Şifren güncellendi.');await route()}else if(f.id==='requestForm'){await rpc('ob_request',{business_name:d.get('business_name')});toast('İşletme talebin alındı.');await route()}else if(f.id==='venueForm'){
   const rawReview=String(d.get('review_url')||'').trim();
@@ -7359,7 +7350,7 @@ document.addEventListener('submit',async e=>{const f=e.target;if(!['authForm','p
   }
 
   const saved=await rpc(merchant?'ob_merchant_save':'ob_save_venue',{p});
-  let venueId=savedVenueId(saved,f.dataset.id)||String(merchant?me?.venue?.id||'':'');
+  let venueId=savedVenueId(saved,f.dataset.id);
 
   // Yeni işletmede RPC id döndürmezse güncel admin verisinden bul.
   if(!merchant&&!venueId){
@@ -7372,12 +7363,12 @@ document.addEventListener('submit',async e=>{const f=e.target;if(!['authForm','p
     }catch(_){}
   }
 
-  if(venueId){
+  if(!merchant&&venueId){
     await saveVenueFeatures(venueId,{
       games:d.has('feature_games'),menu:d.has('feature_menu'),
-      review:d.has('feature_review'),instagram:d.has('feature_instagram')&&!!p.instagram_url,waiter:d.has('feature_waiter')
+      review:d.has('feature_review'),instagram:d.has('feature_instagram'),waiter:d.has('feature_waiter')
     });
-    if(!merchant)await syncVenueCustomGames(venueId,d.getAll('custom_enabled'));
+    await syncVenueCustomGames(venueId,d.getAll('custom_enabled'));
   }
   closeModal();
   toast('İşletme kaydedildi.');
