@@ -5277,8 +5277,16 @@ function normalizeInstagramUrl(raw){
   u.hash='';
   return u.href;
 }
+const FREED_INSTAGRAM_URL='https://www.instagram.com/freedizmir/';
+function isFreedVenue(v){
+  return /(^|[^a-z0-9])freed([^a-z0-9]|$)/i.test(String(v?.name||'').normalize('NFD').replace(/[\u0300-\u036f]/g,''));
+}
+function venueInstagramUrl(v){
+  if(isFreedVenue(v))return FREED_INSTAGRAM_URL;
+  return String(v?.instagram_url||'').trim();
+}
 function instagramUrl(){
-  const raw=venue?.instagram_url||'https://www.instagram.com/berke_yuksekdag';
+  const raw=venueInstagramUrl(venue);
   return normalizeInstagramUrl(raw);
 }
 async function openInstagramPage(){
@@ -5803,7 +5811,7 @@ function venueForm(v={},merchant=false){
         <input name="review_url" type="url" maxlength="1999" placeholder="https://g.page/r/.../review" value="${esc(v.review_url||'')}">
       </label>
       <label class="field">Instagram hesabı bağlantısı
-        <input name="instagram_url" type="url" maxlength="1999" placeholder="https://www.instagram.com/berke_yuksekdag" value="${esc(v.instagram_url||'https://www.instagram.com/berke_yuksekdag')}">
+        <input name="instagram_url" type="url" maxlength="1999" placeholder="https://www.instagram.com/isletmeadi/" value="${esc(venueInstagramUrl(v))}">
       </label>
 
       ${merchant?'':`${featureChecksHtml(v)}<div class="checks"><b>Oyunlar · ${currentTenGames(adminData?.games||[]).length} oyun</b><p class="muted" style="font-size:12px;margin:5px 0 10px">Paneldeki tüm güncel oyunlar gösterilir. İşletmede görünmesini istediklerini seç.</p>${currentGameSelectionHtml(v)}<hr><label><input type="checkbox" name="active" ${v.active?'checked':''}>İşletme yayını açık</label><label><input type="checkbox" name="licensed" ${v.licensed?'checked':''}>Ödemeyi kontrol ettim, kullanım lisansı aktif</label><p class="muted" style="font-size:13px">Bu işaret ödeme tahsil etmez. Müşteri ekranı için yayın ve lisans birlikte açık olmalı.</p></div>`}
@@ -7335,7 +7343,7 @@ document.addEventListener('submit',async e=>{const f=e.target;if(!['authForm','p
     name:d.get('name'),
     color:(f.dataset.id ? (getVenue(f.dataset.id)?.color||'#ff705b') : (me?.venue?.color||'#ff705b')),
     review_url:rawReview?normalizeReviewUrl(rawReview):'',
-    instagram_url:rawInstagram?normalizeInstagramUrl(rawInstagram):'',
+    instagram_url:isFreedVenue({name:d.get('name')})?FREED_INSTAGRAM_URL:(rawInstagram?normalizeInstagramUrl(rawInstagram):''),
     tables:1
   };
 
