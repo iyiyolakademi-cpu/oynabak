@@ -5283,7 +5283,7 @@ function normalizeInstagramUrl(raw){
   return u.href;
 }
 function instagramUrl(){
-  const raw=venue?.instagram_url||'https://www.instagram.com/berke_yuksekdag';
+  const raw=venue?.instagram_url||'';
   return normalizeInstagramUrl(raw);
 }
 async function openInstagramPage(){
@@ -5789,11 +5789,15 @@ function featureChecksHtml(v){
   const f=featureCache.get(String(v?.id||''))||defaultFeatures();
   return `<div class="checks"><b>İşletme özellikleri</b>
   <p class="muted" style="font-size:12px;margin:5px 0 10px">Bu işletmede açık olacak özellikleri seç.</p>
-  ${OB_FEATURES.map(([k,label])=>`<label><input type="checkbox" name="feature_${k}" ${f[k]?'checked':''}>${label}</label>`).join('')}</div>`;
+  ${OB_FEATURES.filter(([k])=>k!=='instagram').map(([k,label])=>`<label><input type="checkbox" name="feature_${k}" ${f[k]?'checked':''}>${label}</label>`).join('')}</div>`;
 }
 async function adminVenueFeatures(v){
   await loadVenueFeatures(v?.id);
   venueForm(v);
+}
+async function adminVenueFeaturesMerchant(v){
+  await loadVenueFeatures(v?.id);
+  venueForm(v,true);
 }
 function venueForm(v={},merchant=false){
   modal(merchant?'İşletme bilgileri':v.id?'İşletmeyi düzenle':'Yeni işletme',`
@@ -5808,10 +5812,10 @@ function venueForm(v={},merchant=false){
         <input name="review_url" type="url" maxlength="1999" placeholder="https://g.page/r/.../review" value="${esc(v.review_url||'')}">
       </label>
       <label class="field">Instagram hesabı bağlantısı
-        <input name="instagram_url" type="url" maxlength="1999" placeholder="https://www.instagram.com/berke_yuksekdag" value="${esc(v.instagram_url||'https://www.instagram.com/berke_yuksekdag')}">
+        <input name="instagram_url" type="url" maxlength="1999" placeholder="https://www.instagram.com/isletmehesabi" value="${esc(v.instagram_url||'')}">
       </label>
 
-      ${merchant?'':`${featureChecksHtml(v)}<div class="checks"><b>Oyunlar · ${currentTenGames(adminData?.games||[]).length} oyun</b><p class="muted" style="font-size:12px;margin:5px 0 10px">Paneldeki tüm güncel oyunlar gösterilir. İşletmede görünmesini istediklerini seç.</p>${currentGameSelectionHtml(v)}<hr><label><input type="checkbox" name="active" ${v.active?'checked':''}>İşletme yayını açık</label><label><input type="checkbox" name="licensed" ${v.licensed?'checked':''}>Ödemeyi kontrol ettim, kullanım lisansı aktif</label><p class="muted" style="font-size:13px">Bu işaret ödeme tahsil etmez. Müşteri ekranı için yayın ve lisans birlikte açık olmalı.</p></div>`}
+      ${merchant?featureChecksHtml(v):`${featureChecksHtml(v)}<div class="checks"><b>Oyunlar · ${currentTenGames(adminData?.games||[]).length} oyun</b><p class="muted" style="font-size:12px;margin:5px 0 10px">Paneldeki tüm güncel oyunlar gösterilir. İşletmede görünmesini istediklerini seç.</p>${currentGameSelectionHtml(v)}<hr><label><input type="checkbox" name="active" ${v.active?'checked':''}>İşletme yayını açık</label><label><input type="checkbox" name="licensed" ${v.licensed?'checked':''}>Ödemeyi kontrol ettim, kullanım lisansı aktif</label><p class="muted" style="font-size:13px">Bu işaret ödeme tahsil etmez. Müşteri ekranı için yayın ve lisans birlikte açık olmalı.</p></div>`}
       <button class="btn coral">Kaydet</button>
     </form>`);
 }
@@ -7046,7 +7050,7 @@ async function customer(demo,seq){
             </button>
 
           </div>
-          ${(featureOn(venue,'waiter')||featureOn(venue,'instagram'))?`<div class="customer-extras"><p class="customer-extras-label">İŞLETMENİN EK HİZMETLERİ</p><div class="customer-entry-grid">            <button type="button" class="entry-choice entry-waiter" data-action="waiter-open" ${featureOn(venue,'waiter')?'':'hidden'}>
+          ${(featureOn(venue,'waiter')||featureOn(venue,'instagram'))?`<div class="customer-extras"><div class="customer-entry-grid">            <button type="button" class="entry-choice entry-waiter" data-action="waiter-open" ${featureOn(venue,'waiter')?'':'hidden'}>
               <span class="entry-icon">🔔</span>
               <span class="entry-copy">
                 <small>MASADAN İSTEK GÖNDER</small>
@@ -7330,7 +7334,7 @@ if(a==='copy-venue-code'){const code=await businessCodeForVenue(id||me?.venue?.i
   }
   closeModal();
   return
-}if(a==='logout'){const {error}=await db.auth.signOut();if(error)throw error;me=null;adminData=null;await route()}if(a==='reset'){const email=$('#authForm [name=email]').value;if(!email)throw Error('Önce e-posta adresini yaz.');const redirect=new URL(location.href);redirect.search='?recovery=1';redirect.hash='';const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo:redirect.href});if(error)throw error;toast('Hesabın varsa şifre yenileme bağlantısı gönderilecek.')}if(a==='venue-new')venueForm();if(a==='venue-edit')await adminVenueFeatures(getVenue(id));if(a==='merchant-edit')venueForm(me.venue,true);if(a==='game-new')gameForm();if(a==='game-edit')gameForm(adminData.games.find(g=>g.id===id));if(a==='game-delete'){const game=adminData.games.find(g=>String(g.id)===String(id));const gameName=String(game?.name||b.dataset.name||'Bu oyun');const ok=window.confirm(`“${gameName}” oyununu kalıcı olarak silmek istediğine emin misin?\n\nBu işlem geri alınamaz ve oyun atandığı tüm işletmelerden de kaldırılır.`);if(!ok)return;b.disabled=true;try{await rpc('ob_delete_game',{gid:String(id)});toast('Oyun silindi.');await route()}finally{b.disabled=false}return}if(a==='preview-code')safeFrame($('#gameForm [name=code]').value,$('#codePreview'),{gameName:$('#gameForm [name=name]').value||'Önizleme',preview:true});if(a==='qr')qrView(id);if(a==='stats')await stats(id,7);if(a==='stats-period')await stats(id,Number(b.dataset.days||7));if(a==='games'){trackEvent('games_open');const box=$('#gameList');if(!box.innerHTML.trim())listGames();box.scrollIntoView({behavior:'smooth',block:'start'})}if(a==='review')openReviewPage();}catch(err){toast(err.message)}});
+}if(a==='logout'){const {error}=await db.auth.signOut();if(error)throw error;me=null;adminData=null;await route()}if(a==='reset'){const email=$('#authForm [name=email]').value;if(!email)throw Error('Önce e-posta adresini yaz.');const redirect=new URL(location.href);redirect.search='?recovery=1';redirect.hash='';const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo:redirect.href});if(error)throw error;toast('Hesabın varsa şifre yenileme bağlantısı gönderilecek.')}if(a==='venue-new')venueForm();if(a==='venue-edit')await adminVenueFeatures(getVenue(id));if(a==='merchant-edit')await adminVenueFeaturesMerchant(me.venue);if(a==='game-new')gameForm();if(a==='game-edit')gameForm(adminData.games.find(g=>g.id===id));if(a==='game-delete'){const game=adminData.games.find(g=>String(g.id)===String(id));const gameName=String(game?.name||b.dataset.name||'Bu oyun');const ok=window.confirm(`“${gameName}” oyununu kalıcı olarak silmek istediğine emin misin?\n\nBu işlem geri alınamaz ve oyun atandığı tüm işletmelerden de kaldırılır.`);if(!ok)return;b.disabled=true;try{await rpc('ob_delete_game',{gid:String(id)});toast('Oyun silindi.');await route()}finally{b.disabled=false}return}if(a==='preview-code')safeFrame($('#gameForm [name=code]').value,$('#codePreview'),{gameName:$('#gameForm [name=name]').value||'Önizleme',preview:true});if(a==='qr')qrView(id);if(a==='stats')await stats(id,7);if(a==='stats-period')await stats(id,Number(b.dataset.days||7));if(a==='games'){trackEvent('games_open');const box=$('#gameList');if(!box.innerHTML.trim())listGames();box.scrollIntoView({behavior:'smooth',block:'start'})}if(a==='review')openReviewPage();}catch(err){toast(err.message)}});
 document.addEventListener('input',e=>{const input=e.target.closest?.('#businessCodeForm [name=business_code]');if(!input)return;const next=String(input.value||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,4);if(input.value!==next)input.value=next});
 document.addEventListener('submit',async e=>{const f=e.target;if(!['authForm','passwordForm','recoveryRequestForm','requestForm','venueForm','gameForm','businessCodeForm','menuForm','waiterCallForm'].includes(f.id)&&!f.classList.contains('assignForm'))return;e.preventDefault();const button=e.submitter,mode=button?.value,d=new FormData(f);f.querySelectorAll('button').forEach(b=>b.disabled=true);try{if(f.id==='waiterCallForm'){const vid=String(venue?.id||qrParams().venueId||'');if(!vid)throw Error('İşletme bulunamadı.');const tableNo=String(d.get('table_no')||'').replace(/\D/g,'').slice(0,3);if(!tableNo||Number(tableNo)<1)throw Error('Geçerli bir masa numarası yaz.');const requestType=String(d.get('request_type')||'waiter');await rpc('ob_waiter_create',{p_venue_id:vid,p_table_no:tableNo,p_request_type:requestType});localStorage.setItem('oynabak_table_'+vid,tableNo);closeModal();toast('🔔 İsteğin işletmeye iletildi.');return}else if(f.id==='businessCodeForm'){const id=await resolveBusinessCode(d.get('business_code'));const u=new URL(location.href);u.search='';u.searchParams.set('isletme',id);u.hash='play';history.replaceState(null,'',u.href);await route()}else if(f.id==='recoveryRequestForm'){const redirect=new URL(location.pathname,location.origin);redirect.search='?recovery=1';redirect.hash='';const {error}=await db.auth.resetPasswordForEmail(d.get('email').trim(),{redirectTo:redirect.href});if(error)throw error;toast('Hesabın varsa yeni bağlantı gönderilecek. En son gelen e-postayı aç.')}else if(f.id==='authForm'){const credentials={email:d.get('email').trim(),password:d.get('password')};let r;if(mode==='signup'){const u=new URL(location.href);u.search='';u.hash='panel';r=await db.auth.signUp({...credentials,options:{emailRedirectTo:u.href}})}else r=await db.auth.signInWithPassword(credentials);if(r.error)throw r.error;if(mode==='signup'&&!r.data.session){toast('E-postanı kontrol et ve hesabını doğrula. Ardından giriş yap.');return}await route()}else if(f.id==='passwordForm'){if(d.get('password')!==d.get('confirm_password'))throw Error('Şifreler aynı olmalı.');const {error}=await db.auth.updateUser({password:d.get('password')});if(error)throw error;recoveryMode=false;recoveryFailure=false;history.replaceState(null,'',location.pathname+'#panel');toast('Şifren güncellendi.');await route()}else if(f.id==='requestForm'){await rpc('ob_request',{business_name:d.get('business_name')});toast('İşletme talebin alındı.');await route()}else if(f.id==='venueForm'){
   const rawReview=String(d.get('review_url')||'').trim();
@@ -7355,7 +7359,7 @@ document.addEventListener('submit',async e=>{const f=e.target;if(!['authForm','p
   }
 
   const saved=await rpc(merchant?'ob_merchant_save':'ob_save_venue',{p});
-  let venueId=savedVenueId(saved,f.dataset.id);
+  let venueId=savedVenueId(saved,f.dataset.id)||String(merchant?me?.venue?.id||'':'');
 
   // Yeni işletmede RPC id döndürmezse güncel admin verisinden bul.
   if(!merchant&&!venueId){
@@ -7368,12 +7372,12 @@ document.addEventListener('submit',async e=>{const f=e.target;if(!['authForm','p
     }catch(_){}
   }
 
-  if(!merchant&&venueId){
+  if(venueId){
     await saveVenueFeatures(venueId,{
       games:d.has('feature_games'),menu:d.has('feature_menu'),
-      review:d.has('feature_review'),instagram:d.has('feature_instagram'),waiter:d.has('feature_waiter')
+      review:d.has('feature_review'),instagram:!!p.instagram_url,waiter:d.has('feature_waiter')
     });
-    await syncVenueCustomGames(venueId,d.getAll('custom_enabled'));
+    if(!merchant)await syncVenueCustomGames(venueId,d.getAll('custom_enabled'));
   }
   closeModal();
   toast('İşletme kaydedildi.');
