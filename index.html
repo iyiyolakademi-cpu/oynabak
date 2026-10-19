@@ -5789,7 +5789,7 @@ function featureChecksHtml(v){
   const f=featureCache.get(String(v?.id||''))||defaultFeatures();
   return `<div class="checks"><b>İşletme özellikleri</b>
   <p class="muted" style="font-size:12px;margin:5px 0 10px">Bu işletmede açık olacak özellikleri seç.</p>
-  ${OB_FEATURES.filter(([k])=>k!=='instagram').map(([k,label])=>`<label><input type="checkbox" name="feature_${k}" ${f[k]?'checked':''}>${label}</label>`).join('')}</div>`;
+  ${OB_FEATURES.map(([k,label])=>`<label><input type="checkbox" name="feature_${k}" ${(k==='instagram' ? (f.instagram || !!v?.instagram_url) : f[k])?'checked':''}>${label}</label>`).join('')}</div>`;
 }
 async function adminVenueFeatures(v){
   await loadVenueFeatures(v?.id);
@@ -5811,7 +5811,7 @@ function venueForm(v={},merchant=false){
       <label class="field">Google değerlendirme bağlantısı
         <input name="review_url" type="url" maxlength="1999" placeholder="https://g.page/r/.../review" value="${esc(v.review_url||'')}">
       </label>
-      <label class="field">Instagram hesabı bağlantısı
+      <label class="field">Instagram hesabı bağlantısı (Instagram seçeneğini de işaretleyin)
         <input name="instagram_url" type="url" maxlength="1999" placeholder="https://www.instagram.com/isletmehesabi" value="${esc(v.instagram_url||'')}">
       </label>
 
@@ -7375,7 +7375,7 @@ document.addEventListener('submit',async e=>{const f=e.target;if(!['authForm','p
   if(venueId){
     await saveVenueFeatures(venueId,{
       games:d.has('feature_games'),menu:d.has('feature_menu'),
-      review:d.has('feature_review'),instagram:!!p.instagram_url,waiter:d.has('feature_waiter')
+      review:d.has('feature_review'),instagram:d.has('feature_instagram')&&!!p.instagram_url,waiter:d.has('feature_waiter')
     });
     if(!merchant)await syncVenueCustomGames(venueId,d.getAll('custom_enabled'));
   }
