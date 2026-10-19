@@ -5278,7 +5278,7 @@ function normalizeInstagramUrl(raw){
   return u.href;
 }
 function instagramUrl(){
-  const raw=venue?.instagram_url||'https://www.instagram.com/berke_yuksekdag';
+  const raw=venue?.instagram_url||'';
   return normalizeInstagramUrl(raw);
 }
 async function openInstagramPage(){
@@ -5803,7 +5803,7 @@ function venueForm(v={},merchant=false){
         <input name="review_url" type="url" maxlength="1999" placeholder="https://g.page/r/.../review" value="${esc(v.review_url||'')}">
       </label>
       <label class="field">Instagram hesabı bağlantısı
-        <input name="instagram_url" type="url" maxlength="1999" placeholder="https://www.instagram.com/berke_yuksekdag" value="${esc(v.instagram_url||'https://www.instagram.com/berke_yuksekdag')}">
+        <input name="instagram_url" type="url" maxlength="1999" placeholder="https://www.instagram.com/kullaniciadi" value="${esc(v.instagram_url||'')}">
       </label>
 
       ${merchant?'':`${featureChecksHtml(v)}<div class="checks"><b>Oyunlar · ${currentTenGames(adminData?.games||[]).length} oyun</b><p class="muted" style="font-size:12px;margin:5px 0 10px">Paneldeki tüm güncel oyunlar gösterilir. İşletmede görünmesini istediklerini seç.</p>${currentGameSelectionHtml(v)}<hr><label><input type="checkbox" name="active" ${v.active?'checked':''}>İşletme yayını açık</label><label><input type="checkbox" name="licensed" ${v.licensed?'checked':''}>Ödemeyi kontrol ettim, kullanım lisansı aktif</label><p class="muted" style="font-size:13px">Bu işaret ödeme tahsil etmez. Müşteri ekranı için yayın ve lisans birlikte açık olmalı.</p></div>`}
@@ -7370,8 +7370,19 @@ document.addEventListener('submit',async e=>{const f=e.target;if(!['authForm','p
     });
     await syncVenueCustomGames(venueId,d.getAll('custom_enabled'));
   }
+  // Sunucudan tekrar okuyarak Instagram bağlantısının gerçekten kaydedildiğini doğrula.
+  // Eski Supabase RPC sürümleri instagram_url alanını yok sayabiliyor.
+  const checkData=merchant?await rpc('ob_me'):await rpc('ob_admin_data');
+  const persisted=merchant?checkData?.venue:(checkData?.venues||[]).find(v=>String(v.id)===String(venueId));
+  if(!persisted)throw Error('İşletme kaydı doğrulanamadı.');
+  const actual=String(persisted.instagram_url||'').trim();
+  if(actual!==p.instagram_url){
+    throw Error('Instagram bağlantısı sunucuda güncellenmedi. Supabase ob_save_venue / ob_merchant_save ve ob_me / ob_admin_data / ob_customer fonksiyonlarında instagram_url alanı kaydedilip döndürülmelidir. Eski bağlantı kullanılmayacak.');
+  }
+  if(merchant)me.venue=persisted;
+  else adminData=checkData;
   closeModal();
-  toast('İşletme kaydedildi.');
+  toast('İşletme ve Instagram bağlantısı kaydedildi.');
   await route()
 }else if(f.id==='menuForm'){
   const vid=String(f.dataset.vid||'');if(!vid)throw Error('İşletme bulunamadı.');
