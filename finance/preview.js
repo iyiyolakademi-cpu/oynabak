@@ -1,67 +1,63 @@
-/* OynaBak owner-only FINANCE PREVIEW. No real financial data; no write API calls. */
 (()=>{'use strict';
-const sections=[
- ['Genel Bakış','📊','Günlük gelir, gider ve hesap özeti'],
- ['Gün Sonu','🌙','Kasa sayımı, beklenen nakit ve fark'],
- ['Kasa / POS / Banka','💳','Hesaplar, POS hareketleri ve banka bakiyesi'],
- ['Ödeme Takvimi','📅','Yaklaşan ve geciken ödemeler'],
- ['Cari Hesaplar','👥','Tedarikçiler, borç ve alacaklar'],
- ['Stok Takibi','📦','Ürün miktarları ve kritik stok'],
- ['Personel Ödemeleri','👤','Maaş, avans ve ödeme geçmişi'],
- ['Tekrarlayan Giderler','🔁','Kira, abonelik ve düzenli giderler'],
- ['Personel Yetkileri','🔒','Sahip, düzenleyici ve görüntüleyici izinleri']
-];
-let current=0;
-const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const kpi=(n,v,h)=>'<article class="obfp-kpi"><div class="obfp-kpi-top"><small>'+n+'</small><span class="obfp-kpi-indicator">↗</span></div><strong>'+v+'</strong><span>'+h+'</span></article>';
-function render(){
- const root=document.getElementById('ob-finance-owner-preview');if(!root)return;
- root.innerHTML='<section class="obfp-app"><header><div class="obfp-brand"><img src="oynabak-logo.png" alt="OynaBak logosu" class="obfp-logo"><span class="obfp-brand-line"></span><div><div class="obfp-eyebrow">İYİ YOL AKADEMİ · YÖNETİM PANELİ</div><h2>Ön Muhasebe <span class="obfp-pill">Önizleme</span></h2><p>İşletmenizin finansal kontrol merkezi</p></div></div><button id="obfp-close">← Panele dön</button></header><div class="obfp-message"><b>Önizleme modu:</b> Tasarımı güvenle inceleyebilirsiniz. Gerçek finans verileri kullanılmaz ve kayıt oluşturulmaz.</div><div class="obfp-body"><aside><div class="obfp-navlabel">FİNANS YÖNETİMİ</div>'+sections.map((x,i)=>'<button data-fin-view="'+i+'" class="'+(current===i?'on':'')+'"><span>'+x[1]+'</span> '+esc(x[0])+'</button>').join('')+'<div class="obfp-sidebar-bottom"><span>●</span> Güvenli işletme önizlemesi</div></aside><main><div class="obfp-heading"><div><h3>'+sections[current][0]+'</h3><p>'+sections[current][2]+'</p></div><button class="obfp-new" disabled title="Önizleme modunda kapalı">+ Yeni kayıt</button></div>'+content()+'</main></div></section>';
- root.querySelector('#obfp-close').onclick=()=>root.remove();
- root.querySelectorAll('[data-fin-view]').forEach(b=>b.onclick=()=>{current=Number(b.dataset.finView);render()});
+const V='70abef21-053c-4026-b402-e18311f758d5',T={accounts:'ob_finance_accounts',entries:'ob_finance_entries',contacts:'ob_finance_contacts',schedule:'ob_finance_schedule',stock:'ob_finance_stock',payroll:'ob_finance_payroll',closings:'ob_finance_closings'};
+const tabs=['Özet','Gelir / Gider','Kasa / POS / Banka','Cari Defter','Ödeme Takvimi','Stok','Personel Ödemeleri','Gün Sonu','Yetkiler'];
+const e=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),fmt=v=>Number(v||0).toLocaleString('tr-TR',{style:'currency',currency:'TRY'});
+let state=null;const node=()=>document.getElementById('ob-finance-owner-preview');
+const sum=(a,k)=>a.filter(x=>k.includes(x.kind)).reduce((v,x)=>v+Number(x.amount),0);
+async function rpc(n,args){const r=await state.db.rpc(n,args);if(r.error)throw Error(r.error.message);return r.data}
+async function read(){const keys=Object.keys(T);let result=await Promise.all(keys.map(k=>state.db.from(T[k]).select('*').eq('venue_id',V).limit(1000)));let err=result.find(x=>x.error);if(err)throw Error(err.error.message);state.data=Object.fromEntries(keys.map((x,i)=>[x,result[i].data||[]]));state.data.entries.sort((a,b)=>(b.occurred_on||'').localeCompare(a.occurred_on||''));if(state.role==='owner')try{state.people=await rpc('ob_finance_staff_list',{p_venue:V})}catch(_){state.people=[]}render()}
+const records=()=>state.data.entries,acc=()=>state.data.accounts;
+const balance=a=>Number(a.opening_balance)+sum(records().filter(x=>x.account_id===a.id),['income','transfer_in','contact_received'])-sum(records().filter(x=>x.account_id===a.id),['expense','transfer_out','contact_paid']);
+const card=(l,v)=>'<article class="fcard"><small>'+e(l)+'</small><strong>'+e(v)+'</strong></article>';
+const row=(a,b,c,x='')=>'<div class="frow"><div><b>'+e(a)+'</b><small>'+e(b)+'</small></div><strong>'+e(c)+'</strong>'+x+'</div>';
+const blank=()=>'<p class="fempty">Henüz kayıt bulunmuyor.</p>';
+const section=(h,c)=>'<section class="fpanel"><h3>'+e(h)+'</h3>'+c+'</section>';
+const button=(type,label)=>'<button data-add="'+type+'">'+label+'</button>';
+function body(){const d=state.data,ent=records();
+switch(state.tab){
+case 0:return '<div class="fcards">'+card('Toplam gelir',fmt(sum(ent,['income'])))+card('Toplam gider',fmt(sum(ent,['expense'])))+card('Nakit bakiyesi',fmt(d.accounts.filter(x=>x.kind==='cash').reduce((a,x)=>a+balance(x),0)))+card('Planlı ödemeler',fmt(d.schedule.filter(x=>x.status==='planned').reduce((a,x)=>a+Number(x.amount),0)))+'</div>'+section('Son hareketler',ent.length?ent.slice(0,12).map(x=>row(x.category||x.kind,x.occurred_on+' · '+x.note,fmt(x.amount))).join(''):blank());
+case 1:return button('entry','+ Gelir / Gider')+button('transfer','Hesaplar arası transfer')+section('Hareketler',ent.length?ent.map(x=>row(x.category||x.kind,x.occurred_on+' · '+x.note,fmt(x.amount))).join(''):blank());
+case 2:return button('account','+ Kasa / Banka ekle')+button('transfer','Para aktar')+section('Hesap bakiyeleri',d.accounts.length?d.accounts.map(x=>row(x.name,x.kind,fmt(balance(x)))).join(''):blank());
+case 3:return button('contact','+ Cari oluştur')+button('debt','Borç / Alacak')+button('settle','Tahsilat / Ödeme')+section('Cariler',d.contacts.length?d.contacts.map(x=>{let r=ent.filter(y=>y.contact_id===x.id);return row(x.name,x.kind,'Alacak '+fmt(sum(r,['receivable'])-sum(r,['contact_received']))+' | Borç '+fmt(sum(r,['payable'])-sum(r,['contact_paid'])))}).join(''):blank());
+case 4:return button('schedule','+ Ödeme planı')+section('Ödeme takvimi',d.schedule.length?d.schedule.slice().sort((a,b)=>a.due_on.localeCompare(b.due_on)).map(x=>row(x.title,x.due_on+' · '+x.recurrence,fmt(x.amount),x.status==='planned'?'<button data-pay="'+e(x.id)+'">Ödendi</button>':'<small>'+e(x.status)+'</small>')).join(''):blank());
+case 5:return button('stock','+ Ürün ekle')+section('Stok durumu',d.stock.length?d.stock.map(x=>row(x.name,'Kritik: '+x.critical_level+' '+x.unit,x.quantity+' '+x.unit+(Number(x.quantity)<=Number(x.critical_level)?' ⚠':''),'<button data-stock="'+e(x.id)+'">Düzenle</button>')).join(''):blank());
+case 6:return button('payroll','+ Maaş / Avans')+section('Personel ödemeleri',d.payroll.length?d.payroll.map(x=>row(x.staff_name,x.paid_on+' · '+x.kind,fmt(x.amount))).join(''):blank());
+case 7:return button('closing','+ Gün sonu kapat')+section('Kapanışlar',d.closings.length?d.closings.map(x=>row(x.closing_date,'Beklenen '+fmt(x.expected_cash)+' · Sayılan '+fmt(x.counted_cash),'Fark '+fmt(x.counted_cash-x.expected_cash))).join(''):blank());
+case 8:return section('Personel yetkileri',(state.people||[]).length?state.people.map(x=>row(x.name,'İşletme hesabı',x.role,'<button data-staff="'+e(x.user_id)+'">Değiştir</button>')).join(''):blank());
+}}
+function render(){const el=node();if(!el||!state)return;el.innerHTML='<div class="flayout"><aside><img src="oynabak-logo.png" alt="OynaBak" class="flogo"><div class="fbrand">İyi Yol Akademi<small>FİNANS YÖNETİMİ</small></div><nav>'+tabs.map((x,i)=>'<button class="'+(i===state.tab?'on':'')+'" data-tab="'+i+'">'+e(x)+'</button>').join('')+'</nav></aside><main><header><div><small>OYNABAK FİNANS</small><h1>'+tabs[state.tab]+'</h1><p>İşletmenizin finansal kontrol merkezi</p></div><button data-close>Panele dön ✕</button></header><div id="fmessage" role="status"></div><div class="factions">'+body()+'</div></main></div>';
+el.querySelector('[data-close]').onclick=close;el.querySelectorAll('[data-tab]').forEach(x=>x.onclick=()=>{state.tab=Number(x.dataset.tab);render()});
+el.querySelectorAll('[data-add]').forEach(x=>{x.disabled=state.role==='viewer'||(['payroll','closing'].includes(x.dataset.add)&&state.role!=='owner');x.onclick=()=>form(x.dataset.add)});
+el.querySelectorAll('[data-pay]').forEach(x=>x.onclick=()=>pay(x.dataset.pay));el.querySelectorAll('[data-stock]').forEach(x=>x.onclick=()=>stock(x.dataset.stock));el.querySelectorAll('[data-staff]').forEach(x=>x.onclick=()=>staff(x.dataset.staff))}
+function msg(x){let n=document.getElementById('fmessage');if(n)n.textContent=x}
+const field=(n,type='text',value='',more='')=>'<label>'+n+'<input name="'+n+'" type="'+type+'" value="'+e(value)+'" '+more+' required></label>';
+const choose=(n,v)=>'<label>'+n+'<select name="'+n+'">'+v.map(x=>'<option value="'+e(x[0])+'">'+e(x[1])+'</option>').join('')+'</select></label>';
+const acopts=()=>acc().map(x=>[x.id,x.name]),copts=()=>state.data.contacts.map(x=>[x.id,x.name]);
+const amount=()=>field('amount','number','','min="0.01" step="0.01"');
+async function save(type,v){
+ if(['entry','transfer','debt','settle','payroll','closing'].includes(type))return rpc('ob_finance_action',{p_venue:V,p_action:type,p:v});
+ const table=type==='account'?'accounts':type==='contact'?'contacts':type==='schedule'?'schedule':'stock';
+ let r=await state.db.from(T[table]).insert({...v,venue_id:V});if(r.error)throw Error(r.error.message);
 }
-function content(){
- if(current===0)return '<div class="obfp-cards">'+kpi('Bugünkü gelir','₺0,00','Kayıt bulunmuyor')+kpi('Bugünkü gider','₺0,00','Kayıt bulunmuyor')+kpi('Nakit bakiye','₺0,00','Hesap eklenmedi')+kpi('Bekleyen ödemeler','₺0,00','Planlı ödeme yok')+'</div><div class="obfp-section-title">Finansal hareketler <span>Güncel görünüm</span></div><div class="obfp-cols"><section class="obfp-box"><h4>Son Hareketler</h4><div class="obfp-empty">Henüz işlem bulunmuyor.</div></section><section class="obfp-box"><h4>Hatırlatmalar</h4><div class="obfp-empty">Yeni bir hatırlatma yok.</div></section></div>';
- if(current===1)return '<div class="obfp-cards">'+kpi('Beklenen nakit','₺0,00','Önizleme')+kpi('Sayılan nakit','₺0,00','Henüz kapanış yapılmadı')+kpi('Kasa farkı','₺0,00','−')+'</div>'+empty('Gün sonu kapatmaları');
- if(current===2)return '<div class="obfp-cards">'+kpi('Nakit kasa','₺0,00','Önizleme')+kpi('POS','₺0,00','Önizleme')+kpi('Banka','₺0,00','Önizleme')+'</div>'+empty('Finans hesapları');
- if(current===3)return '<div class="obfp-cards">'+kpi('Yaklaşan ödeme','₺0,00','Bu hafta')+kpi('Gecikmiş ödeme','₺0,00','Geciken yok')+'</div>'+empty('Ödeme planı');
- if(current===4)return '<div class="obfp-cards">'+kpi('Toplam alacak','₺0,00','Önizleme')+kpi('Toplam borç','₺0,00','Önizleme')+'</div>'+empty('Cari hesap listesi');
- if(current===5)return '<div class="obfp-cards">'+kpi('Toplam ürün','0','Stok kaydı yok')+kpi('Kritik stok','0','Uyarı yok')+'</div>'+empty('Stok ürünleri');
- if(current===6)return empty('Personel maaşı ve avans takibi');
- if(current===7)return empty('Aylık tekrarlayan giderler');
- return '<div class="obfp-cols"><section class="obfp-box"><h4>İşletme sahibi</h4><p>Tüm finans ekranlarına ve yetkilere erişir.</p></section><section class="obfp-box"><h4>Personel rolleri</h4><p>Düzenleyici ve görüntüleyici izinleri burada yönetilecek.</p></section></div>';
-}
-function empty(t){return '<section class="obfp-box"><h4>'+t+'</h4><div class="obfp-empty">Henüz kayıt bulunmuyor.</div></section>'}
-function style(){if(document.getElementById('obfp-css'))return;const s=document.createElement('style');s.id='obfp-css';s.textContent=`
-#ob-finance-owner-preview{position:fixed;inset:0;z-index:100000;overflow:auto;background:#f4f6f9;color:#111c32;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:14px}
-.obfp-app{max-width:1460px;margin:auto;padding:30px 34px 70px}
-.obfp-app header{display:flex;align-items:center;justify-content:space-between;gap:22px;padding:0 2px 26px}
-.obfp-brand{display:flex;gap:22px;align-items:center;min-width:0}.obfp-logo{display:block;object-fit:contain;object-position:left center;width:200px;max-width:25vw;height:88px;flex:none;background:transparent;mix-blend-mode:multiply}
-.obfp-brand-line{width:1px;height:52px;background:#d9dee6;flex:none}
-.obfp-app header h2{font-size:27px;letter-spacing:-.9px;margin:5px 0;font-weight:780}.obfp-app header p,.obfp-heading p{color:#788397;margin:6px 0}
-.obfp-eyebrow{font-size:10px;letter-spacing:1.7px;color:#647084;font-weight:800}.obfp-pill{font-size:11px;letter-spacing:0;border-radius:99px;background:#fff1e8;color:#de621e;padding:5px 10px;vertical-align:middle;font-weight:700}
-.obfp-app button{font:inherit;border:1px solid #e1e5ed;background:white;padding:12px 16px;border-radius:11px;color:#31405b;cursor:pointer;transition:background .15s,border-color .15s,transform .15s}
-.obfp-app button:hover:not(:disabled){background:#f8fafc;border-color:#c5cddb}.obfp-app button:disabled{opacity:.58;cursor:not-allowed}
-.obfp-message{background:#fff8ed;border:1px solid #f4e5cf;color:#8a611f;padding:12px 17px;border-radius:12px;margin:0 0 22px;font-size:12px}
-.obfp-body{display:grid;grid-template-columns:246px minmax(0,1fr);gap:25px;align-items:start}.obfp-body aside{display:flex;flex-direction:column;gap:5px;background:#fff;border:1px solid #e8ebf1;border-radius:18px;padding:17px 10px;box-shadow:0 7px 25px #192a4406}
-.obfp-navlabel{padding:5px 14px 17px;color:#96a0b1;font-size:10px;font-weight:800;letter-spacing:1.4px}
-.obfp-body aside button{text-align:left;border:0;border-radius:10px;background:transparent;white-space:normal;font-size:13px;padding:12px 13px;font-weight:620;color:#657085}
-.obfp-body aside button span{margin-right:9px}.obfp-body aside button.on{color:#e15c20;background:#fff0e8;font-weight:800}.obfp-body aside button.on:hover{background:#ffe8d9}
-.obfp-sidebar-bottom{font-size:11px;color:#9099a8;border-top:1px solid #edf0f4;margin:14px 6px 0;padding:20px 9px 4px}.obfp-sidebar-bottom span{color:#299e76;margin-right:5px}
-.obfp-body main{min-width:0}.obfp-heading{display:flex;justify-content:space-between;gap:14px;align-items:center;margin:5px 0 23px}.obfp-heading h3{margin:0;font-size:25px;font-weight:780;letter-spacing:-.8px}.obfp-heading p{font-size:13px}
-.obfp-app button.obfp-new{background:#ff672b;border-color:#ff672b;color:white;font-weight:700;padding:13px 19px}
-.obfp-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:15px;margin-bottom:25px}
-.obfp-kpi,.obfp-box{border:1px solid #e8ecf2;border-radius:17px;background:#fff;padding:23px;box-shadow:0 6px 26px #24354e06}
-.obfp-kpi{min-height:128px}.obfp-kpi-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.obfp-kpi-top .obfp-kpi-indicator{display:grid;place-items:center;width:28px;height:28px;border-radius:9px;background:#f2f5f9;color:#7889a1;font-size:15px}
-.obfp-kpi small,.obfp-kpi span{display:block;color:#7e899b;font-size:12px}.obfp-kpi strong{display:block;font-size:26px;letter-spacing:-1px;margin:14px 0 10px;font-variant-numeric:tabular-nums}
-.obfp-section-title{display:flex;justify-content:space-between;align-items:center;font-size:16px;font-weight:760;margin:0 0 14px}.obfp-section-title span{font-size:12px;font-weight:500;color:#a0a9b8}
-.obfp-cols{display:grid;grid-template-columns:1.35fr 1fr;gap:17px}.obfp-box h4{font-size:15px;margin:0 0 12px;letter-spacing:-.2px}.obfp-box p{color:#758195;line-height:1.7}
-.obfp-empty{padding:48px 14px;text-align:center;color:#a0aab8;font-size:13px;background:#f9fafc;border:1px dashed #e5e9f0;border-radius:13px}
-@media(max-width:1100px){.obfp-cards{grid-template-columns:repeat(2,minmax(0,1fr))}.obfp-logo{width:155px;height:70px}}
-@media(max-width:800px){.obfp-app{padding:17px 13px 52px}.obfp-body{grid-template-columns:1fr;gap:12px}.obfp-body aside{flex-direction:row;overflow-x:auto;padding:10px;max-width:100%;border-radius:13px}.obfp-body aside button{flex:none;white-space:nowrap}.obfp-navlabel,.obfp-sidebar-bottom{display:none}.obfp-cols{grid-template-columns:1fr}.obfp-app header h2{font-size:21px}.obfp-app header{align-items:flex-start}.obfp-logo{width:118px;height:56px;max-width:24vw}.obfp-brand{gap:10px}.obfp-brand-line{height:36px}.obfp-app header button{padding:9px;font-size:12px}}
-@media(max-width:480px){.obfp-cards{grid-template-columns:1fr 1fr;gap:9px}.obfp-kpi{padding:15px;min-height:103px}.obfp-kpi strong{font-size:21px}.obfp-logo{width:85px;height:45px}.obfp-eyebrow{font-size:8px;letter-spacing:.3px}.obfp-app header h2{font-size:17px}.obfp-pill{font-size:9px}.obfp-heading h3{font-size:21px}}
-`;document.head.appendChild(s)}
-function open(){style();document.getElementById('ob-finance-owner-preview')?.remove();let el=document.createElement('div');el.id='ob-finance-owner-preview';document.body.appendChild(el);current=0;render()}
-window.OynaBakOwnerFinancePreview=Object.freeze({open});
+function form(type){let html='',title=type;
+switch(type){
+case 'entry':html=choose('kind',[['income','Gelir'],['expense','Gider']])+amount()+choose('account_id',acopts())+field('category','text','Diğer')+field('note')+field('occurred_on','date',new Date().toISOString().slice(0,10));break;
+case 'account':html=field('name')+choose('kind',[['cash','Nakit'],['pos','POS'],['bank','Banka']])+field('opening_balance','number','0','step="0.01"');break;
+case 'transfer':html=choose('from',acopts())+choose('to',acopts())+amount()+field('note');break;
+case 'contact':html=field('name')+choose('kind',[['customer','Müşteri'],['supplier','Tedarikçi']])+field('phone');break;
+case 'debt':html=choose('contact_id',copts())+choose('kind',[['receivable','Alacak'],['payable','Borç']])+amount()+field('note');break;
+case 'settle':html=choose('contact_id',copts())+choose('account_id',acopts())+choose('kind',[['contact_received','Tahsilat'],['contact_paid','Ödeme']])+amount()+field('note');break;
+case 'schedule':html=field('title')+amount()+field('due_on','date',new Date().toISOString().slice(0,10))+choose('recurrence',[['none','Tek seferlik'],['monthly','Her ay']]);break;
+case 'stock':html=field('name')+field('unit','text','adet')+field('quantity','number','0','step="0.001" min="0"')+field('critical_level','number','0','step="0.001" min="0"');break;
+case 'payroll':html=field('staff_name')+choose('kind',[['salary','Maaş'],['advance','Avans'],['other','Diğer']])+amount()+field('paid_on','date',new Date().toISOString().slice(0,10));break;
+case 'closing':html=field('date','date',new Date().toISOString().slice(0,10))+field('counted','number','0','min="0" step="0.01"')+field('note');break;}
+const dlg=document.createElement('dialog');dlg.className='fdialog';dlg.innerHTML='<form><h2>Yeni kayıt: '+e(title)+'</h2>'+html+'<p role="alert"></p><button type="button" data-cancel>Vazgeç</button><button type="submit">Kaydet</button></form>';document.body.appendChild(dlg);dlg.querySelector('[data-cancel]').onclick=()=>dlg.close();dlg.addEventListener('close',()=>dlg.remove());
+dlg.querySelector('form').onsubmit=async ev=>{ev.preventDefault();let btn=dlg.querySelector('[type=submit]');btn.disabled=true;try{await save(type,Object.fromEntries(new FormData(ev.target)));dlg.close();await read();msg('Kayıt başarıyla oluşturuldu.')}catch(err){dlg.querySelector('[role=alert]').textContent=err.message}finally{btn.disabled=false}};dlg.showModal();}
+async function pay(id){let a=acopts();if(!a.length)return msg('Önce bir hesap açın.');const selected=prompt('Ödeme yapılan hesabın adı:',a[0][1]);if(selected===null)return;const match=a.find(x=>x[1]===selected);if(!match)return msg('Geçersiz hesap adı.');try{await rpc('ob_finance_action',{p_venue:V,p_action:'pay_schedule',p:{schedule_id:id,account_id:match[0],amount:1}});await read();msg('Ödeme kaydedildi')}catch(err){msg(err.message)}}
+async function stock(id){const x=state.data.stock.find(x=>x.id===id),val=prompt('Yeni miktar:',x.quantity);if(val===null)return;const n=Number(val);if(!Number.isFinite(n)||n<0)return msg('Geçersiz miktar');try{const r=await state.db.from(T.stock).update({quantity:n}).eq('venue_id',V).eq('id',id);if(r.error)throw r.error;await read()}catch(err){msg(err.message)}}
+async function staff(id){const r=prompt('Rol (owner / editor / viewer):','viewer');if(!r)return;try{await rpc('ob_finance_staff_set',{p_venue:V,p_user:id,p_role:r});await read()}catch(err){msg(err.message)}}
+function style(){if(document.getElementById('fcss'))return;const el=document.createElement('style');el.id='fcss';el.textContent='#ob-finance-owner-preview{position:fixed;inset:0;z-index:99999;overflow:auto;background:#f5f7fa;color:#1c2d45;font:14px system-ui}.flayout{display:grid;grid-template-columns:235px 1fr;min-height:100vh}.flayout aside{background:white;border-right:1px solid #e5e8f0;padding:22px}.flogo{width:180px;height:95px;object-fit:contain;mix-blend-mode:multiply}.fbrand{font-weight:750;padding:15px 8px}.fbrand small{display:block;color:#8795a6;font-size:10px;letter-spacing:1.5px;margin-top:7px}.flayout nav{display:grid;gap:4px;margin-top:15px}.flayout button{cursor:pointer;border:1px solid #e6e8ee;border-radius:9px;background:#fff;padding:10px 13px;color:#42536b}.flayout nav button{text-align:left;border:0}.flayout nav button.on{color:#e15d26;background:#fff0e8;font-weight:750}.flayout main{padding:35px;min-width:0}.flayout header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:25px}.flayout header h1{font-size:28px;margin:6px 0}.flayout header p{color:#8795a6}.flayout header small{color:#f16b31;letter-spacing:1px}.fcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:13px;margin-bottom:20px}.fcard,.fpanel{background:#fff;border:1px solid #e9ebf1;border-radius:16px;padding:22px;margin-bottom:16px}.fcard small{display:block;color:#8b97a8}.fcard strong{display:block;font-size:23px;margin-top:15px}.frow{display:flex;gap:15px;align-items:center;justify-content:space-between;border-top:1px solid #eef1f5;padding:14px 0}.frow div{flex:1}.frow small{display:block;color:#8997a8;margin-top:4px}.fempty{text-align:center;color:#94a1b2;padding:30px}.factions>button{margin:0 10px 20px 0;background:#ff6a2b;color:white}.factions>button:disabled{opacity:.45}#fmessage{color:#b42318}.fdialog{border:0;border-radius:14px;width:min(430px,94vw);padding:24px}.fdialog::backdrop{background:#10192888}.fdialog label{display:block;margin:10px 0}.fdialog input,.fdialog select{display:block;width:100%;box-sizing:border-box;padding:10px;border:1px solid #d5d9e2;border-radius:8px}.fdialog button{padding:10px;border-radius:8px;margin:10px 6px 0 0}.fdialog [role=alert]{color:#b42318}@media(max-width:760px){.flayout{display:block}.flayout aside{padding:10px}.flogo{width:125px;height:55px}.flayout nav{display:flex;overflow:auto}.flayout nav button{white-space:nowrap}.flayout main{padding:15px}.flayout header{flex-wrap:wrap}}';document.head.appendChild(el)}
+async function open(){if(typeof db==='undefined'||!db||typeof me==='undefined'||me?.role!=='admin')throw Error('Yönetici oturumu gerekli');let r=await db.rpc('ob_finance_status',{p_venue:V});if(r.error||!r.data?.allowed||!r.data?.enabled)throw Error('Muhasebe yetkisi kapalı');state={db,role:r.data.role,tab:0,data:{},people:[]};style();close(false);let d=document.createElement('div');d.id='ob-finance-owner-preview';document.body.appendChild(d);try{await read()}catch(err){close();throw err}}
+function close(clear=true){node()?.remove();if(clear)state=null}
+window.OynaBakOwnerFinancePreview=Object.freeze({open,close});
 })();
