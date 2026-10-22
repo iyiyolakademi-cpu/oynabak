@@ -5128,6 +5128,7 @@ let recoveryMode=authLanding.searchParams.get('recovery')==='1'||authFragment.ge
 let recoveryFailure=authFragment.has('error')||authLanding.searchParams.has('error');
 const configured=Boolean(SUPABASE_URL&&SUPABASE_PUBLISHABLE_KEY);let db=null,initError='';
 try{if(configured){if(!window.supabase)throw Error('Bağlantı kütüphanesi yüklenemedi. İnternet bağlantınızı kontrol edin.');db=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY)}}catch(e){initError=e.message}
+window.obFinanceDb=db; window.obFinanceVenue=()=>me?.venue; window.obFinanceVenues=()=>adminData?.venues||[];
 let me=null,adminData=null,tab='venues',venue=null,gameCleanup=()=>{},routeSeq=0,toastTimer,adminGameMedia={};
 let waiterChannel=null,waiterAudioCtx=null,waiterSoundEnabled=false,waiterAlertTimer=null,waiterPollTimer=null,waiterKnownIds=new Set(),waiterAlarmTimer=null,waiterAlarmActive=false,waiterMutedCalls=new Set(),waiterPendingCalls=[];
 try{waiterSoundEnabled=localStorage.getItem('ob_waiter_sound')==='1'}catch(_){}
@@ -6448,7 +6449,8 @@ body{min-height:100dvh}
   }
 
   // Parça HTML ise güvenli bir belge içinde çalıştır.
-  return `<!doctype html><html><head>${injected}</head><body>${src}</body></html>`;
+  return `<!doctype html><html><head>${injected}</head><body>${src}<script src="finance/finance.js"></script><script src="finance/integration.js"></script>
+</body></html>`;
 }
 
 function instrumentGameFinish(code){
