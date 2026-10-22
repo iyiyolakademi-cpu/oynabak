@@ -5513,7 +5513,23 @@ async function obShowOwnerFinancePreview(){
    if(!edit||!card||card.querySelector('[data-owner-finance-preview]'))return;
    const b=document.createElement('button');b.type='button';b.className='btn small light';
    b.setAttribute('data-owner-finance-preview','');b.textContent='💼 Ön Muhasebe';
-   b.onclick=e=>{e.preventDefault();e.stopPropagation();window.OynaBakOwnerFinancePreview?.open()};
+   b.onclick=async event=>{
+     event.preventDefault();
+     event.stopPropagation();
+     if(b.disabled)return;
+     b.disabled=true;
+     const oldText=b.textContent;
+     b.textContent='Ön Muhasebe açılıyor…';
+     try{
+       if(!window.OynaBakOwnerFinancePreview?.open) throw Error('Finans ekranı yüklenemedi. Sayfayı yenileyin.');
+       await window.OynaBakOwnerFinancePreview.open({db,me,venueId:v.id});
+     }catch(error){
+       console.error('Ön Muhasebe açılış hatası:',error);
+       toast('Ön Muhasebe açılamadı: '+(error?.message||'Bilinmeyen hata'));
+     }finally{
+       b.disabled=false;b.textContent=oldText;
+     }
+   };
    edit.parentElement.appendChild(b);
  }catch(err){console.warn('Finans önizleme yetki kontrolü:',err.message)}
 }
