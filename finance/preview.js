@@ -36,7 +36,7 @@ function stats(){
  section('Seçilen dönemin hareketleri',filtered.length?filtered.map(x=>row(typeLabel(x.kind)+' · '+(x.category||'Diğer'),x.occurred_on+' · '+(x.note||''),(x.kind==='income'?'+':x.kind==='expense'?'−':'')+fmt(x.amount),'',x.kind==='income'?'f-income':x.kind==='expense'?'f-expense':'')).join(''):blank());
 }
 
-const icons=['▦','◫','⇄','▣','◉','▤','◇','♙','✓','⚙'];
+const icons=['▦','▥','⇄','▣','◉','▤','◇','♧','✓','⚙'];
 const moneyKinds={income:1,contact_received:1,transfer_in:1,expense:-1,contact_paid:-1,transfer_out:-1};
 let searchText='',filterKind='all';
 const typeOf=x=>x.kind in moneyKinds?(moneyKinds[x.kind]>0?'f-income':'f-expense'):'';
@@ -99,7 +99,7 @@ case 'payroll':html=field('staff_name')+choose('kind',[['salary','Maaş'],['adva
 case 'closing':html=field('date','date',new Date().toISOString().slice(0,10))+field('counted','number','0','min="0" step="0.01"')+field('note');break;}
 if(preset)title=preset==='income'?'Gelir Ekle':'Gider Ekle';
 html=html.replace(/<label>([a-z_]+)(?=<(?:input|select))/g,(_,key)=>'<label>'+e(fieldLabels[key]||key));
-if(preset){html=html.replace('<select name="kind">','<select name="kind">');}const dlg=document.createElement('dialog');dlg.className='fdialog';dlg.innerHTML='<form><h2>Yeni kayıt: '+e(title)+'</h2>'+html+'<p role="alert"></p><button type="button" data-cancel>Vazgeç</button><button type="submit">Kaydet</button></form>';document.body.appendChild(dlg);if(preset){const t=dlg.querySelector('[name="kind"]');if(t){t.value=preset;t.closest('label').style.display='none';}}
+if(preset){html=html.replace('<select name="kind">','<select name="kind">');}title=({"entry":"Gelir / Gider İşlemi","income":"Gelir Ekle","expense":"Gider Ekle","account":"Yeni Finans Hesabı","transfer":"Hesaplar Arası Transfer","contact":"Yeni Cari Hesap","debt":"Borç / Alacak Kaydı","settle":"Cari Tahsilat / Ödeme","schedule":"Ödeme Planı","stock":"Yeni Stok Ürünü","payroll":"Personel Ödemesi","closing":"Gün Sonu Kapanışı"})[title]||title;const dlg=document.createElement('dialog');dlg.className='fdialog';dlg.innerHTML='<form><h2>'+e(title)+'</h2>'+html+'<p role="alert"></p><button type="button" data-cancel>Vazgeç</button><button type="submit">Kaydet</button></form>';document.body.appendChild(dlg);if(preset){const t=dlg.querySelector('[name="kind"]');if(t){t.value=preset;t.closest('label').style.display='none';}}
 dlg.querySelector('[data-cancel]').onclick=()=>dlg.close();dlg.addEventListener('close',()=>dlg.remove());
 dlg.querySelector('form').onsubmit=async ev=>{ev.preventDefault();let btn=dlg.querySelector('[type=submit]');btn.disabled=true;try{await save(type,Object.fromEntries(new FormData(ev.target)));dlg.close();await read();msg('Kayıt başarıyla oluşturuldu.')}catch(err){dlg.querySelector('[role=alert]').textContent=err.message}finally{btn.disabled=false}};dlg.showModal();}
 async function pay(id){let a=acopts();if(!a.length)return msg('Önce bir hesap açın.');const selected=prompt('Ödeme yapılan hesabın adı:',a[0][1]);if(selected===null)return;const match=a.find(x=>x[1]===selected);if(!match)return msg('Geçersiz hesap adı.');try{await rpc('ob_finance_action',{p_venue:V,p_action:'pay_schedule',p:{schedule_id:id,account_id:match[0],amount:1}});await read();msg('Ödeme kaydedildi')}catch(err){msg(err.message)}}
