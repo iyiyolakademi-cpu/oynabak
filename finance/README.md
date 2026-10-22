@@ -46,3 +46,7 @@ Bu bağlantı şu anda kasıtlı olarak ana sayfaya eklenmedi; geliştirmenin ya
 - [ ] Personel rolleri yönetimi
 - [ ] İşletme paneline kapalı-varsayılan entegrasyon
 - [ ] Pilot işletme testi
+
+
+## Güncel durum (22.10.2026)
+OynaBak Supabase projesi qacmubkcierbpxmdtsph üzerinde 9 ayrı ob_finance_* tablosu ve RLS kuralları oluşturuldu. Migration adları: finance_private_base_20261022, finance_access_rpcs_20261022, finance_tenant_policies_20261022, finance_staff_roles_20261022. 0 finans etkinliği, 0 üyelik ve 0 finans hareketi doğrulandı. Anon finans tablo okuması ve admin aç/kapat çağrısı reddedilir. Arayüz entegrasyonu yalnızca bu taslak geliştirme dalında, main dalında değil. İlk SQL dosyası eski bir TASLAKTIR ve güncel gerçek şemayla eşleşmez; tekrar çalıştırılmamalıdır. Gün sonu, gerçek transfer, kısmi cari ödeme, otomatik tekrarlayan gider, personel yetkisi UI ve iki işletmeyle uçtan uca test henüz tamamlanmadı. Üretime birleştirilmemeli.
