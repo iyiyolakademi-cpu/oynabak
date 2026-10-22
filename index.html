@@ -6483,8 +6483,7 @@ body{min-height:100dvh}
   }
 
   // Parça HTML ise güvenli bir belge içinde çalıştır.
-  return `<!doctype html><html><head>${injected}</head><body>${src}<script src="finance/preview.js"></script>
-</body></html>`;
+  return `<!doctype html><html><head>${injected}</head><body>${src}</body></html>`;
 }
 
 function instrumentGameFinish(code){
@@ -7611,4 +7610,5 @@ document.addEventListener('click',e=>{
   requestAnimationFrame(()=>obCenterActiveMenuCategory(cat));
 });
 </script>
+<script src="finance/preview.js"></script>
 </body></html>
