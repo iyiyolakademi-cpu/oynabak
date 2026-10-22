@@ -5499,27 +5499,8 @@ function setupNotice(){return `<div class="notice">${esc(initError||'Bu sitenin 
 function authView(){ $('#app').innerHTML=`<div class="wrap page"><div class="card narrow"><span class="eyebrow">İŞLETMENE HOŞ GELDİN</span><h2>OynaBak hesabın.</h2>${!db?setupNotice():`<form id="authForm"><label class="field">E-posta<input name="email" type="email" autocomplete="email" required maxlength="254"></label><label class="field">Şifre<input name="password" type="password" autocomplete="current-password" required minlength="8" maxlength="128"></label><div class="row"><button class="btn coral" type="submit" name="mode" value="login">Giriş yap</button><button class="btn light" type="submit" name="mode" value="signup">Hesap oluştur</button></div><button type="button" data-action="reset" class="btn small light" style="margin-top:18px">Şifremi unuttum</button></form><p class="muted" style="font-size:13px;margin-top:18px">Hesap oluşturmak paketi etkinleştirmez. İşletme erişimi OynaBak yönetimi tarafından onaylandıktan sonra açılır.</p>`}</div></div>`}
 function recoveryView(valid){if(!valid){$('#app').innerHTML=`<div class="wrap page"><div class="card narrow"><h2>Yeni şifre bağlantısı gerekli.</h2><p>Bağlantının süresi dolmuş, daha önce kullanılmış veya doğrulama bilgileri siteye ulaşmamış olabilir. Yeni bir bağlantı iste ve en son gelen e-postayı aç.</p><form id="recoveryRequestForm"><label class="field">E-posta<input name="email" type="email" required autocomplete="email"></label><button class="btn coral">Yeni bağlantı gönder</button></form><a href="${esc(location.pathname)}#panel">Giriş ekranına dön</a></div></div>`;return}$('#app').innerHTML=`<div class="wrap page"><form id="passwordForm" class="card narrow"><h2>Yeni şifreni belirle.</h2><label class="field">Yeni şifre<input name="password" type="password" minlength="8" maxlength="128" required autocomplete="new-password"></label><label class="field">Yeni şifreyi tekrar yaz<input name="confirm_password" type="password" minlength="8" maxlength="128" required autocomplete="new-password"></label><button class="btn coral">Şifreyi güncelle</button></form></div>`}
 async function panel(seq){if(!db){authView();return}const {data:{session},error}=await db.auth.getSession();if(seq!==routeSeq)return;if(recoveryMode||recoveryFailure){recoveryView(Boolean(session)&&!error&&!recoveryFailure);return}if(error)throw error;if(!session){authView();return}me=await rpc('ob_me');if(seq!==routeSeq)return;
- if(me.role==='admin'){adminData=await rpc('ob_admin_data');if(seq!==routeSeq)return;adminGameMedia=await fetchGameMedia((adminData.games||[]).map(g=>g.id));(adminData.games||[]).forEach(g=>g.image_data=adminGameMedia[String(g.id)]?.image_data||'');if(seq!==routeSeq)return;drawAdmin();hydrateVenueCodes();obShowOwnerFinancePreview();obFinanceShowOwnerPreview()}else{if(me?.venue?.id)await loadVenueFeatures(me.venue.id);drawMerchant(session.user.email);hydrateVenueCodes()}}
+ if(me.role==='admin'){adminData=await rpc('ob_admin_data');if(seq!==routeSeq)return;adminGameMedia=await fetchGameMedia((adminData.games||[]).map(g=>g.id));(adminData.games||[]).forEach(g=>g.image_data=adminGameMedia[String(g.id)]?.image_data||'');if(seq!==routeSeq)return;drawAdmin();hydrateVenueCodes();obShowOwnerFinancePreview()}else{if(me?.venue?.id)await loadVenueFeatures(me.venue.id);drawMerchant(session.user.email);hydrateVenueCodes()}}
 function panelTop(title){return `<div class="row" style="justify-content:space-between"><div><span class="eyebrow">OYNABAK PANEL</span><h2>${esc(title)}</h2></div><button data-action="logout" class="btn small light">Çıkış yap</button></div>`}
-async function obFinanceShowOwnerPreview(){
-  if(me?.role!=='admin'||!adminData?.venues)return;
-  const target=adminData.venues.find(v=>v.name==='İyi Yol Akademi'&&v.id==='70abef21-053c-4026-b402-e18311f758d5');
-  if(!target)return;
-  try{
-    const permissions=await rpc('ob_finance_admin_list');
-    if(permissions?.[target.id]!==true)return;
-    const edit=document.querySelector('[data-action="venue-edit"][data-id="'+target.id+'"]');
-    const card=edit?.closest('.card');
-    if(!card||card.querySelector('[data-ob-owner-preview]'))return;
-    const button=document.createElement('button');
-    button.type='button';
-    button.className='btn small light';
-    button.setAttribute('data-ob-owner-preview','1');
-    button.textContent='💼 Ön Muhasebe · Önizle';
-    button.onclick=(event)=>{event.preventDefault();event.stopPropagation();window.OynaBakOwnerFinancePreview?.open()};
-    edit.parentElement.appendChild(button);
-  }catch(err){console.warn('Finans önizlemesi erişim doğrulaması başarısız:',err.message)}
-}
 async function obShowOwnerFinancePreview(){
  try{
    if(me?.role!=='admin')return;
@@ -5531,7 +5512,7 @@ async function obShowOwnerFinancePreview(){
    const card=edit?.closest('.card');
    if(!edit||!card||card.querySelector('[data-owner-finance-preview]'))return;
    const b=document.createElement('button');b.type='button';b.className='btn small light';
-   b.setAttribute('data-owner-finance-preview','');b.textContent='💼 Ön Muhasebe · Önizle';
+   b.setAttribute('data-owner-finance-preview','');b.textContent='💼 Ön Muhasebe';
    b.onclick=e=>{e.preventDefault();e.stopPropagation();window.OynaBakOwnerFinancePreview?.open()};
    edit.parentElement.appendChild(b);
  }catch(err){console.warn('Finans önizleme yetki kontrolü:',err.message)}
@@ -7416,7 +7397,7 @@ document.addEventListener('click',e=>{
   if(!featureOn(venue,'instagram')){toast('Bu işletmede Instagram özelliği aktif değil.');return;}
   openInstagramPage();
 },true);
-document.addEventListener('click',async e=>{const b=e.target.closest('[data-action],[data-tab],[data-game],[data-custom],[data-menu-category]');if(!b||b.disabled)return;try{if(b.dataset.tab){tab=b.dataset.tab;drawAdmin();hydrateVenueCodes();obShowOwnerFinancePreview();obFinanceShowOwnerPreview();return}if(b.dataset.game){const key=b.dataset.game;if(!hasQrGameAccess()){toast('Bu oyun yalnızca işletme QR koduyla açılır.');return}if(!venue||!venue.enabled.includes(key))return;await trackEvent('game_open',{game:key});if(embeddedGameBase64[key]){openEmbeddedGame(key);return}return}if(b.dataset.custom){if(!hasQrGameAccess()){toast('Bu oyun yalnızca işletme QR koduyla açılır.');return}const vid=String(venue?.id||qrParams().venueId||''),gid=b.dataset.custom,gmeta=venue.games.find(g=>String(g.id)===String(gid)),gname=gmeta?.name||'Oyun';if(!vid){toast('İşletme bağlantısı bulunamadı. QR kodunu yeniden okut.');return}await trackEvent('game_open',{game:'custom:'+gid});modal(gname,'<div id="customGame"><p style="padding:24px">Oyun yükleniyor…</p></div>');enterGameScreen();const token=++gameLoadSeq;try{const code=await rpc('ob_game',{vid,gid});if(token!==gameLoadSeq||!$('#modal').open)return;safeFrame(code,$('#customGame'),{gameId:gid,gameName:gname})}catch(error){if(token===gameLoadSeq){$('#customGame').innerHTML=`<div style="padding:24px;font:14px/1.5 system-ui;color:#fff;background:#111;min-height:100%"><b>Oyun yüklenemedi.</b><br>${esc(error?.message||'Bilinmeyen hata')}</div>`}}return}const a=b.dataset.action,id=b.dataset.id;
+document.addEventListener('click',async e=>{const b=e.target.closest('[data-action],[data-tab],[data-game],[data-custom],[data-menu-category]');if(!b||b.disabled)return;try{if(b.dataset.tab){tab=b.dataset.tab;drawAdmin();hydrateVenueCodes();obShowOwnerFinancePreview();return}if(b.dataset.game){const key=b.dataset.game;if(!hasQrGameAccess()){toast('Bu oyun yalnızca işletme QR koduyla açılır.');return}if(!venue||!venue.enabled.includes(key))return;await trackEvent('game_open',{game:key});if(embeddedGameBase64[key]){openEmbeddedGame(key);return}return}if(b.dataset.custom){if(!hasQrGameAccess()){toast('Bu oyun yalnızca işletme QR koduyla açılır.');return}const vid=String(venue?.id||qrParams().venueId||''),gid=b.dataset.custom,gmeta=venue.games.find(g=>String(g.id)===String(gid)),gname=gmeta?.name||'Oyun';if(!vid){toast('İşletme bağlantısı bulunamadı. QR kodunu yeniden okut.');return}await trackEvent('game_open',{game:'custom:'+gid});modal(gname,'<div id="customGame"><p style="padding:24px">Oyun yükleniyor…</p></div>');enterGameScreen();const token=++gameLoadSeq;try{const code=await rpc('ob_game',{vid,gid});if(token!==gameLoadSeq||!$('#modal').open)return;safeFrame(code,$('#customGame'),{gameId:gid,gameName:gname})}catch(error){if(token===gameLoadSeq){$('#customGame').innerHTML=`<div style="padding:24px;font:14px/1.5 system-ui;color:#fff;background:#111;min-height:100%"><b>Oyun yüklenemedi.</b><br>${esc(error?.message||'Bilinmeyen hata')}</div>`}}return}const a=b.dataset.action,id=b.dataset.id;
 
 const menuCat=b.dataset.menuCategory;
 if(menuCat){
