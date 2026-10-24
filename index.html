@@ -1820,6 +1820,22 @@ body.customer-mode #app{
  .menu-admin-subcat-row button{padding:7px}
 }
 
+
+/* Menü yönetiminde ürünleri ait oldukları alt başlıkta göster */
+.menu-admin-groups{display:grid;gap:12px;margin-top:15px}
+.menu-admin-group{border:1px solid #e3d5c6;border-radius:15px;padding:12px;background:#fffdfa;min-width:0}
+.menu-admin-group:not(.menu-admin-general){border-left:4px solid #996d4b}
+.menu-admin-general{background:#f7f4ee;border-style:dashed}
+.menu-admin-group-head{display:flex;align-items:center;flex-wrap:wrap;gap:9px;border-bottom:1px solid #eee2d6;padding-bottom:10px}
+.menu-admin-group-title{color:#553827;font-size:13px;font-weight:900;max-width:100%;overflow-wrap:anywhere}
+.menu-admin-group-count{margin-right:auto;color:#897968;font-size:10px;font-weight:700}
+.menu-admin-group-head .mini{white-space:normal;text-align:center}
+.menu-admin-group .menu-admin-items:empty{min-height:24px}
+.menu-admin-item-order{grid-column:1/-1;display:flex;align-items:center;justify-content:flex-end;gap:8px}
+.menu-admin-item-order>span{margin-right:auto;color:#887566;font-size:10px;font-weight:800}
+.menu-admin-item-order .mini{min-width:36px;min-height:34px}
+@media(max-width:560px){.menu-admin-group-head .mini{flex:1 0 100%}.menu-admin-group{padding:10px}}
+
 /* Panel menü yöneticisi */
 .menu-admin{display:grid;gap:14px}
 .menu-admin-cat{
@@ -7058,6 +7074,60 @@ function menuAdminSubcategoryHtml(sub){
     <button type="button" class="danger" data-action="menu-remove-subcategory">Sil</button>
   </div>`;
 }
+function menuAdminGroupHtml(sub,items,subs){
+  const assigned=items.filter(i=>String(i.subcategory_id||'')===String(sub.id));
+  return `<section class="menu-admin-group" data-menu-group="${esc(sub.id)}">
+    <div class="menu-admin-group-head">
+      <strong class="menu-admin-group-title">${esc(sub.name||'Yeni alt başlık')}</strong>
+      <span class="menu-admin-group-count">${assigned.length} ürün</span>
+      <button type="button" class="mini" data-action="menu-add-item" data-subcategory-id="${esc(sub.id)}">+ Bu başlığa ürün ekle</button>
+    </div>
+    <div class="menu-admin-items" data-menu-items="${esc(sub.id)}">${assigned.map(i=>menuAdminItemHtml(i,subs)).join('')}</div>
+  </section>`;
+}
+function menuAdminGeneralGroupHtml(items,subs){
+  const ids=new Set(subs.map(sub=>String(sub.id)));
+  const assigned=items.filter(i=>!i.subcategory_id||!ids.has(String(i.subcategory_id)));
+  return `<section class="menu-admin-group menu-admin-general" data-menu-group="">
+    <div class="menu-admin-group-head">
+      <strong class="menu-admin-group-title">${subs.length?'Diğer Ürünler':'Ürünler'}</strong>
+      <span class="menu-admin-group-count">${assigned.length} ürün</span>
+      <button type="button" class="mini" data-action="menu-add-item" data-subcategory-id="">+ Ürün ekle</button>
+    </div>
+    <div class="menu-admin-items" data-menu-items="">${assigned.map(i=>menuAdminItemHtml(i,subs)).join('')}</div>
+  </section>`;
+}
+function menuAdminGroupFor(cat,id){
+  return [...cat.querySelectorAll('.menu-admin-group')].find(g=>String(g.dataset.menuGroup||'')===String(id||''))||null;
+}
+function menuUpdateGroupCounts(cat){
+  cat.querySelectorAll('.menu-admin-group').forEach(g=>{
+    const e=g.querySelector('.menu-admin-group-count');
+    if(e)e.textContent=g.querySelectorAll('[data-menu-item]').length+' ürün';
+  });
+}
+function menuMoveEditorItem(item,subId){
+  const cat=item?.closest('[data-menu-cat]');
+  if(!cat)return false;
+  const target=menuAdminGroupFor(cat,subId)||menuAdminGroupFor(cat,'');
+  const list=target?.querySelector('.menu-admin-items');
+  if(!list)return false;
+  const select=item.querySelector('.menu-item-subcat');
+  if(select)select.value=String(target.dataset.menuGroup||'');
+  if(item.parentElement!==list)list.appendChild(item);
+  menuUpdateGroupCounts(cat);
+  return true;
+}
+function menuOrderEditorGroups(cat){
+  const groups=cat?.querySelector('.menu-admin-groups');
+  if(!groups)return;
+  menuEditorSubcategories(cat).forEach(sub=>{
+    const group=menuAdminGroupFor(cat,sub.id);
+    if(group)groups.appendChild(group);
+  });
+  const other=menuAdminGroupFor(cat,'');
+  if(other)groups.appendChild(other);
+}
 function menuEditorSubcategories(cat){
   return [...cat.querySelectorAll('[data-menu-subcategory]')].map(row=>({
     id:String(row.dataset.menuSubcategory||''),
@@ -7078,8 +7148,15 @@ function refreshMenuSubcategoryOptions(cat){
     const label=sel.closest('.menu-item-subcat-field');
     if(label)label.hidden=subs.length===0;
   });
+  subs.forEach(sub=>{
+    const heading=menuAdminGroupFor(cat,sub.id)?.querySelector('.menu-admin-group-title');
+    if(heading)heading.textContent=sub.name||'Yeni alt başlık';
+  });
+  const other=menuAdminGroupFor(cat,'')?.querySelector('.menu-admin-group-title');
+  if(other)other.textContent=subs.length?'Diğer Ürünler':'Ürünler';
 }
 function menuAdminCategoryHtml(c){
+  const subs=c.subcategories||[],items=c.items||[];
   return `<section class="menu-admin-cat" data-menu-cat="${esc(c.id)}">
     <div class="menu-admin-cat-head">
       <label>Kategori adı<input class="menu-cat-name" maxlength="80" value="${esc(c.name||'')}"></label>
@@ -7090,11 +7167,13 @@ function menuAdminCategoryHtml(c){
         <strong>Alt başlıklar</strong>
         <button type="button" class="mini" data-action="menu-add-subcategory">+ Alt başlık ekle</button>
       </div>
-      <p>Örn. Şaraplar kategorisi altında Kırmızı Şaraplar, Beyaz Şaraplar ve Roze Şaraplar.</p>
-      <div class="menu-admin-subcats">${(c.subcategories||[]).map(menuAdminSubcategoryHtml).join('')}</div>
+      <p>Alt başlıkların altındaki düğmeden doğrudan ürün ekle; oklarla sıralarını değiştir.</p>
+      <div class="menu-admin-subcats">${subs.map(menuAdminSubcategoryHtml).join('')}</div>
     </div>
-    <div class="menu-admin-items">${(c.items||[]).map(i=>menuAdminItemHtml(i,c.subcategories||[])).join('')}</div>
-    <div class="menu-admin-actions"><button type="button" class="mini" data-action="menu-add-item">+ Ürün ekle</button></div>
+    <div class="menu-admin-groups">
+      ${subs.map(sub=>menuAdminGroupHtml(sub,items,subs)).join('')}
+      ${menuAdminGeneralGroupHtml(items,subs)}
+    </div>
   </section>`;
 }
 function menuAdminVariantHtml(v){
@@ -7102,6 +7181,11 @@ function menuAdminVariantHtml(v){
 }
 function menuAdminItemHtml(i,subcategories=[]){
   return `<div class="menu-admin-item" data-menu-item="${esc(i.id)}">
+    <div class="menu-admin-item-order">
+      <span>Ürün sırası</span>
+      <button type="button" class="mini" data-action="menu-item-up" aria-label="Ürünü yukarı taşı" title="Ürünü yukarı taşı">↑</button>
+      <button type="button" class="mini" data-action="menu-item-down" aria-label="Ürünü aşağı taşı" title="Ürünü aşağı taşı">↓</button>
+    </div>
     <label>Ürün adı
       <input class="menu-item-name" maxlength="120" placeholder="Örn. Cheeseburger" value="${esc(i.name||'')}">
     </label>
@@ -7622,7 +7706,9 @@ if(a==='menu-add-subcategory'){
   const cat=b.closest('[data-menu-cat]');
   if(!cat)return;
   if(menuEditorSubcategories(cat).length>=30){toast('Bir kategoriye en fazla 30 alt başlık eklenebilir.');return}
-  cat.querySelector('.menu-admin-subcats')?.insertAdjacentHTML('beforeend',menuAdminSubcategoryHtml({id:menuId('sub'),name:''}));
+  const sub={id:menuId('sub'),name:''};
+  cat.querySelector('.menu-admin-subcats')?.insertAdjacentHTML('beforeend',menuAdminSubcategoryHtml(sub));
+  menuAdminGroupFor(cat,'')?.insertAdjacentHTML('beforebegin',menuAdminGroupHtml(sub,[],menuEditorSubcategories(cat)));
   refreshMenuSubcategoryOptions(cat);
   cat.querySelector('.menu-admin-subcat-row:last-child .menu-subcat-name')?.focus();
   return;
@@ -7632,20 +7718,55 @@ if(a==='menu-remove-subcategory'){
   if(!cat||!row)return;
   const inUse=[...cat.querySelectorAll('.menu-item-subcat')].filter(sel=>sel.value===row.dataset.menuSubcategory).length;
   if(inUse&&!window.confirm(`Bu alt başlığa bağlı ${inUse} ürün var. Alt başlık silinirse ürünler "Diğer Ürünler" altında gösterilir. Devam edilsin mi?`))return;
-  row.remove();refreshMenuSubcategoryOptions(cat);return;
+  const group=menuAdminGroupFor(cat,row.dataset.menuSubcategory);
+  const other=menuAdminGroupFor(cat,'');
+  if(group&&other){
+    [...group.querySelectorAll('[data-menu-item]')].forEach(item=>{
+      const select=item.querySelector('.menu-item-subcat');
+      if(select)select.value='';
+      other.querySelector('.menu-admin-items')?.appendChild(item);
+    });
+    group.remove();
+  }
+  row.remove();refreshMenuSubcategoryOptions(cat);
+  menuUpdateGroupCounts(cat);
+  return;
 }
 if(a==='menu-subcategory-up'||a==='menu-subcategory-down'){
   const row=b.closest('[data-menu-subcategory]');
   if(!row)return;
   if(a==='menu-subcategory-up'&&row.previousElementSibling)row.parentElement.insertBefore(row,row.previousElementSibling);
   if(a==='menu-subcategory-down'&&row.nextElementSibling)row.parentElement.insertBefore(row.nextElementSibling,row);
+  menuOrderEditorGroups(row.closest('[data-menu-cat]'));
   return;
 }
 if(a==='menu-remove-category'){b.closest('[data-menu-cat]')?.remove();return}
-if(a==='menu-add-item'){const cat=b.closest('[data-menu-cat]');const box=cat?.querySelector('.menu-admin-items');box?.insertAdjacentHTML('beforeend',menuAdminItemHtml({id:menuId('item'),name:'Yeni Ürün',description:'',price:0,active:true,sold_out:false},menuEditorSubcategories(cat)));return}
+if(a==='menu-add-item'){
+  const cat=b.closest('[data-menu-cat]');
+  if(!cat)return;
+  const subs=menuEditorSubcategories(cat);
+  const subId=String(b.dataset.subcategoryId||'');
+  const selected=subs.some(sub=>sub.id===subId)?subId:'';
+  const list=menuAdminGroupFor(cat,selected)?.querySelector('.menu-admin-items');
+  if(!list)return;
+  list.insertAdjacentHTML('beforeend',menuAdminItemHtml({
+    id:menuId('item'),subcategory_id:selected,name:'Yeni Ürün',
+    description:'',price:0,active:true,sold_out:false,variants:[]
+  },subs));
+  menuUpdateGroupCounts(cat);
+  list.lastElementChild?.querySelector('.menu-item-name')?.focus();
+  return;
+}
+if(a==='menu-item-up'||a==='menu-item-down'){
+  const item=b.closest('[data-menu-item]'),list=item?.parentElement;
+  if(!item||!list?.classList.contains('menu-admin-items'))return;
+  if(a==='menu-item-up'&&item.previousElementSibling)list.insertBefore(item,item.previousElementSibling);
+  if(a==='menu-item-down'&&item.nextElementSibling)list.insertBefore(item.nextElementSibling,item);
+  return;
+}
 if(a==='menu-add-variant'){b.closest('[data-menu-item]')?.querySelector('.menu-variant-items')?.insertAdjacentHTML('beforeend',menuAdminVariantHtml({id:menuId('var'),name:'',price:0}));return}
 if(a==='menu-remove-variant'){b.closest('[data-menu-variant]')?.remove();return}
-if(a==='menu-remove-item'){b.closest('[data-menu-item]')?.remove();return}
+if(a==='menu-remove-item'){const cat=b.closest('[data-menu-cat]');b.closest('[data-menu-item]')?.remove();if(cat)menuUpdateGroupCounts(cat);return}
 if(a==='copy-venue-code'){const code=await businessCodeForVenue(id||me?.venue?.id);try{await navigator.clipboard.writeText(code);toast('İşletme kodu kopyalandı.')}catch{toast('Kod kopyalanamadı.')}return}if(a==='regen-venue-code'){const vid=id||me?.venue?.id;if(!vid)throw Error('İşletme bulunamadı.');const ok=window.confirm('İşletme kodunu yenilemek istiyor musun? Eski kod hemen geçersiz olur ve standdaki kod etiketini değiştirmen gerekir.');if(!ok)return;b.disabled=true;try{const code=await regenerateBusinessCode(vid);toast('Yeni işletme kodu: '+code)}finally{b.disabled=false}return}if(a==='retry')await route();if(a==='close-game'){
   const state=activeCustomGame;
   if(state&&!state.finished&&state.startedAt){
@@ -7655,7 +7776,16 @@ if(a==='copy-venue-code'){const code=await businessCodeForVenue(id||me?.venue?.i
   closeModal();
   return
 }if(a==='logout'){const {error}=await db.auth.signOut();if(error)throw error;me=null;adminData=null;await route()}if(a==='reset'){const email=$('#authForm [name=email]').value;if(!email)throw Error('Önce e-posta adresini yaz.');const redirect=new URL(location.href);redirect.search='?recovery=1';redirect.hash='';const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo:redirect.href});if(error)throw error;toast('Hesabın varsa şifre yenileme bağlantısı gönderilecek.')}if(a==='venue-new')venueForm();if(a==='venue-edit')await adminVenueFeatures(getVenue(id));if(a==='merchant-edit')venueForm(me.venue,true);if(a==='game-new')gameForm();if(a==='game-edit')gameForm(adminData.games.find(g=>g.id===id));if(a==='game-delete'){const game=adminData.games.find(g=>String(g.id)===String(id));const gameName=String(game?.name||b.dataset.name||'Bu oyun');const ok=window.confirm(`“${gameName}” oyununu kalıcı olarak silmek istediğine emin misin?\n\nBu işlem geri alınamaz ve oyun atandığı tüm işletmelerden de kaldırılır.`);if(!ok)return;b.disabled=true;try{await rpc('ob_delete_game',{gid:String(id)});toast('Oyun silindi.');await route()}finally{b.disabled=false}return}if(a==='preview-code')safeFrame($('#gameForm [name=code]').value,$('#codePreview'),{gameName:$('#gameForm [name=name]').value||'Önizleme',preview:true});if(a==='qr')qrView(id);if(a==='stats')await stats(id,7);if(a==='stats-period')await stats(id,Number(b.dataset.days||7));if(a==='games'){trackEvent('games_open');const box=$('#gameList');if(!box.innerHTML.trim())listGames();box.scrollIntoView({behavior:'smooth',block:'start'})}if(a==='review')openReviewPage();}catch(err){toast(err.message)}});
-document.addEventListener('input',e=>{if(e.target.matches?.('.menu-subcat-name'))refreshMenuSubcategoryOptions(e.target.closest('[data-menu-cat]'));});
+document.addEventListener('input',e=>{
+  if(e.target.matches?.('.menu-subcat-name'))refreshMenuSubcategoryOptions(e.target.closest('[data-menu-cat]'));
+});
+document.addEventListener('change',e=>{
+  const sel=e.target.closest?.('.menu-item-subcat');
+  if(sel){
+    const item=sel.closest('[data-menu-item]');
+    if(item)menuMoveEditorItem(item,sel.value);
+  }
+});
 document.addEventListener('input',e=>{const input=e.target.closest?.('#businessCodeForm [name=business_code]');if(!input)return;const next=String(input.value||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,4);if(input.value!==next)input.value=next});
 document.addEventListener('submit',async e=>{const f=e.target;if(!['authForm','passwordForm','recoveryRequestForm','requestForm','venueForm','gameForm','businessCodeForm','menuForm','waiterCallForm'].includes(f.id)&&!f.classList.contains('assignForm'))return;e.preventDefault();const button=e.submitter,mode=button?.value,d=new FormData(f);f.querySelectorAll('button').forEach(b=>b.disabled=true);try{if(f.id==='waiterCallForm'){const vid=String(venue?.id||qrParams().venueId||'');if(!vid)throw Error('İşletme bulunamadı.');const tableNo=String(d.get('table_no')||'').replace(/\D/g,'').slice(0,3);if(!tableNo||Number(tableNo)<1)throw Error('Geçerli bir masa numarası yaz.');const requestType=String(d.get('request_type')||'waiter');await rpc('ob_waiter_create',{p_venue_id:vid,p_table_no:tableNo,p_request_type:requestType});localStorage.setItem('oynabak_table_'+vid,tableNo);closeModal();toast('🔔 İsteğin işletmeye iletildi.');return}else if(f.id==='businessCodeForm'){const id=await resolveBusinessCode(d.get('business_code'));const u=new URL(location.href);u.search='';u.searchParams.set('isletme',id);u.hash='play';history.replaceState(null,'',u.href);await route()}else if(f.id==='recoveryRequestForm'){const redirect=new URL(location.pathname,location.origin);redirect.search='?recovery=1';redirect.hash='';const {error}=await db.auth.resetPasswordForEmail(d.get('email').trim(),{redirectTo:redirect.href});if(error)throw error;toast('Hesabın varsa yeni bağlantı gönderilecek. En son gelen e-postayı aç.')}else if(f.id==='authForm'){const credentials={email:d.get('email').trim(),password:d.get('password')};let r;if(mode==='signup'){const u=new URL(location.href);u.search='';u.hash='panel';r=await db.auth.signUp({...credentials,options:{emailRedirectTo:u.href}})}else r=await db.auth.signInWithPassword(credentials);if(r.error)throw r.error;if(mode==='signup'&&!r.data.session){toast('E-postanı kontrol et ve hesabını doğrula. Ardından giriş yap.');return}await route()}else if(f.id==='passwordForm'){if(d.get('password')!==d.get('confirm_password'))throw Error('Şifreler aynı olmalı.');const {error}=await db.auth.updateUser({password:d.get('password')});if(error)throw error;recoveryMode=false;recoveryFailure=false;history.replaceState(null,'',location.pathname+'#panel');toast('Şifren güncellendi.');await route()}else if(f.id==='requestForm'){await rpc('ob_request',{business_name:d.get('business_name')});toast('İşletme talebin alındı.');await route()}else if(f.id==='venueForm'){
   const rawReview=String(d.get('review_url')||'').trim();
@@ -7710,8 +7840,23 @@ document.addEventListener('submit',async e=>{const f=e.target;if(!['authForm','p
   if(menu.categories.some(c=>!c.name.trim()))throw Error('Kategori adı boş olamaz.');
   if(menu.categories.some(c=>c.items.some(i=>!i.name.trim())))throw Error('Ürün adı boş olamaz.');
   await rpc('ob_menu_save',{vid,p:menu});
-  closeModal();toast('Dijital menü kaydedildi.');
-  if(venue&&String(venue.id)===vid)venue.menu=menu;
+  const stored=normalizeMenu(await rpc('ob_menu',{vid}));
+  for(const expected of menu.categories){
+    const actual=stored.categories.find(c=>String(c.id)===String(expected.id));
+    if(!actual)throw Error('Menü kaydedildi ancak doğrulanamadı. Tekrar deneyin.');
+    if(actual.subcategories.length!==expected.subcategories.length||
+       expected.subcategories.some((sub,i)=>actual.subcategories[i]?.id!==sub.id)){
+      throw Error('Alt başlıkların kaydı doğrulanamadı. Lütfen yöneticiyle iletişime geçin.');
+    }
+    for(const item of expected.items){
+      const saved=actual.items.find(i=>String(i.id)===String(item.id));
+      if(!saved||String(saved.subcategory_id||'')!==String(item.subcategory_id||'')){
+        throw Error('Ürün alt başlığı kaydedilemedi. Lütfen yöneticiyle iletişime geçin.');
+      }
+    }
+  }
+  closeModal();toast('Menü ve alt başlıklar kaydedildi.');
+  if(venue&&String(venue.id)===vid)venue.menu=stored;
 }else if(f.id==='gameForm'){
   const payload={
     id:f.dataset.id,
