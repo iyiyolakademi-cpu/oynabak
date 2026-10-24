@@ -1796,7 +1796,31 @@ body.customer-mode #app{
 .menu-variant-edit{display:grid;grid-template-columns:minmax(0,1fr) 110px auto;align-items:end;gap:8px}
 .menu-variant-editor small{display:block;margin-top:8px;color:#81766e;font-size:10px}
 @media(max-width:480px){.menu-variant-edit{grid-template-columns:minmax(0,1fr) 90px auto;gap:5px}.menu-variant-edit button{padding:8px 5px}}
-\n/* Panel menü yöneticisi */
+\n
+/* Dijital menü: kategori içi alt başlıklar */
+.menu-subgroup+.menu-subgroup{margin-top:25px}
+.menu-subgroup-title{display:flex;align-items:center;gap:12px;margin:12px 0 8px;color:#865538;font-family:Georgia,'Times New Roman',serif;font-size:clamp(16px,3.2vw,21px);font-weight:700;line-height:1.3;letter-spacing:.35px;text-transform:uppercase}
+.menu-subgroup-title:after{content:'';height:1px;flex:1;min-width:16px;background:linear-gradient(90deg,rgba(134,85,56,.33),transparent)}
+.menu-admin-subcat-panel{margin-top:14px;padding:12px;border:1px solid #e7d8c7;border-radius:13px;background:#fffaf4}
+.menu-admin-subcat-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.menu-admin-subcat-head strong{font-size:12px;color:#603b28}
+.menu-admin-subcat-panel>p{margin:7px 0 12px;font-size:10px;line-height:1.5;color:#827164}
+.menu-admin-subcats{display:grid;gap:8px}
+.menu-admin-subcat-row{display:grid;grid-template-columns:minmax(0,1fr) 36px 36px auto;gap:6px;align-items:center}
+.menu-admin-subcat-row .menu-subcat-name{width:100%;min-width:0;margin:0}
+.menu-admin-subcat-row button{min-height:34px}
+.menu-admin-item .menu-item-subcat-field{grid-column:1/-1}
+.menu-admin-item .menu-item-subcat-field[hidden]{display:none!important}
+.menu-admin-item .menu-item-subcat{display:block;width:100%;margin-top:5px}
+@media(max-width:560px){
+ .menu-subgroup-title{font-size:16px}
+ .menu-admin-subcat-head{align-items:stretch;flex-wrap:wrap}
+ .menu-admin-subcat-head button{flex:1}
+ .menu-admin-subcat-row{grid-template-columns:minmax(0,1fr) 33px 33px auto}
+ .menu-admin-subcat-row button{padding:7px}
+}
+
+/* Panel menü yöneticisi */
 .menu-admin{display:grid;gap:14px}
 .menu-admin-cat{
   padding:15px;
@@ -6877,8 +6901,12 @@ function normalizeMenu(raw){
     id:String(c?.id||('cat-'+ci)),
     name:String(c?.name||'Kategori').slice(0,80),
     active:c?.active!==false,
+    subcategories:(Array.isArray(c?.subcategories)?c.subcategories:[]).slice(0,30).map((sub,si)=>({
+      id:String(sub?.id||('sub-'+ci+'-'+si)).slice(0,120),
+      name:String(sub?.name||'Alt başlık').slice(0,80)
+    })),
     items:(Array.isArray(c?.items)?c.items:[]).slice(0,100).map((it,ii)=>({
-      id:String(it?.id||('item-'+ii)),name:String(it?.name||'Ürün').slice(0,120),description:String(it?.description||'').slice(0,300),
+      id:String(it?.id||('item-'+ii)),subcategory_id:String(it?.subcategory_id||'').slice(0,120),name:String(it?.name||'Ürün').slice(0,120),description:String(it?.description||'').slice(0,300),
       price:Number(it?.price||0),image_url:String(it?.image_url||'').slice(0,1200),image_data:String(it?.image_data||'').slice(0,900000),active:it?.active!==false,sold_out:Boolean(it?.sold_out),featured:Boolean(it?.featured),variants:(Array.isArray(it?.variants)?it.variants:[]).slice(0,30).map(v=>({id:String(v?.id||menuId('var')),name:String(v?.name||'').slice(0,100),price:Number(v?.price||0)}))
     }))
   }))};
@@ -6887,6 +6915,39 @@ function menuId(prefix='m'){try{return prefix+'-'+crypto.randomUUID()}catch{retu
 function formatPrice(v){const n=Number(v||0);return new Intl.NumberFormat('tr-TR',{minimumFractionDigits:Number.isInteger(n)?0:2,maximumFractionDigits:2}).format(n)+' TL'}
 function isCafeSector(sector){const x=String(sector||'').toLocaleLowerCase('tr-TR');return x.includes('kafe')||x.includes('cafe')||x.includes('café')}
 async function loadVenueMenu(vid){try{return normalizeMenu(await rpc('ob_menu',{vid:String(vid)}))}catch(e){console.warn('Menü alınamadı:',e.message);return normalizeMenu({})}}
+function menuPublicRowsHtml(items){return items.map(i=>`
+              <article class="menu-row ${i.sold_out?'is-sold':''}">
+                <div class="menu-row-copy">
+                  <div class="menu-row-title">
+                    <h4>${esc(i.name)}</h4>
+                    ${i.featured?'<span class="menu-rec">Önerilen</span>':''}
+                    ${i.sold_out?'<span class="menu-sold">Tükendi</span>':''}
+                  </div>
+                  ${i.description?`<p>${esc(i.description)}</p>`:''}
+                  ${(i.variants||[]).length?`<div class="menu-variants">${i.variants.map(v=>`<div class="menu-variant-line"><span>${esc(v.name)}</span><span>${esc(formatPrice(v.price))}</span></div>`).join('')}</div>`:''}
+                </div>
+                <div class="menu-row-dots" aria-hidden="true"></div>
+                <div class="menu-price">${esc(formatPrice(i.price))}</div>
+              </article>`).join('')}
+function menuPublicGroupedItemsHtml(c){
+  const items=(c.items||[]).filter(i=>i.active);
+  const subs=(c.subcategories||[]).filter(sub=>sub.name.trim());
+  if(!subs.length)return `<div class="menu-items menu-list">${menuPublicRowsHtml(items)}</div>`;
+  const ids=new Set(subs.map(sub=>sub.id));
+  const sections=subs.map(sub=>{
+    const products=items.filter(i=>i.subcategory_id===sub.id);
+    if(!products.length)return '';
+    return `<section class="menu-subgroup" aria-label="${esc(sub.name)}">
+      <h4 class="menu-subgroup-title">${esc(sub.name)}</h4>
+      <div class="menu-items menu-list">${menuPublicRowsHtml(products)}</div>
+    </section>`;
+  }).join('');
+  const other=items.filter(i=>!i.subcategory_id||!ids.has(i.subcategory_id));
+  return sections+(other.length?`<section class="menu-subgroup" aria-label="Diğer Ürünler">
+    <h4 class="menu-subgroup-title">Diğer Ürünler</h4>
+    <div class="menu-items menu-list">${menuPublicRowsHtml(other)}</div>
+  </section>`:'');
+}
 function menuPublicHtml(menu=venue?.menu){
   menu=normalizeMenu(menu);
   const cats=menu.categories.filter(c=>c.active&&c.items.some(i=>i.active));
@@ -6969,22 +7030,7 @@ function menuPublicHtml(menu=venue?.menu){
             </div>
             <span>${c.items.filter(i=>i.active).length} ürün</span>
           </div>
-          <div class="menu-items menu-list">
-            ${c.items.filter(i=>i.active).map(i=>`
-              <article class="menu-row ${i.sold_out?'is-sold':''}">
-                <div class="menu-row-copy">
-                  <div class="menu-row-title">
-                    <h4>${esc(i.name)}</h4>
-                    ${i.featured?'<span class="menu-rec">Önerilen</span>':''}
-                    ${i.sold_out?'<span class="menu-sold">Tükendi</span>':''}
-                  </div>
-                  ${i.description?`<p>${esc(i.description)}</p>`:''}
-                  ${(i.variants||[]).length?`<div class="menu-variants">${i.variants.map(v=>`<div class="menu-variant-line"><span>${esc(v.name)}</span><span>${esc(formatPrice(v.price))}</span></div>`).join('')}</div>`:''}
-                </div>
-                <div class="menu-row-dots" aria-hidden="true"></div>
-                <div class="menu-price">${esc(formatPrice(i.price))}</div>
-              </article>`).join('')}
-          </div>
+          ${menuPublicGroupedItemsHtml(c)}
         </section>`).join('')}
     </div>
 
@@ -7004,11 +7050,57 @@ async function openCustomerMenu(){
   if(body)body.scrollTop=0;
   setTimeout(()=>body&&body.scrollTo({top:0,behavior:'auto'}),0);
 }
-function menuAdminCategoryHtml(c){return `<section class="menu-admin-cat" data-menu-cat="${esc(c.id)}"><div class="menu-admin-cat-head"><label>Kategori adı<input class="menu-cat-name" maxlength="80" value="${esc(c.name||'')}"></label><button type="button" class="danger" data-action="menu-remove-category">Kategoriyi sil</button></div><div class="menu-admin-items">${(c.items||[]).map(menuAdminItemHtml).join('')}</div><div class="menu-admin-actions"><button type="button" class="mini" data-action="menu-add-item">+ Ürün ekle</button></div></section>`}
+function menuAdminSubcategoryHtml(sub){
+  return `<div class="menu-admin-subcat-row" data-menu-subcategory="${esc(sub.id)}">
+    <input class="menu-subcat-name" maxlength="80" aria-label="Alt başlık adı" placeholder="Örn. Kırmızı Şaraplar" value="${esc(sub.name||'')}">
+    <button type="button" class="mini" data-action="menu-subcategory-up" aria-label="Alt başlığı yukarı taşı" title="Yukarı taşı">↑</button>
+    <button type="button" class="mini" data-action="menu-subcategory-down" aria-label="Alt başlığı aşağı taşı" title="Aşağı taşı">↓</button>
+    <button type="button" class="danger" data-action="menu-remove-subcategory">Sil</button>
+  </div>`;
+}
+function menuEditorSubcategories(cat){
+  return [...cat.querySelectorAll('[data-menu-subcategory]')].map(row=>({
+    id:String(row.dataset.menuSubcategory||''),
+    name:row.querySelector('.menu-subcat-name')?.value.trim()||''
+  }));
+}
+function menuSubcategoryOptions(subs,selected=''){
+  return `<option value="">${subs.length?'Alt başlıksız / Diğer Ürünler':'Alt başlık yok'}</option>`+
+    subs.map(sub=>`<option value="${esc(sub.id)}" ${String(selected)===String(sub.id)?'selected':''}>${esc(sub.name||'İsimsiz alt başlık')}</option>`).join('');
+}
+function refreshMenuSubcategoryOptions(cat){
+  if(!cat)return;
+  const subs=menuEditorSubcategories(cat);
+  cat.querySelectorAll('.menu-item-subcat').forEach(sel=>{
+    const selected=sel.value;
+    sel.innerHTML=menuSubcategoryOptions(subs,selected);
+    sel.value=subs.some(sub=>sub.id===selected)?selected:'';
+    const label=sel.closest('.menu-item-subcat-field');
+    if(label)label.hidden=subs.length===0;
+  });
+}
+function menuAdminCategoryHtml(c){
+  return `<section class="menu-admin-cat" data-menu-cat="${esc(c.id)}">
+    <div class="menu-admin-cat-head">
+      <label>Kategori adı<input class="menu-cat-name" maxlength="80" value="${esc(c.name||'')}"></label>
+      <button type="button" class="danger" data-action="menu-remove-category">Kategoriyi sil</button>
+    </div>
+    <div class="menu-admin-subcat-panel">
+      <div class="menu-admin-subcat-head">
+        <strong>Alt başlıklar</strong>
+        <button type="button" class="mini" data-action="menu-add-subcategory">+ Alt başlık ekle</button>
+      </div>
+      <p>Örn. Şaraplar kategorisi altında Kırmızı Şaraplar, Beyaz Şaraplar ve Roze Şaraplar.</p>
+      <div class="menu-admin-subcats">${(c.subcategories||[]).map(menuAdminSubcategoryHtml).join('')}</div>
+    </div>
+    <div class="menu-admin-items">${(c.items||[]).map(i=>menuAdminItemHtml(i,c.subcategories||[])).join('')}</div>
+    <div class="menu-admin-actions"><button type="button" class="mini" data-action="menu-add-item">+ Ürün ekle</button></div>
+  </section>`;
+}
 function menuAdminVariantHtml(v){
   return `<div class="menu-variant-edit" data-menu-variant="${esc(v.id||menuId('var'))}"><label>Seçenek adı<input class="menu-variant-name" maxlength="100" placeholder="Örn. Soft İçecek" value="${esc(v.name||'')}"></label><label>Fiyat (TL)<input class="menu-variant-price" type="number" min="0" step="0.01" value="${Number(v.price||0)}"></label><button type="button" class="danger" data-action="menu-remove-variant">Sil</button></div>`;
 }
-function menuAdminItemHtml(i){
+function menuAdminItemHtml(i,subcategories=[]){
   return `<div class="menu-admin-item" data-menu-item="${esc(i.id)}">
     <label>Ürün adı
       <input class="menu-item-name" maxlength="120" placeholder="Örn. Cheeseburger" value="${esc(i.name||'')}">
@@ -7022,6 +7114,9 @@ function menuAdminItemHtml(i){
       <input class="menu-item-desc" maxlength="300" placeholder="Örn. Dana köfte, cheddar, özel sos" value="${esc(i.description||'')}">
     </label>
 
+    <label class="menu-item-subcat-field" ${subcategories.length?'':'hidden'}>Alt başlık
+      <select class="menu-item-subcat">${menuSubcategoryOptions(subcategories,i.subcategory_id||'')}</select>
+    </label>
     <div class="menu-variant-editor">
       <div class="menu-variant-heading"><strong>Alt seçenekler / Varyantlar</strong><button type="button" class="mini" data-action="menu-add-variant">+ Varyant ekle</button></div>
       <div class="menu-variant-items">${(i.variants||[]).map(menuAdminVariantHtml).join('')}</div>
@@ -7032,13 +7127,43 @@ function menuAdminItemHtml(i){
     <label class="menu-check"><input class="menu-item-sold" type="checkbox" ${i.sold_out?'checked':''}> Tükendi olarak işaretle</label>
   </div>`;
 }
+let menuEditorOriginal=null;
 function collectMenuForm(){
-  const categories=[...document.querySelectorAll('#menuAdminCategories [data-menu-cat]')].map(cat=>({id:cat.dataset.menuCat,name:cat.querySelector('.menu-cat-name')?.value.trim()||'Kategori',active:true,items:[...cat.querySelectorAll('[data-menu-item]')].map(it=>({id:it.dataset.menuItem,name:it.querySelector('.menu-item-name')?.value.trim()||'Ürün',description:it.querySelector('.menu-item-desc')?.value.trim()||'',price:Math.max(0,Number(it.querySelector('.menu-item-price')?.value||0)),active:Boolean(it.querySelector('.menu-item-active')?.checked),sold_out:Boolean(it.querySelector('.menu-item-sold')?.checked),featured:Boolean(it.querySelector('.menu-item-featured')?.checked),variants:[...it.querySelectorAll('[data-menu-variant]')].map(v=>({id:v.dataset.menuVariant,name:v.querySelector('.menu-variant-name')?.value.trim()||'',price:Math.max(0,Number(v.querySelector('.menu-variant-price')?.value||0))})).filter(v=>v.name)}))}));
+  const categories=[...document.querySelectorAll('#menuAdminCategories [data-menu-cat]')].map(cat=>{
+    const id=String(cat.dataset.menuCat||'');
+    const previous=menuEditorOriginal?.categories.find(c=>c.id===id);
+    return {
+      id,
+      name:cat.querySelector('.menu-cat-name')?.value.trim()||'Kategori',
+      active:previous?.active!==false,
+      subcategories:menuEditorSubcategories(cat),
+      items:[...cat.querySelectorAll('[data-menu-item]')].map(it=>{
+        const original=previous?.items.find(i=>i.id===it.dataset.menuItem);
+        return {
+          id:String(it.dataset.menuItem||''),
+          subcategory_id:it.querySelector('.menu-item-subcat')?.value||'',
+          name:it.querySelector('.menu-item-name')?.value.trim()||'Ürün',
+          description:it.querySelector('.menu-item-desc')?.value.trim()||'',
+          price:Math.max(0,Number(it.querySelector('.menu-item-price')?.value||0)),
+          image_url:original?.image_url||'',
+          image_data:original?.image_data||'',
+          active:Boolean(it.querySelector('.menu-item-active')?.checked),
+          sold_out:Boolean(it.querySelector('.menu-item-sold')?.checked),
+          featured:Boolean(it.querySelector('.menu-item-featured')?.checked),
+          variants:[...it.querySelectorAll('[data-menu-variant]')].map(v=>({
+            id:v.dataset.menuVariant,
+            name:v.querySelector('.menu-variant-name')?.value.trim()||'',
+            price:Math.max(0,Number(v.querySelector('.menu-variant-price')?.value||0))
+          })).filter(v=>v.name)
+        };
+      })
+    };
+  });
   return normalizeMenu({categories});
 }
 async function menuManager(vid){
-  const menu=await loadVenueMenu(vid);const v=(adminData?.venues||[]).find(x=>String(x.id)===String(vid))||me?.venue||{};
-  modal('Dijital Menü',`<form id="menuForm" data-vid="${esc(vid)}"><p class="muted" style="margin-top:0"><b>${esc(v.name||'İşletme')}</b> için dijital menü. Kategori, ürün adı, açıklama ve fiyat bilgilerini buradan yönetebilirsin.</p><div id="menuAdminCategories" class="menu-admin">${menu.categories.map(menuAdminCategoryHtml).join('')}</div><div class="row" style="margin-top:14px"><button type="button" class="btn light" data-action="menu-add-category">+ Kategori ekle</button><button class="btn coral" type="submit">Menüyü kaydet</button></div></form>`);
+  const menu=await loadVenueMenu(vid);menuEditorOriginal=menu;const v=(adminData?.venues||[]).find(x=>String(x.id)===String(vid))||me?.venue||{};
+  modal('Dijital Menü',`<form id="menuForm" data-vid="${esc(vid)}"><p class="muted" style="margin-top:0"><b>${esc(v.name||'İşletme')}</b> için dijital menü. Ana kategorileri, alt başlıkları, ürünleri ve fiyatları buradan yönetebilirsin.</p><div id="menuAdminCategories" class="menu-admin">${menu.categories.map(menuAdminCategoryHtml).join('')}</div><div class="row" style="margin-top:14px"><button type="button" class="btn light" data-action="menu-add-category">+ Kategori ekle</button><button class="btn coral" type="submit">Menüyü kaydet</button></div></form>`);
 }
 
 
@@ -7493,8 +7618,31 @@ if(a==='customer-home'){
 if(a==='menu-open'){await openCustomerMenu();return}
 if(a==='menu-manage'){await menuManager(id||me?.venue?.id);return}
 if(a==='menu-add-category'){const box=$('#menuAdminCategories');box?.insertAdjacentHTML('beforeend',menuAdminCategoryHtml({id:menuId('cat'),name:'Yeni Kategori',items:[]}));return}
+if(a==='menu-add-subcategory'){
+  const cat=b.closest('[data-menu-cat]');
+  if(!cat)return;
+  if(menuEditorSubcategories(cat).length>=30){toast('Bir kategoriye en fazla 30 alt başlık eklenebilir.');return}
+  cat.querySelector('.menu-admin-subcats')?.insertAdjacentHTML('beforeend',menuAdminSubcategoryHtml({id:menuId('sub'),name:''}));
+  refreshMenuSubcategoryOptions(cat);
+  cat.querySelector('.menu-admin-subcat-row:last-child .menu-subcat-name')?.focus();
+  return;
+}
+if(a==='menu-remove-subcategory'){
+  const cat=b.closest('[data-menu-cat]'),row=b.closest('[data-menu-subcategory]');
+  if(!cat||!row)return;
+  const inUse=[...cat.querySelectorAll('.menu-item-subcat')].filter(sel=>sel.value===row.dataset.menuSubcategory).length;
+  if(inUse&&!window.confirm(`Bu alt başlığa bağlı ${inUse} ürün var. Alt başlık silinirse ürünler "Diğer Ürünler" altında gösterilir. Devam edilsin mi?`))return;
+  row.remove();refreshMenuSubcategoryOptions(cat);return;
+}
+if(a==='menu-subcategory-up'||a==='menu-subcategory-down'){
+  const row=b.closest('[data-menu-subcategory]');
+  if(!row)return;
+  if(a==='menu-subcategory-up'&&row.previousElementSibling)row.parentElement.insertBefore(row,row.previousElementSibling);
+  if(a==='menu-subcategory-down'&&row.nextElementSibling)row.parentElement.insertBefore(row.nextElementSibling,row);
+  return;
+}
 if(a==='menu-remove-category'){b.closest('[data-menu-cat]')?.remove();return}
-if(a==='menu-add-item'){const box=b.closest('[data-menu-cat]')?.querySelector('.menu-admin-items');box?.insertAdjacentHTML('beforeend',menuAdminItemHtml({id:menuId('item'),name:'Yeni Ürün',description:'',price:0,active:true,sold_out:false}));return}
+if(a==='menu-add-item'){const cat=b.closest('[data-menu-cat]');const box=cat?.querySelector('.menu-admin-items');box?.insertAdjacentHTML('beforeend',menuAdminItemHtml({id:menuId('item'),name:'Yeni Ürün',description:'',price:0,active:true,sold_out:false},menuEditorSubcategories(cat)));return}
 if(a==='menu-add-variant'){b.closest('[data-menu-item]')?.querySelector('.menu-variant-items')?.insertAdjacentHTML('beforeend',menuAdminVariantHtml({id:menuId('var'),name:'',price:0}));return}
 if(a==='menu-remove-variant'){b.closest('[data-menu-variant]')?.remove();return}
 if(a==='menu-remove-item'){b.closest('[data-menu-item]')?.remove();return}
@@ -7507,6 +7655,7 @@ if(a==='copy-venue-code'){const code=await businessCodeForVenue(id||me?.venue?.i
   closeModal();
   return
 }if(a==='logout'){const {error}=await db.auth.signOut();if(error)throw error;me=null;adminData=null;await route()}if(a==='reset'){const email=$('#authForm [name=email]').value;if(!email)throw Error('Önce e-posta adresini yaz.');const redirect=new URL(location.href);redirect.search='?recovery=1';redirect.hash='';const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo:redirect.href});if(error)throw error;toast('Hesabın varsa şifre yenileme bağlantısı gönderilecek.')}if(a==='venue-new')venueForm();if(a==='venue-edit')await adminVenueFeatures(getVenue(id));if(a==='merchant-edit')venueForm(me.venue,true);if(a==='game-new')gameForm();if(a==='game-edit')gameForm(adminData.games.find(g=>g.id===id));if(a==='game-delete'){const game=adminData.games.find(g=>String(g.id)===String(id));const gameName=String(game?.name||b.dataset.name||'Bu oyun');const ok=window.confirm(`“${gameName}” oyununu kalıcı olarak silmek istediğine emin misin?\n\nBu işlem geri alınamaz ve oyun atandığı tüm işletmelerden de kaldırılır.`);if(!ok)return;b.disabled=true;try{await rpc('ob_delete_game',{gid:String(id)});toast('Oyun silindi.');await route()}finally{b.disabled=false}return}if(a==='preview-code')safeFrame($('#gameForm [name=code]').value,$('#codePreview'),{gameName:$('#gameForm [name=name]').value||'Önizleme',preview:true});if(a==='qr')qrView(id);if(a==='stats')await stats(id,7);if(a==='stats-period')await stats(id,Number(b.dataset.days||7));if(a==='games'){trackEvent('games_open');const box=$('#gameList');if(!box.innerHTML.trim())listGames();box.scrollIntoView({behavior:'smooth',block:'start'})}if(a==='review')openReviewPage();}catch(err){toast(err.message)}});
+document.addEventListener('input',e=>{if(e.target.matches?.('.menu-subcat-name'))refreshMenuSubcategoryOptions(e.target.closest('[data-menu-cat]'));});
 document.addEventListener('input',e=>{const input=e.target.closest?.('#businessCodeForm [name=business_code]');if(!input)return;const next=String(input.value||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,4);if(input.value!==next)input.value=next});
 document.addEventListener('submit',async e=>{const f=e.target;if(!['authForm','passwordForm','recoveryRequestForm','requestForm','venueForm','gameForm','businessCodeForm','menuForm','waiterCallForm'].includes(f.id)&&!f.classList.contains('assignForm'))return;e.preventDefault();const button=e.submitter,mode=button?.value,d=new FormData(f);f.querySelectorAll('button').forEach(b=>b.disabled=true);try{if(f.id==='waiterCallForm'){const vid=String(venue?.id||qrParams().venueId||'');if(!vid)throw Error('İşletme bulunamadı.');const tableNo=String(d.get('table_no')||'').replace(/\D/g,'').slice(0,3);if(!tableNo||Number(tableNo)<1)throw Error('Geçerli bir masa numarası yaz.');const requestType=String(d.get('request_type')||'waiter');await rpc('ob_waiter_create',{p_venue_id:vid,p_table_no:tableNo,p_request_type:requestType});localStorage.setItem('oynabak_table_'+vid,tableNo);closeModal();toast('🔔 İsteğin işletmeye iletildi.');return}else if(f.id==='businessCodeForm'){const id=await resolveBusinessCode(d.get('business_code'));const u=new URL(location.href);u.search='';u.searchParams.set('isletme',id);u.hash='play';history.replaceState(null,'',u.href);await route()}else if(f.id==='recoveryRequestForm'){const redirect=new URL(location.pathname,location.origin);redirect.search='?recovery=1';redirect.hash='';const {error}=await db.auth.resetPasswordForEmail(d.get('email').trim(),{redirectTo:redirect.href});if(error)throw error;toast('Hesabın varsa yeni bağlantı gönderilecek. En son gelen e-postayı aç.')}else if(f.id==='authForm'){const credentials={email:d.get('email').trim(),password:d.get('password')};let r;if(mode==='signup'){const u=new URL(location.href);u.search='';u.hash='panel';r=await db.auth.signUp({...credentials,options:{emailRedirectTo:u.href}})}else r=await db.auth.signInWithPassword(credentials);if(r.error)throw r.error;if(mode==='signup'&&!r.data.session){toast('E-postanı kontrol et ve hesabını doğrula. Ardından giriş yap.');return}await route()}else if(f.id==='passwordForm'){if(d.get('password')!==d.get('confirm_password'))throw Error('Şifreler aynı olmalı.');const {error}=await db.auth.updateUser({password:d.get('password')});if(error)throw error;recoveryMode=false;recoveryFailure=false;history.replaceState(null,'',location.pathname+'#panel');toast('Şifren güncellendi.');await route()}else if(f.id==='requestForm'){await rpc('ob_request',{business_name:d.get('business_name')});toast('İşletme talebin alındı.');await route()}else if(f.id==='venueForm'){
   const rawReview=String(d.get('review_url')||'').trim();
@@ -7556,6 +7705,7 @@ document.addEventListener('submit',async e=>{const f=e.target;if(!['authForm','p
   await route()
 }else if(f.id==='menuForm'){
   const vid=String(f.dataset.vid||'');if(!vid)throw Error('İşletme bulunamadı.');
+  if([...f.querySelectorAll('.menu-subcat-name')].some(input=>!input.value.trim()))throw Error('Alt başlık adı boş olamaz.');
   const menu=collectMenuForm();
   if(menu.categories.some(c=>!c.name.trim()))throw Error('Kategori adı boş olamaz.');
   if(menu.categories.some(c=>c.items.some(i=>!i.name.trim())))throw Error('Ürün adı boş olamaz.');
