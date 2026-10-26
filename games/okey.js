@@ -203,6 +203,31 @@ function showLobby(){
  if(poll){clearInterval(poll);poll=null}
  const stored=session;if(stored){$('resume').hidden=false;$('resume').textContent='Masaya dön: '+stored.room}
 }
+function selectRackTile(id){
+ if(!game||(game.hand||[]).indexOf(id)<0)return;
+ selected=selected===id?null:id;
+ lastRack='';paintRack();renderControls();
+}
+function moveRackTile(id,to){
+ if(!game||!order.includes(id))return;
+ const from=order.indexOf(id);
+ order.splice(from,1);
+ order.splice(Math.max(0,Math.min(to,order.length)),0,id);
+ selected=id;lastRack='';paintRack();renderControls();
+}
+function attachTouchControls(){
+ if(!window.OynaBakOkeyTouch)return;
+ touchController=window.OynaBakOkeyTouch.install({
+  rack:$('rack'),draw:$('drawStack'),discard:$('takeDiscard'),throwButton:$('discardBtn'),
+  isRackReady:()=>Boolean(game?.hand?.length),
+  canDraw:action=>Boolean(!busy&&game?.status==='playing'&&game?.turn===game?.seat&&game?.phase==='draw'&&(action==='take'?game?.discard!==null:game?.stock_count>0)),
+  canThrow:id=>Boolean(!busy&&game?.status==='playing'&&game?.turn===game?.seat&&game?.phase==='discard'&&game?.hand?.length===15&&game.hand.includes(id)),
+  onSelect:selectRackTile,
+  onReorder:moveRackTile,
+  onDraw:(action,index)=>doMove(action,null,index),
+  onThrow:id=>doMove('discard',id)
+ });
+}
 function wire(){
  const v=new URL(location.href).searchParams.get('isletme');
  if(v!==VENUE){$('lobby').innerHTML='<div class="panel"><h2>Okey burada etkin değil</h2><p>Okey ilk etapta yalnızca İyi Yol Akademi içinde açılabilir.</p><a href="../#play" style="color:#e7bc7c">OynaBak’a dön</a></div>';return}
@@ -211,18 +236,25 @@ function wire(){
  $('leaveTable').addEventListener('click',showLobby);
  const cached=(()=>{try{return JSON.parse(localStorage.getItem(storageKey)||'null')}catch(_){return null}})();
  const lastName=(()=>{try{return localStorage.getItem('ob-okey:name')||''}catch(_){return ''}})();
- $('hostName').value=lastName;$('guestName').value=lastName;
+ $('playerName').value=lastName;
+ $('modeCreate').addEventListener('click',()=>chooseLobbyMode('create'));
+ $('modeJoin').addEventListener('click',()=>chooseLobbyMode('join'));
+ $('fullscreenBtn').addEventListener('click',()=>requestLandscapeFullscreen());
  if(cached&&/^[A-F0-9]{6}$/.test(String(cached.room||''))&&/^[0-9a-f-]{36}$/i.test(String(cached.token||''))){
   session=cached;$('resume').hidden=false;$('resume').textContent='Masaya dön: '+cached.room;
   joinRoom(cached.name||lastName||'Oyuncu',cached.room,cached.token);
  }
  $('resume').addEventListener('click',()=>{if(session)joinRoom(session.name,session.room,session.token)});
- $('newGame').addEventListener('submit',e=>{e.preventDefault();joinRoom($('hostName').value.trim())});
+ $('newGame').addEventListener('submit',e=>{
+  e.preventDefault();const name=playerName();if(!name)return;
+  void requestLandscapeFullscreen();joinRoom(name);
+ });
  $('joinGame').addEventListener('submit',e=>{
   e.preventDefault();
   const code=$('roomCode').value.toUpperCase().trim();
   if(!/^[A-F0-9]{6}$/.test(code)){toast('6 karakterli masa kodunu gir.');return}
-  joinRoom($('guestName').value.trim(),code);
+  const name=playerName();if(!name)return;
+  void requestLandscapeFullscreen();joinRoom(name,code);
  });
  $('roomCode').addEventListener('input',e=>{e.target.value=e.target.value.toUpperCase().replace(/[^A-F0-9]/g,'').slice(0,6)});
  $('copyRoom').addEventListener('click',async()=>{
@@ -230,34 +262,15 @@ function wire(){
   try{await navigator.clipboard.writeText(game.room);toast('Masa kodu kopyalandı: '+game.room)}
   catch{toast('Masa kodun: '+game.room)}
  });
- $('drawStack').addEventListener('click',()=>doMove('draw'));
- $('takeDiscard').addEventListener('click',()=>doMove('take'));
+ $('drawStack').addEventListener('click',()=>{if(!touchController?.ignoreClick($('drawStack')))doMove('draw')});
+ $('takeDiscard').addEventListener('click',()=>{if(!touchController?.ignoreClick($('takeDiscard')))doMove('take')});
  $('discardBtn').addEventListener('click',()=>doMove('discard'));
  $('finishBtn').addEventListener('click',()=>{if(confirm('Seçili taşı atıp kalan 14 taşla oyunu bitirmek istiyor musun?'))doMove('finish')});
  $('sortColors').addEventListener('click',()=>{order.sort((a,b)=>sortValue(a,'colors')-sortValue(b,'colors'));lastRack='';paintRack()});
  $('sortNumbers').addEventListener('click',()=>{order.sort((a,b)=>sortValue(a,'numbers')-sortValue(b,'numbers'));lastRack='';paintRack()});
  $('moveLeft').addEventListener('click',()=>shiftSelected(-1));
  $('moveRight').addEventListener('click',()=>shiftSelected(1));
- const rack=$('rack');let dragging=null;
- rack.addEventListener('pointerdown',event=>{
-  const button=event.target.closest('button[data-tile]');if(!button)return;
-  dragging={id:Number(button.dataset.tile),x:event.clientX,y:event.clientY,changed:false};
- });
- rack.addEventListener('pointerup',event=>{
-  if(!dragging)return;
-  const d=dragging;dragging=null;
-  const dragged=Math.hypot(event.clientX-d.x,event.clientY-d.y)>16;
-  if(dragged){
-   const target=document.elementFromPoint(event.clientX,event.clientY)?.closest('button[data-tile]');
-   if(target&&rack.contains(target)&&Number(target.dataset.tile)!==d.id){
-    const from=order.indexOf(d.id),to=order.indexOf(Number(target.dataset.tile));
-    if(from>=0&&to>=0){order.splice(from,1);order.splice(to,0,d.id);selected=d.id;lastRack='';paintRack();return}
-   }
-  }
-  selected=selected===d.id?null:d.id;
-  lastRack='';paintRack();renderControls();
- });
- rack.addEventListener('pointercancel',()=>{dragging=null});
+ attachTouchControls();
  $('closeEnd').addEventListener('click',()=>{$('gameEnd').hidden=true});
  $('newRound').addEventListener('click',()=>{
   $('gameEnd').hidden=true;
