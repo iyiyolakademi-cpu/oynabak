@@ -79,3 +79,23 @@
 #ob-adisyon .ob-tool-form button[type=submit]{min-height:51px}
 #ob-adisyon #ob-split-results{background:white;border-radius:12px;padding:6px 12px}
 @media(max-width:600px){#ob-adisyon .ob-tool-form{padding:13px}}
+
+#ob-pin-admin{position:fixed;inset:0;z-index:2147483644;background:#f6f8fb;color:#1b2b44;overflow-y:auto;font-family:system-ui,-apple-system,sans-serif}
+#ob-pin-admin *{box-sizing:border-box}
+#ob-pin-admin .ob-pin-admin-shell{max-width:920px;margin:20px auto 70px;padding:24px;background:#fff;border-radius:20px;box-shadow:0 8px 40px #162a4116}
+#ob-pin-admin header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:24px}
+#ob-pin-admin small{font-weight:800;font-size:12px;color:#708198}
+#ob-pin-admin h2{font-size:25px;margin:4px 0}
+#ob-pin-admin h3{font-size:18px}
+#ob-pin-admin .ob-btn{border:1px solid #d5deea;background:#fff;color:#1b2b44;padding:12px 16px;border-radius:10px;font-weight:700;cursor:pointer}
+#ob-pin-admin .ob-btn.primary{background:#172a46;color:#fff}
+#ob-pin-admin .ob-btn.danger{color:#b32c48}
+#ob-pin-admin .ob-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+#ob-pin-admin .ob-pin-admin-status{display:flex;gap:18px;flex-wrap:wrap;background:#f6f8fc;border-radius:15px;padding:10px 20px;margin:15px 0}
+#ob-pin-admin .ob-pin-create,#ob-pin-admin .ob-pin-devices{border-top:1px solid #e3e9f2;margin:24px 0;padding-top:18px}
+#ob-pin-admin select{min-height:44px;border:1px solid #cbd5e1;border-radius:9px;padding:10px;background:#fff}
+#ob-pin-admin .ob-pin-generated{padding:20px;border-radius:16px;background:#edf9f3;margin:16px 0}
+#ob-pin-admin .ob-pin-code{font-family:ui-monospace,monospace;font-weight:900;letter-spacing:.1em;font-size:clamp(16px,4vw,28px);margin:15px 0;overflow-wrap:anywhere}
+#ob-pin-admin .ob-entry{display:flex;justify-content:space-between;gap:15px;padding:14px 0;border-bottom:1px solid #edf2f7;flex-wrap:wrap}
+#ob-pin-admin .ob-pin-hint{color:#6a7b91;font-size:13px}
+@media(max-width:580px){#ob-pin-admin .ob-pin-admin-shell{padding:16px;margin:8px;border-radius:14px}}
