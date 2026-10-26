@@ -4,12 +4,13 @@ const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const money=n=>new Intl.NumberFormat('tr-TR',{style:'currency',currency:'TRY'}).format(Number(n||0));
 const when=d=>new Date(d).toLocaleString('tr-TR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
 const bridge=()=>window.OynaBakAdisyonBridge;
-const current=()=>bridge()?.context();
+const current=()=>window.OynaBakStaffPin?.context?.()||bridge()?.context();
 let state=null,poll=null,mounting=false,seenRequestIds=null,audioCtx=null,signalChannel=null,seenItemStages=null;
 async function rpc(fn,args){const db=current()?.db;if(!db)throw Error('Veritabanı bağlantısı bulunamadı.');const {data,error}=await db.rpc(fn,args);if(error)throw Error(error.message||'Sunucu işlemi başarısız.');return data}
 function notice(msg,error=false){let n=$('#ob-adisyon-message');if(!n){n=document.createElement('div');n.id='ob-adisyon-message';document.body.appendChild(n)}n.textContent=msg;n.className=error?'error':'';clearTimeout(n._timer);n._timer=setTimeout(()=>n.remove(),4500)}
 const venue=id=>(current()?.adminData?.venues||[]).find(v=>String(v.id)===String(id));
 async function mount(){
+ if(location.hash==='#personel')return;
  if(mounting)return;const me=current()?.me;if(!me)return;
  mounting=true;
  try{
@@ -403,5 +404,6 @@ document.addEventListener('input',e=>{
  const field=$('#ob-adisyon-search');field?.focus();try{field?.setSelectionRange(pos,pos)}catch(_){}
 },true);
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&root()&&!$('.ob-product-form',root()))close()});
+window.OynaBakAdisyonModule=Object.freeze({open,close});
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup,{once:true});else setup();
 })();
