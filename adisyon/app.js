@@ -5,7 +5,7 @@ const money=n=>new Intl.NumberFormat('tr-TR',{style:'currency',currency:'TRY'}).
 const when=d=>new Date(d).toLocaleString('tr-TR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
 const bridge=()=>window.OynaBakAdisyonBridge;
 const current=()=>bridge()?.context();
-let state=null,poll=null,mounting=false,seenRequestIds=null,audioCtx=null,signalChannel=null,seenItemStages=null,alarmTimer=null,audioEnabled=false,refreshRunning=false,alarmAcknowledged=new Set();
+let state=null,poll=null,mounting=false,seenRequestIds=null,audioCtx=null,signalChannel=null,seenItemStages=null,alarmTimer=null,audioEnabled=false,refreshRunning=false,alarmAcknowledged=new Set(),floorDrag=null;
 async function rpc(fn,args){const db=current()?.db;if(!db)throw Error('Veritabanı bağlantısı bulunamadı.');const {data,error}=await db.rpc(fn,args);if(error)throw Error(error.message||'Sunucu işlemi başarısız.');return data}
 function notice(msg,error=false){let n=$('#ob-adisyon-message');if(!n){n=document.createElement('div');n.id='ob-adisyon-message';document.body.appendChild(n)}n.textContent=msg;n.className=error?'error':'';clearTimeout(n._timer);n._timer=setTimeout(()=>n.remove(),4500)}
 const venue=id=>(current()?.adminData?.venues||[]).find(v=>String(v.id)===String(id));
@@ -42,7 +42,7 @@ let scheduled=false;
 function schedule(){if(scheduled)return;scheduled=true;queueMicrotask(()=>{scheduled=false;mount().catch(console.warn)})}
 function setup(){const app=$('#app');if(app){new MutationObserver(schedule).observe(app,{childList:true,subtree:true});schedule()}}
 function close(){
- stopAlarm();alarmAcknowledged.clear();audioEnabled=false;
+ stopAlarm();alarmAcknowledged.clear();audioEnabled=false;floorDrag=null;
  seenRequestIds=null;seenItemStages=null;refreshRunning=false;clearInterval(poll);poll=null;
  if(signalChannel){try{current()?.db?.removeChannel(signalChannel)}catch(e){console.warn('Realtime kapatma:',e)}signalChannel=null}
  state=null;$('#ob-adisyon')?.remove();document.body.style.overflow='';
@@ -56,7 +56,7 @@ async function open(id){
  if(!v||String(v.id)!==String(id))throw Error('Bu işletme için mevcut OynaBak hesabınızın yetkisi yok.');
  close();
  const el=document.createElement('section');el.id='ob-adisyon';el.setAttribute('aria-label','OynaBak Sipariş Merkezi');
- el.innerHTML='<div class="ob-shell"><div class="ob-head"><div><div class="ob-muted">OYNABAK · TEK İŞLETME HESABI</div><h2>'+esc(v.name)+'</h2><div class="ob-muted">Sipariş · Mutfak / Bar · Masalar · Tek OynaBak girişi · Ödeme yok</div></div><div class="ob-row"><button class="ob-btn" type="button" data-ob-enable-alerts>🔔 Bildirim sesini aç</button><button class="ob-btn" data-ob-close>✕ Panele dön</button></div></div><div id="ob-adisyon-body">Yükleniyor…</div></div>';
+ el.innerHTML='<div class="ob-shell"><div class="ob-head"><div><div class="ob-muted">OYNABAK · TEK İŞLETME HESABI</div><h2>'+esc(v.name)+'</h2><div class="ob-muted">Sipariş · Mutfak / Bar · Masalar · Tek OynaBak girişi · Ödeme yok</div></div><div class="ob-row"><button class="ob-btn" type="button" data-ob-enable-alerts aria-pressed="false">🔔 Bildirim sesini aç</button><button class="ob-btn" data-ob-close>✕ Panele dön</button></div></div><div id="ob-adisyon-body">Yükleniyor…</div></div>';
  document.body.appendChild(el);document.body.style.overflow='hidden';
  try{
   const s=await rpc('ob_adisyon_status',{p_venue_id:String(id)});
@@ -68,13 +68,17 @@ async function open(id){
   const savedScreen=(()=>{try{return localStorage.getItem('ob-ops-screen-'+id)}catch{return null}})();
   const defaultTab=['requests','kitchen','tables','reports'].includes(savedScreen)?savedScreen:'requests';
   const savedStation=(()=>{try{return localStorage.getItem('ob-ops-station-'+id)}catch{return null}})();
-  state={vid:String(id),count:Number(s.table_count)||1,tab:defaultTab,table:0,filter:'',tickets:[],items:[],requests:[],calls:[],products:[],busy:false,permission:{},staffRole,kitchenFilter:['all','kitchen','bar'].includes(savedStation)?savedStation:'all',realtime:false};
+  state={vid:String(id),count:Number(s.table_count)||1,tab:defaultTab,table:0,filter:'',tickets:[],items:[],requests:[],calls:[],products:[],busy:false,permission:{},staffRole,kitchenFilter:['all','kitchen','bar'].includes(savedStation)?savedStation:'all',realtime:false,canManage:Boolean(s.can_manage),floorEditing:false,floorSaved:[],floorDraft:[],floorVersion:0};
   const actions=['add','review','close','move','split','reports','status'];
   const allowed=await Promise.all(actions.map(action=>rpc('ob_adisyon_permission',{p_venue_id:String(id),p_action:action,p_station:action==='status'&&staffRole==='bar'?'bar':action==='status'?'kitchen':null})));
   if(!state||state.vid!==String(id))return;
   actions.forEach((action,i)=>{state.permission[action]=Boolean(allowed[i])});
   const menu=await bridge().menu(id);
   state.products=(menu?.categories||[]).filter(c=>c.active).flatMap(c=>(c.items||[]).filter(i=>i.active&&!i.sold_out).map(i=>({...i,category:c.name,categoryStation:c.station||'auto'})));
+  try{const alarmOpt=localStorage.getItem('ob-ops-alarm-'+id)==='1';
+   if(alarmOpt){audioEnabled=true;audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();audioCtx.resume().catch(()=>{})}
+  }catch(_){}
+  updateAlarmButton();
   await refresh();
   subscribeSignals(String(id));
   poll=setInterval(()=>refresh(true).catch(()=>{}),15000);
@@ -113,18 +117,39 @@ const tab=(key,label)=>'<button class="ob-btn '+(state.tab===key?'active':'')+'"
 
 function stopAlarm(){if(alarmTimer){clearInterval(alarmTimer);alarmTimer=null}}
 function audibleBeep(){
- if(!audioEnabled||!audioCtx||audioCtx.state!=='running'||document.hidden)return;
- try{
-  const now=audioCtx.currentTime;
-  for(let k=0;k<3;k++){
-   const osc=audioCtx.createOscillator(),gain=audioCtx.createGain(),start=now+k*.24;
-   osc.type='square';osc.frequency.value=k===1?790:1050;
-   gain.gain.setValueAtTime(.001,start);gain.gain.linearRampToValueAtTime(.12,start+.02);
-   gain.gain.exponentialRampToValueAtTime(.001,start+.17);
-   osc.connect(gain);gain.connect(audioCtx.destination);osc.start(start);osc.stop(start+.19);
-  }
- }catch(e){console.warn('Alarm:',e)}
+ if(!audioEnabled||!audioCtx||audioCtx.state!=='running')return;
+ if(typeof window.OynaBakPlayWaiterTone==='function'){
+  window.OynaBakPlayWaiterTone(audioCtx); // EXACT same POS sound as Garson Çağırma
+ }
 }
+function updateAlarmButton(){
+ if(!root())return;
+ root().querySelectorAll('[data-ob-enable-alerts]').forEach(btn=>{
+  btn.textContent=audioEnabled?'🔊 Alarm açık · Sesi dene':'🔔 Bildirim sesini aç';
+  btn.setAttribute('aria-pressed',audioEnabled?'true':'false');
+ });
+}
+async function enableAlarm(){
+ const AC=window.AudioContext||window.webkitAudioContext;
+ if(!AC)throw Error('Bu tarayıcı sesli bildirimleri desteklemiyor');
+ if(!audioCtx)audioCtx=new AC();
+ // AudioContext.resume MUST be initiated from this genuine user interaction.
+ await audioCtx.resume();
+ if(audioCtx.state!=='running')throw Error('Tarayıcı sesi engelliyor. Ekrana dokunup yeniden deneyin');
+ audioEnabled=true;
+ try{localStorage.setItem('ob-ops-alarm-'+state.vid,'1')}catch(_){}
+ updateAlarmButton();
+ stopAlarm();
+ syncAlarm();
+ if(!state.alarmCount)audibleBeep(); // audible test even without a new order
+ notice('Garson çağırmadaki POS alarmı açıldı. Yeni bildirimler susturulana kadar tekrar edecek.');
+}
+function unlockAlarmFromGesture(){
+ if(!state||!audioEnabled||!audioCtx||audioCtx.state==='running')return;
+ audioCtx.resume().then(()=>{if(state?.alarmCount)syncAlarm()}).catch(()=>{});
+}
+document.addEventListener('pointerdown',unlockAlarmFromGesture,{passive:true});
+document.addEventListener('keydown',unlockAlarmFromGesture);
 function activeAlarmKeys(){
  if(!state)return[];
  const role=state.staffRole,keys=[];
@@ -243,14 +268,14 @@ async function refresh(silent=false){
  }
  seenItemStages=stages;
  syncAlarm();
- if(snapshot.tab==='tools'&&silent)return;
+ if((snapshot.tab==='tools'||snapshot.floorEditing||floorDrag)&&silent)return;
  if(!silent||(document.activeElement?.id!=='ob-adisyon-search'&&!$('#ob-adisyon-add-form')))render();
  }finally{refreshRunning=false}
 }
 function notifyRequests(n){
- notice(n+' yeni QR siparişi var.');
- try{if(window.Notification&&Notification.permission==='granted')new Notification('OynaBak · Yeni Sipariş',{body:n+' sipariş garson onayı bekliyor'})}catch(_){}
- try{audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.frequency.value=830;g.gain.value=.15;o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+.3)}catch(_){}
+ notice(n+' yeni işlem var.');
+ try{if(window.Notification&&Notification.permission==='granted')new Notification('OynaBak · Yeni Sipariş',{body:n+' yeni işlem bekliyor'})}catch(_){}
+ // POS sound and looping are handled by syncAlarm; no separate beep.
 }
 function productForm(index){
  const p=state.products[index];if(!p)return;
@@ -323,12 +348,9 @@ document.addEventListener('click',async e=>{
   if(b.dataset.obOpen)await open(b.dataset.obOpen);
   else if(b.dataset.obToggle)await toggle(b.dataset.obToggle);
   else if(state){
-   if(b.dataset.obEnableAlerts){try{
- audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();
- await audioCtx.resume();audioEnabled=audioCtx.state==='running';if(!audioEnabled)throw Error('Tarayıcı sesi engelledi');
- if(window.Notification&&Notification.permission==='default')await Notification.requestPermission();
- stopAlarm();syncAlarm();notice('Alarm etkin. Gelen siparişlerde susturulana kadar çalacak.');
- }catch(e){notice('Ses etkinleşmedi: '+e.message,true)}}
+   if(b.hasAttribute('data-ob-enable-alerts')){
+    try{await enableAlarm()}catch(err){notice('Ses açılamadı: '+err.message,true)}
+   }
    else if(b.dataset.obWaiterDone){await rpc('ob_ops_waiter_done',{p_venue_id:state.vid,p_call_id:b.dataset.obWaiterDone});await refresh();notice('Garson çağrısı tamamlandı.')}
    else if(b.dataset.obStation){state.kitchenFilter=b.dataset.obStation;try{localStorage.setItem('ob-ops-station-'+state.vid,state.kitchenFilter)}catch{}render()}
    else if(b.dataset.obTool)await toolAction(b.dataset.obTool);
