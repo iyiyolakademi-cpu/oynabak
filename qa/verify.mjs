@@ -4,7 +4,7 @@ import {Script} from 'node:vm';
 
 const files=[
  'adisyon/app.js','adisyon/customer-orders.js','adisyon/daily-overview.js',
- 'adisyon/simple-console.js','adisyon/simple-admin.js','adisyon/staff-pin.js','games/okey.js',
+ 'adisyon/simple-console.js','adisyon/simple-admin.js','adisyon/staff-pin.js','games/okey.js','games/okey-touch.js',
  'finance/preview.js'
 ];
 for(const file of files){
@@ -50,6 +50,29 @@ assert.match(okeyJs,/ob_okey_state/);
 assert.match(okeyJs,/ob_okey_act/);
 assert.match(okeyJs,/p_venue_id:VENUE/);
 assert.match(okeyCss,/\.table-surface/);
+const okeyTouch=readFileSync('games/okey-touch.js','utf8');
+const landscape=readFileSync('games/okey-landscape.css','utf8');
+assert.match(okeyPage,/id="playerName"/,'Single name input required');
+assert.match(okeyPage,/id="modeCreate"/,'Create mode choice required');
+assert.match(okeyPage,/id="modeJoin"/,'Join mode choice required');
+assert.match(okeyPage,/id="fullscreenBtn"/,'Fullscreen control required');
+assert.match(okeyPage,/okey-touch\\.js/,'Touch controller script required');
+assert.match(okeyPage,/okey-landscape\\.css/,'Landscape stylesheet required');
+assert.match(okeyJs,/requestFullscreen/,'Fullscreen API must be requested on user gesture');
+assert.match(okeyJs,/orientation\\?\\.lock/,'Orientation lock fallback required');
+assert.match(okeyJs,/immersiveMode\\(true\\)/,'Game must enter immersive layout');
+assert.match(okeyJs,/onDraw:\\(action,index\\)=>doMove/,'Drag-to-rack must call verified draw RPC');
+assert.match(okeyJs,/onThrow:id=>doMove/,'Tile throw gesture must call server move');
+assert.match(okeyTouch,/setPointerCapture/,'Pointer capture needed for touch drag outside rack');
+assert.match(okeyTouch,/onReorder/,'Tile reorder must be wired');
+assert.match(okeyTouch,/onDraw/,'Pile drag must be wired');
+assert.match(okeyTouch,/onThrow/,'Discard gesture must be wired');
+assert.match(okeyTouch,/ignoreClick/,'Native click suppression prevents duplicate draw');
+assert.match(landscape,/orientation:portrait/,'iPhone portrait fallback required');
+assert.match(landscape,/rotate\\(90deg\\)/,'Rotated landscape view required');
+assert.match(landscape,/grid-template-columns:repeat\\(15/,'15-tile mobile rack required');
+console.log('OK Okey mobile landscape, fullscreen request, room selection and touch drag checks');
+
 console.log('OK Okey pilot assets, academy gate, lobby and API links');
 
 console.log('OynaBak static smoke tests passed.');
