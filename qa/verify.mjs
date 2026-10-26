@@ -4,7 +4,7 @@ import {Script} from 'node:vm';
 
 const files=[
  'adisyon/app.js','adisyon/customer-orders.js','adisyon/daily-overview.js',
- 'adisyon/simple-console.js','adisyon/simple-admin.js','adisyon/staff-pin.js',
+ 'adisyon/simple-console.js','adisyon/simple-admin.js','adisyon/staff-pin.js','games/okey.js',
  'finance/preview.js'
 ];
 for(const file of files){
@@ -34,4 +34,22 @@ assert.match(html,/function customerTable\(\).*?return 0/,'unknown event table a
 assert.match(summary,/ob_ops_daily_summary/);
 const oldNames=['adisyon/simple-console.js','adisyon/staff-pin.js'];
 for(const name of oldNames)assert.ok(!html.includes('src="'+name+'"'),name+' legacy mode should not load');
+
+const okeyPage=readFileSync('games/okey.html','utf8');
+const okeyJs=readFileSync('games/okey.js','utf8');
+const okeyCss=readFileSync('games/okey.css','utf8');
+assert.match(html,/String\(venue\?\.id\)===['"]70abef21-053c-4026-b402-e18311f758d5['"]/,'Academy-only game card missing');
+assert.match(html,/data-action="okey-open"/,'Okey launch button missing');
+assert.match(html,/games\/okey\.html/,'Native Okey route missing');
+assert.match(okeyPage,/id="newGame"/);
+assert.match(okeyPage,/id="joinGame"/);
+assert.match(okeyPage,/id="rack"/);
+assert.match(okeyPage,/id="finishBtn"/);
+assert.match(okeyJs,/ob_okey_open/);
+assert.match(okeyJs,/ob_okey_state/);
+assert.match(okeyJs,/ob_okey_act/);
+assert.match(okeyJs,/p_venue_id:VENUE/);
+assert.match(okeyCss,/\.table-surface/);
+console.log('OK Okey pilot assets, academy gate, lobby and API links');
+
 console.log('OynaBak static smoke tests passed.');
