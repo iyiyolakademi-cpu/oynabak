@@ -63,7 +63,6 @@ function render(){
  $('opponentHand').innerHTML=Array.from({length:oppCount},()=>'<span class="card-back" aria-label="Kapalı kart"></span>').join('');
  $('stockLabel').textContent=game.stock_count+' kart';
  $('pileLabel').textContent='Ortada '+game.pile_count+' kart';
- $('pileCard').outerHTML;
  $('centerPile').innerHTML=(game.pile_top===null?'<span id="pileCard" class="empty-pile">Yerde kart yok</span>':cardHTML(game.pile_top,'on-top').replace('class="card ', 'id="pileCard" class="card '))+
  '<small id="pileLabel">Ortada '+game.pile_count+' kart</small>';
  const theirTurn=game.turn!==game.seat;
@@ -136,7 +135,7 @@ async function openRoom(name,code='',token=null){
   if(game.status==='waiting')toast('Masa kuruldu! Kod: '+game.room+'. Arkadaşını davet et.');
   if(!code)rpc('ob_event_v3',{vid:VENUE,et:'game_open',t:0,k:'pisti:'+game.room,g:'pisti'}).catch(()=>{});
  }catch(err){toast(err.message);connection('● Bağlanamadı',true)}
- finally{busy=false;document.querySelectorAll('#lobby button[type="submit"]').forEach(b=>b.disabled=false)}
+ finally{busy=false;document.querySelectorAll('#lobby button[type="submit"]').forEach(b=>b.disabled=false);if(game&&!$('game').hidden)render()}
 }
 async function play(card){
  if(!game||busy||game.status!=='playing'||game.turn!==game.seat)return;
@@ -150,7 +149,7 @@ async function play(card){
   else if(next.last_action?.collected)toast(next.last_action.count+' kart topladın!');
   if(next.status==='finished')rpc('ob_event_v3',{vid:VENUE,et:'game_finish',t:0,k:'pisti:'+session.room+':'+next.round,g:'pisti',s:100}).catch(()=>{});
  }catch(err){toast(err.message);render()}
- finally{busy=false}
+ finally{busy=false;if(game)render()}
 }
 async function ready(){
  if(!game||busy||!['round_finished','finished'].includes(game.status))return;
@@ -161,7 +160,7 @@ async function ready(){
   if(next.status==='playing'){$('resultModal').hidden=true;shownResult='';toast('Yeni el başladı!')}
   else $('readyButton').textContent='Rakibin bekleniyor…';
  }catch(err){toast(err.message);$('readyButton').disabled=false}
- finally{busy=false}
+ finally{busy=false;if(game)render()}
 }
 function showLobby(){
  $('game').hidden=true;$('resultModal').hidden=true;$('lobby').hidden=false;
