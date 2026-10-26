@@ -4,13 +4,13 @@ const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const money=n=>new Intl.NumberFormat('tr-TR',{style:'currency',currency:'TRY'}).format(Number(n||0));
 const when=d=>new Date(d).toLocaleString('tr-TR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
 const bridge=()=>window.OynaBakAdisyonBridge;
-const current=()=>window.OynaBakStaffPin?.context?.()||bridge()?.context();
-let state=null,poll=null,mounting=false,seenRequestIds=null,audioCtx=null,signalChannel=null,seenItemStages=null;
+const current=()=>bridge()?.context();
+let state=null,poll=null,mounting=false,seenRequestIds=null,audioCtx=null,signalChannel=null,seenItemStages=null,alarmTimer=null,audioEnabled=false,refreshRunning=false,alarmAcknowledged=new Set();
 async function rpc(fn,args){const db=current()?.db;if(!db)throw Error('Veritabanı bağlantısı bulunamadı.');const {data,error}=await db.rpc(fn,args);if(error)throw Error(error.message||'Sunucu işlemi başarısız.');return data}
 function notice(msg,error=false){let n=$('#ob-adisyon-message');if(!n){n=document.createElement('div');n.id='ob-adisyon-message';document.body.appendChild(n)}n.textContent=msg;n.className=error?'error':'';clearTimeout(n._timer);n._timer=setTimeout(()=>n.remove(),4500)}
 const venue=id=>(current()?.adminData?.venues||[]).find(v=>String(v.id)===String(id));
 async function mount(){
- if(location.hash==='#personel')return;
+ if(location.hash!=='#panel')return;
  if(mounting)return;const me=current()?.me;if(!me)return;
  mounting=true;
  try{
@@ -24,7 +24,7 @@ async function mount(){
       const line=document.createElement('div');line.className='ob-adm-actions';
       line.innerHTML=(status.enabled?'<button class="btn small light" type="button" data-ob-open="'+esc(id)+'">📋 Adisyon</button>':'')
         +'<button class="btn small light" type="button" data-ob-toggle="'+esc(id)+'">⚙️ '+(status.enabled?'Adisyonu kapat':'Adisyon paketini aç')+'</button>'
-        +'<button class="btn small light" type="button" data-ob-pin-manage="'+esc(id)+'">🔐 Personel PIN sistemi</button>';
+;
       box.appendChild(line);
     }).catch(()=>{});
    });
@@ -53,6 +53,7 @@ let scheduled=false;
 function schedule(){if(scheduled)return;scheduled=true;queueMicrotask(()=>{scheduled=false;mount().catch(console.warn)})}
 function setup(){const app=$('#app');if(app){new MutationObserver(schedule).observe(app,{childList:true,subtree:true});schedule()}}
 function close(){
+ stopAlarm();alarmAcknowledged.clear();audioEnabled=false;
  seenRequestIds=null;seenItemStages=null;clearInterval(poll);poll=null;
  if(signalChannel){try{current()?.db?.removeChannel(signalChannel)}catch(e){console.warn('Realtime kapatma:',e)}signalChannel=null}
  state=null;$('#ob-adisyon')?.remove();document.body.style.overflow='';
@@ -75,13 +76,13 @@ async function open(id){
   if(!s.enabled){body().innerHTML='<div class="ob-card"><h3>Adisyon etkin değil</h3><p>OynaBak yönetim panelinden bu işletmeye adisyonu açın.</p></div>';return}
   const staffRole=assigned?.role||me.role;
   const defaultTab=staffRole==='kitchen'||staffRole==='bar'?'kitchen':staffRole==='waiter'?'requests':'tables';
-  state={vid:String(id),count:Number(s.table_count)||1,tab:defaultTab,table:0,filter:'',tickets:[],items:[],requests:[],products:[],busy:false,permission:{},staffRole,kitchenFilter:staffRole==='kitchen'||staffRole==='bar'?staffRole:'all',realtime:false};
+  state={vid:String(id),count:Number(s.table_count)||1,tab:defaultTab,table:0,filter:'',tickets:[],items:[],requests:[],calls:[],products:[],busy:false,permission:{},staffRole,kitchenFilter:staffRole==='kitchen'||staffRole==='bar'?staffRole:'all',realtime:false};
   const actions=['add','review','close','move','split','reports','status'];
   const allowed=await Promise.all(actions.map(action=>rpc('ob_adisyon_permission',{p_venue_id:String(id),p_action:action,p_station:action==='status'&&staffRole==='bar'?'bar':action==='status'?'kitchen':null})));
   if(!state||state.vid!==String(id))return;
   actions.forEach((action,i)=>{state.permission[action]=Boolean(allowed[i])});
   const menu=await bridge().menu(id);
-  state.products=(menu?.categories||[]).filter(c=>c.active).flatMap(c=>(c.items||[]).filter(i=>i.active&&!i.sold_out).map(i=>({...i,category:c.name})));
+  state.products=(menu?.categories||[]).filter(c=>c.active).flatMap(c=>(c.items||[]).filter(i=>i.active&&!i.sold_out).map(i=>({...i,category:c.name,categoryStation:c.station||'auto'})));
   await refresh();
   subscribeSignals(String(id));
   poll=setInterval(()=>refresh(true).catch(()=>{}),15000);
@@ -217,8 +218,9 @@ function notifyRequests(n){
 function productForm(index){
  const p=state.products[index];if(!p)return;
  const variants=Array.isArray(p.variants)?p.variants.filter(v=>v.name):[];
+ const dest=(p.station==='bar'||p.station==='kitchen'?p.station:p.categoryStation)==='bar'?'Bar':'Mutfak';
  $('.ob-product-form',root())?.remove();
- const wrap=document.createElement('div');wrap.className='ob-card ob-product-form';wrap.innerHTML='<form id="ob-adisyon-add-form" data-index="'+index+'"><div class="ob-row"><h3>'+esc(p.name)+'</h3><button type="button" class="ob-btn" data-ob-dismiss>✕</button></div><label class="ob-field">Varyant<select name="variant"><option value="">Standart · '+money(p.price)+'</option>'+variants.map((v,i)=>'<option value="'+i+'">'+esc(v.name)+' · '+money(v.price)+'</option>').join('')+'</select></label><label class="ob-field">Adet<input name="quantity" type="number" min="1" max="99" value="1" required></label><label class="ob-field">Hazırlık bölümü<select name="station"><option value="kitchen">Mutfak</option><option value="bar">Bar</option></select></label><label class="ob-field">Sipariş notu<textarea name="note" maxlength="300"></textarea></label><button class="ob-btn primary" type="submit">Masa '+state.table+' adisyonuna ekle</button></form>';
+ const wrap=document.createElement('div');wrap.className='ob-card ob-product-form';wrap.innerHTML='<form id="ob-adisyon-add-form" data-index="'+index+'"><div class="ob-row"><h3>'+esc(p.name)+'</h3><button type="button" class="ob-btn" data-ob-dismiss>✕</button></div><label class="ob-field">Varyant<select name="variant"><option value="">Standart · '+money(p.price)+'</option>'+variants.map((v,i)=>'<option value="'+i+'">'+esc(v.name)+' · '+money(v.price)+'</option>').join('')+'</select></label><label class="ob-field">Adet<input name="quantity" type="number" min="1" max="99" value="1" required></label><p class="ob-muted">Hazırlık bölümü: '+dest+' (dijital menüde ayarlanır)</p><label class="ob-field">Sipariş notu<textarea name="note" maxlength="300"></textarea></label><button class="ob-btn primary" type="submit">Masa '+state.table+' adisyonuna ekle</button></form>';
  body().appendChild(wrap);
 }
 async function addItem(form){
@@ -271,70 +273,6 @@ async function closeTicket(id){
  await rpc('ob_adisyon_close',{p_venue_id:state.vid,p_ticket_id:id});
  state.table=0;notice('Adisyon manuel kapatıldı.');await refresh();
 }
-
-let pinAdminId=null;
-function closePinAdmin(){pinAdminId=null;document.querySelector('#ob-pin-admin')?.remove()}
-async function openPinAdmin(id){
- const ctx=current(),me=ctx?.me;
- if(me?.role!=='admin'||!venue(id))throw Error('Sadece OynaBak yoneticisi bu paneli kullanabilir.');
- pinAdminId=String(id);
- let modal=document.querySelector('#ob-pin-admin');
- if(!modal){modal=document.createElement('section');modal.id='ob-pin-admin';modal.setAttribute('aria-label','Personel PIN sistemi');document.body.appendChild(modal)}
- modal.innerHTML='<div class="ob-pin-admin-shell"><header><h2>Personel PIN yönetimi</h2><button class="ob-btn" data-ob-pin-close>✕ Kapat</button></header><p>İşletme bilgileri yükleniyor…</p></div>';
- await drawPinAdmin(id);
-}
-async function drawPinAdmin(id){
- if(pinAdminId!==String(id))return;
- const [all,devices]=await Promise.all([
-  rpc('ob_staff_admin_venues',{}),
-  rpc('ob_staff_device_admin_list',{p_venue_id:String(id)})
- ]);
- if(pinAdminId!==String(id))return;
- const v=(all||[]).find(x=>String(x.id)===String(id));
- if(!v)throw Error('İşletme bulunamadı');
- const modal=document.querySelector('#ob-pin-admin');if(!modal)return;
- modal.innerHTML='<div class="ob-pin-admin-shell"><header><div><small>OYNABAK · İŞLETME ÖZELLİKLERİ</small><h2>'+esc(v.name)+'</h2></div><button class="ob-btn" data-ob-pin-close>✕ Kapat</button></header>'
-  +'<div class="ob-pin-admin-status"><p>Adisyon paketi: <strong>'+(v.adisyon?'Açık':'Kapalı')+'</strong></p><p>E-postasız personel: <strong>'+(v.pin_enabled?'Açık':'Kapalı')+'</strong></p></div>'
-  +'<div class="ob-row"><button class="ob-btn" data-ob-pin-switch="'+esc(id)+'" data-ob-pin-enable="'+(!v.pin_enabled?'1':'0')+'">'+(v.pin_enabled?'Personel PIN sistemini kapat':'Bu işletmede PIN sistemini aç')+'</button></div>'
-  +(v.pin_enabled?'<div class="ob-pin-create"><h3>Yeni personel cihazı tanıt</h3><p>10 dakika geçerli tek kullanımlık eşleştirme kodu üret. Kodu sadece yetkili çalışana ver.</p><div class="ob-row"><label>Personelin görevi <select id="ob-pin-role"><option value="waiter">Garson</option><option value="kitchen">Mutfak</option><option value="bar">Bar</option><option value="manager">Yönetici</option></select></label><button class="ob-btn primary" data-ob-pin-generate="'+esc(id)+'">Eşleştirme kodu oluştur</button></div><div id="ob-pin-generated"></div><p>Personel bağlantısı: <a href="'+esc(location.origin+location.pathname+'#personel')+'" target="_blank" rel="noopener">'+esc(location.origin+location.pathname+'#personel')+'</a></p></div>':'<p class="ob-pin-hint">PIN sistemi etkinleştirilince bu işletme için personel cihazları oluşturulabilir.</p>')
-  +'<div class="ob-pin-devices"><h3>Tanımlı cihazlar ('+devices.length+')</h3>'
-  +(devices.length?devices.map((d,i)=>'<div class="ob-entry"><span><b>Cihaz '+(i+1)+'</b> · '+esc(({waiter:'Garson',kitchen:'Mutfak',bar:'Bar',manager:'Yönetici'}[d.role]||d.role))+' · '+(d.revoked?'Erişimi iptal edildi':d.unlocked?'Açık oturum':'Kilitli')+'</span>'+(d.revoked?'':'<button class="ob-btn danger" data-ob-pin-revoke="'+esc(d.id)+'">Erişimi iptal et</button>')+'</div>').join(''):'<p>Henüz cihaz eşleştirilmedi.</p>')+'</div><p class="ob-pin-hint">Bu özellik yalnızca seçtiğin işletmede aktif olur. Basılı QR kodları ve diğer işletmelerin sistemleri değişmez.</p></div>';
-}
-async function pinSwitch(id,enabled){
- const list=await rpc('ob_staff_admin_venues',{}),v=(list||[]).find(x=>String(x.id)===id);
- if(!v)throw Error('İşletme bulunamadı');
- if(enabled&&!v.adisyon){
-  if(!confirm(v.name+' için adisyon paketi de açılacak. Bu işletmede '+v.tables+' masa/QR noktası var. Devam edilsin mi?'))return;
-  await rpc('ob_adisyon_set_enabled',{p_venue_id:id,p_enabled:true,p_table_count:Math.max(1,Math.min(200,Number(v.tables)||1))});
- }else if(!confirm(v.name+' için personel PIN sistemi '+(enabled?'açılsın':'kapatılsın')+' mı?'))return;
- await rpc('ob_staff_pin_toggle',{p_venue_id:id,p_enabled:enabled});
- notice('İşletme PIN ayarı güncellendi.');
- await drawPinAdmin(id);
-}
-document.addEventListener('click',async e=>{
- const el=e.target.closest?.('[data-ob-pin-manage],[data-ob-pin-close],[data-ob-pin-switch],[data-ob-pin-generate],[data-ob-pin-revoke]');
- if(!el)return;
- e.preventDefault();e.stopImmediatePropagation();el.disabled=true;
- try{
-  if(el.hasAttribute('data-ob-pin-close'))closePinAdmin();
-  else if(el.dataset.obPinManage)await openPinAdmin(el.dataset.obPinManage);
-  else if(el.dataset.obPinSwitch)await pinSwitch(el.dataset.obPinSwitch,el.dataset.obPinEnable==='1');
-  else if(el.dataset.obPinGenerate){
-   const r=await rpc('ob_staff_invite_create',{p_venue_id:el.dataset.obPinGenerate,p_role:document.querySelector('#ob-pin-role')?.value||'waiter'});
-   const div=document.querySelector('#ob-pin-generated');
-   if(div)div.innerHTML='<div class="ob-pin-generated"><strong>Tek kullanımlık kod</strong><div class="ob-pin-code">'+esc(r.code)+'</div><button class="ob-btn" data-ob-pin-copy="'+esc(r.code)+'">Kodu kopyala</button><p>10 dakika geçerli. Personel ekranından kodu ve kendi seçeceği 6 haneli PIN’i girsin.</p></div>';
-  }else if(el.dataset.obPinRevoke){
-   if(!confirm('Bu personel cihazının erişimi hemen iptal edilsin mi?'))return;
-   await rpc('ob_staff_device_revoke',{p_venue_id:pinAdminId,p_user_id:el.dataset.obPinRevoke});
-   await drawPinAdmin(pinAdminId);
-  }
- }catch(err){notice(err.message||String(err),true)}
- finally{if(el.isConnected)el.disabled=false}
-},true);
-document.addEventListener('click',e=>{
- const el=e.target.closest?.('[data-ob-pin-copy]');if(!el)return;e.preventDefault();e.stopImmediatePropagation();
- navigator.clipboard?.writeText(el.dataset.obPinCopy).then(()=>notice('Eşleştirme kodu kopyalandı.')).catch(()=>notice('Kodu seçip kopyalayabilirsiniz.'));
-},true);
 
 document.addEventListener('click',async e=>{
  const b=e.target.closest?.('[data-ob-open],[data-ob-toggle],[data-ob-close],[data-ob-tab],[data-ob-table],[data-ob-back],[data-ob-product],[data-ob-dismiss],[data-ob-void],[data-ob-status],[data-ob-close-ticket],[data-ob-request-approve],[data-ob-request-reject],[data-ob-tool],[data-ob-security-toggle],[data-ob-code-rotate],[data-ob-staff-save],[data-ob-station],[data-ob-enable-alerts]');
