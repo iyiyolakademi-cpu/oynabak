@@ -1,0 +1,3 @@
+#ob-adisyon .ob-floor-table.is-round{border-radius:50%}
+#ob-adisyon .ob-floor-edit-controls{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:10px 0 12px}
+#ob-adisyon .ob-floor-edit-controls select{min-height:44px;padding:8px;border:1px solid #cad4e4;border-radius:8px}
