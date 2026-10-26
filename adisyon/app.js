@@ -82,7 +82,7 @@ async function open(id){
   state.floorDraft=normalizeFloor(state.floorSaved,state.count);
   const menu=await bridge().menu(id);
   state.products=(menu?.categories||[]).filter(c=>c.active).flatMap(c=>(c.items||[]).filter(i=>i.active&&!i.sold_out).map(i=>({...i,category:c.name,categoryStation:c.station||'auto'})));
-  try{const alarmOpt=localStorage.getItem('ob-ops-alarm-'+id)==='1';
+  try{const alarmOpt=localStorage.getItem('ob-ops-alarm-'+id)==='1'||localStorage.getItem('ob_waiter_sound')==='1';
    if(alarmOpt){audioEnabled=true;audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();audioCtx.resume().catch(()=>{})}
   }catch(_){}
   updateAlarmButton();
