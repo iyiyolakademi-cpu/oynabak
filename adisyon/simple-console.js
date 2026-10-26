@@ -50,7 +50,7 @@ function syncAlarm(){
 }
 function mute(){
  for(const k of alertKeys)silenced.add(k);
- stopAlarm();render();
+ alertKeys=[];stopAlarm();render();
 }
 async function audio(){
  try{
@@ -93,7 +93,7 @@ function tables(){
  return '<section><div class="ob-simple-section-title"><h2>Masalar</h2></div><div class="ob-simple-tables">'+cards+'</div>'+
  (selected>0?'<div class="ob-simple-detail"><div class="ob-simple-section-title"><h3>Masa '+selected+'</h3><button class="ob-simple-secondary" type="button" data-simple-table="0">Kapat</button></div>'+
  (summary?'<div class="ob-simple-lines">'+summary.rows.map(x=>'<div><span>'+esc(x.quantity)+' × '+esc(x.name)+'</span><b>'+money(x.line_total)+'</b></div>').join('')+'</div><p class="ob-simple-total">Adisyon toplamı: '+money(summary.total)+'</p>':'<p>Bu masada açık adisyon yok.</p>')+
- '<form id="ob-simple-add-form"><h4>Masaya ürün ekle</h4><input type="hidden" name="table" value="'+selected+'"><select name="item" required><option value="">Menüden ürün seç…</option>'+menu.map(i=>'<option value="'+esc(i.id)+'">'+esc(i.name)+' · '+money(i.price)+'</option>').join('')+'</select><label>Adet <input name="quantity" type="number" min="1" max="20" value="1" required></label><label>Not <input name="note" maxlength="200" placeholder="İsteğe bağlı"></label><button class="ob-simple-primary" type="submit">Masaya ekle</button></form>'+
+ '<form id="ob-simple-add-form"><h4>Masaya ürün ekle</h4><input type="hidden" name="table" value="'+selected+'"><select name="item" required><option value="">Menüden ürün seç…</option>'+menu.map(i=>'<option value="'+esc(i.id)+'">'+esc(i.name)+' · '+(i.price!=null?money(i.price):'Varyantlı ürün')+'</option>').join('')+'</select><select name="variant" hidden><option value="">Standart</option></select><label>Adet <input name="quantity" type="number" min="1" max="20" value="1" required></label><label>Not <input name="note" maxlength="200" placeholder="İsteğe bağlı"></label><button class="ob-simple-primary" type="submit">Masaya ekle</button></form>'+
  (t?'<button type="button" class="ob-simple-close-tab" data-simple-close="'+esc(t.id)+'">Adisyonu manuel kapat (ödeme kaydı değil)</button>':'')+'</div>':'')+'</section>';
 }
 function kitchen(){
@@ -193,13 +193,23 @@ document.addEventListener('click',async e=>{
  }catch(err){notice(err.message||String(err))}
  finally{if(b.isConnected)b.disabled=false}
 },true);
+document.addEventListener('change',e=>{
+ if(!isRoute()||e.target.name!=='item'||e.target.closest('form')?.id!=='ob-simple-add-form')return;
+ const s=e.target.closest('form').querySelector('[name=variant]');if(!s)return;
+ const menu=(state?.menu?.categories||[]).flatMap(c=>c.items||[]);
+ const item=menu.find(x=>String(x.id)===String(e.target.value));
+ const variants=Array.isArray(item?.variants)?item.variants:[];
+ s.hidden=variants.length===0;
+ s.required=variants.length>0&&item?.price==null;
+ s.innerHTML='<option value="">Standart'+(item?.price!=null?' · '+money(item.price):'')+'</option>'+variants.map(v=>'<option value="'+esc(v.id)+'">'+esc(v.name)+' · '+money(v.price)+'</option>').join('');
+});
 document.addEventListener('submit',async e=>{
  if(!isRoute()||e.target.id!=='ob-simple-add-form')return;
  e.preventDefault();e.stopImmediatePropagation();const f=e.target,btn=f.querySelector('[type=submit]');btn.disabled=true;
  try{
   const val=new FormData(f),qty=Number(val.get('quantity'));
   if(!Number.isInteger(qty)||qty<1||qty>20)throw Error('Adet 1–20 arasında olmalı');
-  await action('ob_simple_add',{p_table:Number(val.get('table')),p_item:String(val.get('item')||''),p_variant:null,p_qty:qty,p_note:String(val.get('note')||'')},'Ürün masaya eklendi.');
+  await action('ob_simple_add',{p_table:Number(val.get('table')),p_item:String(val.get('item')||''),p_variant:String(val.get('variant')||'')||null,p_qty:qty,p_note:String(val.get('note')||'')},'Ürün masaya eklendi.');
  }catch(err){notice(err.message||String(err))}
  finally{if(btn.isConnected)btn.disabled=false}
 },true);
