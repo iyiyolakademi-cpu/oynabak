@@ -1,0 +1,17 @@
+/* OynaBak business overview — mobile friendly, neutral, single-design-system. */
+#ob-venue-overview{background:white;border:1px solid #e3e9f2;border-radius:18px;padding:22px;margin:18px 0 22px;box-shadow:0 5px 22px #17263c09}
+#ob-venue-overview .ob-overview-header{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+#ob-venue-overview .ob-overview-header small{font-size:11px;letter-spacing:1.2px;font-weight:800;color:#c6532d}
+#ob-venue-overview h3{margin:5px 0 0;font-size:22px;letter-spacing:-.5px}
+#ob-venue-overview .ob-overview-period{display:flex;gap:6px;flex-wrap:wrap}
+#ob-venue-overview .ob-overview-period button{border:1px solid #dce3ed;border-radius:10px;padding:9px 13px;background:#f8fafc;color:#17263c;font-size:13px;font-weight:700;cursor:pointer}
+#ob-venue-overview .ob-overview-period button[aria-pressed=true]{background:#17263c;border-color:#17263c;color:white}
+#ob-venue-overview .ob-overview-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:11px}
+#ob-venue-overview .ob-overview-card{padding:16px 15px;background:#f6f8fc;border-radius:13px;border:1px solid #eef1f7;min-width:0}
+#ob-venue-overview .ob-overview-card span{display:block;font-size:12px;color:#62738a;font-weight:650}
+#ob-venue-overview .ob-overview-card strong{display:block;font-size:27px;line-height:1.5;color:#17263c;font-variant-numeric:tabular-nums}
+#ob-venue-overview #ob-overview-status{font-size:12px;margin:14px 0 0}
+.ob-resume-venue{border:1px solid #dfe8f0;background:#f7fafc;border-radius:14px;padding:15px;margin:15px 0}
+.ob-resume-venue p{font-size:13px;font-weight:750;margin:0 0 12px}
+.ob-resume-venue small{display:block;color:#68798c;margin-top:10px;font-size:12px}
+@media(max-width:620px){#ob-venue-overview{padding:15px}#ob-venue-overview h3{font-size:19px}#ob-venue-overview .ob-overview-cards{grid-template-columns:repeat(2,minmax(0,1fr))}#ob-venue-overview .ob-overview-card{padding:12px}#ob-venue-overview .ob-overview-card strong{font-size:23px}}
