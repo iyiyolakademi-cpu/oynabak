@@ -7334,8 +7334,7 @@ async function customer(demo,seq){
     try{localStorage.setItem('ob-last-venue',JSON.stringify({id:venue.id,name:venue.name}))}catch(_){}
     await loadVenueFeatures(venue.id);
 
-    const media=await fetchGameMedia((venue.games||[]).map(g=>g.id));
-    (venue.games||[]).forEach(g=>g.image_data=media[String(g.id)]?.image_data||'');
+    gameImages=fetchGameMedia((venue.games||[]).map(g=>g.id));
   }
 
   if(seq!==routeSeq)return;
