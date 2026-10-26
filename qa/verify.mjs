@@ -17,7 +17,7 @@ const read=path=>readFileSync(path,'utf8');
 const main=read('index.html');
 let scripts=0;
 for(const m of main.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)){
- if(!m[1].trim())continue;
+ if(!m[1].trim()||m[1].trimStart().startsWith('{"@context"'))continue;
  new Script(m[1],{filename:'index.inline.'+(++scripts)});
 }
 const check=(hay,needle,message)=>assert.ok(hay.includes(needle),message);
