@@ -5773,6 +5773,8 @@ window.OynaBakPlayWaiterTone=function(ctx){
 };
 function waiterBeep(){
   if(!waiterSoundEnabled)return;
+  // The order workspace handles the same call with the same bell once.
+  if(document.getElementById('ob-adisyon'))return;
   if(!waiterAudioCtx||waiterAudioCtx.state!=='running'){
     unlockWaiterAudio();
     return;
