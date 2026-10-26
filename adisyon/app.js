@@ -356,7 +356,7 @@ async function refresh(silent=false){
  }
  seenItemStages=stages;
  syncAlarm();
- if((snapshot.tab==='tools'||snapshot.floorEditing||floorDrag||$('#ob-extra-results form'))&&silent)return;
+ if((snapshot.tab==='tools'||snapshot.floorEditing||floorDrag||($('#ob-extra-results')?.childElementCount>0))&&silent)return;
  if(!silent||(document.activeElement?.id!=='ob-adisyon-search'&&!$('#ob-adisyon-add-form')))render();
  }finally{refreshRunning=false}
 }
