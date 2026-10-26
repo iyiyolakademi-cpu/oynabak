@@ -146,8 +146,10 @@ function floorSet(table,x,y){
  pos.y=Math.round(Math.max(0,Math.min(100,y))*10)/10;
 }
 function floorStyle(position){
- return 'left:calc((100% - var(--ob-floor-table-size))*'+(position.x/100)+');'+
- 'top:calc((100% - var(--ob-floor-table-size))*'+(position.y/100)+')';
+ // Classic CSS percentages + transform: supported by older Android/iOS browsers
+ // without experimental CSS calc multiplication.
+ return 'left:'+position.x+'%;top:'+position.y+'%;'+
+   'transform:translate(-'+position.x+'%,-'+position.y+'%)';
 }
 function floorBoard(){
  const positions=state.floorDraft.length===state.count?state.floorDraft:normalizeFloor(state.floorSaved,state.count);
