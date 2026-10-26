@@ -99,3 +99,27 @@
 #ob-pin-admin .ob-entry{display:flex;justify-content:space-between;gap:15px;padding:14px 0;border-bottom:1px solid #edf2f7;flex-wrap:wrap}
 #ob-pin-admin .ob-pin-hint{color:#6a7b91;font-size:13px}
 @media(max-width:580px){#ob-pin-admin .ob-pin-admin-shell{padding:16px;margin:8px;border-radius:14px}}
+
+/* Registered OynaBak accounts: one workspace for waiter, kitchen and bar. */
+#ob-adisyon .ob-loop-alarm{background:#fff0ed;border:2px solid #ce3c42;color:#8f242a;
+  padding:16px 20px;border-radius:15px;display:flex;justify-content:space-between;
+  align-items:center;gap:15px;flex-wrap:wrap;margin:16px 0;
+  animation:ob-loop-pulse 1.5s infinite}
+#ob-adisyon .ob-loop-alarm>div{display:grid;gap:4px}
+#ob-adisyon .ob-loop-alarm b{font-size:19px}
+#ob-adisyon .ob-loop-alarm small{font-size:12px}
+#ob-adisyon .ob-loop-alarm button{background:#ae3037;color:#fff;min-width:150px;
+  min-height:48px;border:none;font-size:15px}
+@keyframes ob-loop-pulse{50%{box-shadow:0 0 0 5px rgba(206,60,66,.12)}}
+#ob-adisyon .ob-entry button[data-ob-waiter-done]{min-height:48px}
+#ob-adisyon .ob-tabs{position:sticky;top:0;z-index:6;background:#f5f7fc;
+  padding:9px 0;flex-wrap:nowrap;overflow-x:auto}
+#ob-adisyon .ob-btn:focus-visible{outline:3px solid #2a76b8;outline-offset:2px}
+.menu-admin-cat .menu-cat-station,.menu-admin-item .menu-item-station{
+  width:100%;min-height:44px;padding:9px;border:1px solid #ced7e1;
+  border-radius:9px;background:#fff;color:#25344b;font:inherit}
+@media(max-width:690px){
+ #ob-adisyon .ob-loop-alarm button{width:100%}
+ #ob-adisyon .ob-loop-alarm b{font-size:17px}
+ #ob-adisyon .ob-entry:has([data-ob-waiter-done]){align-items:flex-start}
+}
