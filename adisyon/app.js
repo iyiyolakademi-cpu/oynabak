@@ -37,7 +37,7 @@ async function mount(){
     if(!app||app.querySelector('#ob-staff-landing')||app.dataset.obStaffLoading==='1')return;
     app.dataset.obStaffLoading='1';
     rpc('ob_adisyon_my_venues',{}).then(venues=>{
-      if(!app.isConnected||current()?.me!==me||!Array.isArray(venues)||!venues.length)return;
+      if(!app.isConnected||location.hash.slice(1)!=='panel'||current()?.me!==me||!Array.isArray(venues)||!venues.length)return;
       const label={manager:'Yönetici',waiter:'Garson',kitchen:'Mutfak',bar:'Bar'};
       app.innerHTML='<div class="ob-portal-home" id="ob-staff-landing"><header><div><small>OYNABAK · PERSONEL</small><h1>Çalışma alanım</h1><p>Tek site. Rolüne uygun sipariş ekranı.</p></div><button type="button" class="btn light" data-action="logout">Çıkış yap</button></header><div class="ob-portal-venues">'+venues.map(v=>'<button type="button" class="ob-portal-venue" data-ob-open="'+esc(v.id)+'"><span>'+esc(v.name)+'</span><strong>'+esc(label[v.role]||v.role)+' ekranını aç →</strong></button>').join('')+'</div></div>';
       if(venues.length===1&&$('#ob-staff-landing'))open(venues[0].id).catch(err=>notice(err.message,true));
@@ -73,7 +73,10 @@ async function open(id){
   const staffRole=assigned?.role||me.role;
   const defaultTab=staffRole==='kitchen'||staffRole==='bar'?'kitchen':staffRole==='waiter'?'requests':'tables';
   state={vid:String(id),count:Number(s.table_count)||1,tab:defaultTab,table:0,filter:'',tickets:[],items:[],requests:[],products:[],busy:false,permission:{},staffRole,kitchenFilter:staffRole==='kitchen'||staffRole==='bar'?staffRole:'all',realtime:false};
-  for(const action of ['add','review','close','move','split','reports','status'])state.permission[action]=await rpc('ob_adisyon_permission',{p_venue_id:String(id),p_action:action,p_station:action==='status'&&staffRole==='bar'?'bar':action==='status'?'kitchen':null});
+  const actions=['add','review','close','move','split','reports','status'];
+  const allowed=await Promise.all(actions.map(action=>rpc('ob_adisyon_permission',{p_venue_id:String(id),p_action:action,p_station:action==='status'&&staffRole==='bar'?'bar':action==='status'?'kitchen':null})));
+  if(!state||state.vid!==String(id))return;
+  actions.forEach((action,i)=>{state.permission[action]=Boolean(allowed[i])});
   const menu=await bridge().menu(id);
   state.products=(menu?.categories||[]).filter(c=>c.active).flatMap(c=>(c.items||[]).filter(i=>i.active&&!i.sold_out).map(i=>({...i,category:c.name})));
   await refresh();
