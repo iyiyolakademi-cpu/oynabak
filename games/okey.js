@@ -7,12 +7,46 @@ const $=id=>document.getElementById(id);
 const colors=['red','blue','black','yellow'];
 const colorNames=['Kırmızı','Mavi','Siyah','Sarı'];
 const storageKey='ob-okey:current';
-let db=null,game=null,session=null,order=[],selected=null,lastRack='',busy=false,poll=null,toastTimer=null,shownEnd='';
+let db=null,game=null,session=null,order=[],selected=null,lastRack='',busy=false,poll=null,toastTimer=null,shownEnd='',touchController=null;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const status=msg=>{const el=$('connection');el.textContent=msg;el.className='connection '+(navigator.onLine?'online':'offline')};
 const toast=msg=>{const el=$('toast');el.textContent=msg;el.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>{el.hidden=true},4500)};
 const save=()=>{try{if(session)localStorage.setItem(storageKey,JSON.stringify(session))}catch(_){}};
 const rememberName=name=>{try{localStorage.setItem('ob-okey:name',name)}catch(_){}};
+function isMobileTouch(){return window.matchMedia('(pointer:coarse) and (max-width:1024px)').matches}
+function immersiveMode(enabled){
+ document.body.classList.toggle('okey-playing',Boolean(enabled));
+ if(!enabled&&document.fullscreenElement){
+  document.exitFullscreen?.().catch(()=>{});
+ }
+}
+async function requestLandscapeFullscreen(){
+ if(!isMobileTouch())return;
+ const root=document.documentElement;
+ try{
+  if(!document.fullscreenElement&&root.requestFullscreen){
+   await root.requestFullscreen({navigationUI:'hide'});
+  }
+ }catch(err){console.info('Tarayıcı tam ekran izni vermedi:',err?.name||err)}
+ try{
+  if(screen.orientation?.lock)await screen.orientation.lock('landscape');
+ }catch(err){console.info('Yatay ekran kilidi desteklenmiyor:',err?.name||err)}
+ // Safari on iPhone may deny both APIs. The landscape game has a CSS fallback.
+}
+function chooseLobbyMode(mode){
+ const joining=mode==='join';
+ $('newGame').hidden=joining;$('joinGame').hidden=!joining;
+ $('modeCreate').classList.toggle('active',!joining);
+ $('modeJoin').classList.toggle('active',joining);
+ $('modeCreate').setAttribute('aria-selected',String(!joining));
+ $('modeJoin').setAttribute('aria-selected',String(joining));
+ if(joining)$('roomCode').focus();
+}
+function playerName(){
+ const input=$('playerName'),name=input.value.trim();
+ if(name.length<2){input.focus();toast('Önce en az 2 karakterlik adını yaz.');return null}
+ return name;
+}
 function api(name,args){
  if(!db)return Promise.reject(Error('Oyun bağlantısı hazır değil'));
  return db.rpc(name,args).then(({data,error})=>{if(error)throw Error(error.message||'Oyun sunucusu yanıt vermedi');return data});
@@ -69,6 +103,7 @@ function updateSeat(element,player,active,me){
 function render(){
  if(!game)return;
  $('lobby').hidden=true;$('tableView').hidden=false;
+ immersiveMode(true);
  $('roomText').textContent=game.room;
  $('stockCount').textContent=game.stock_count+' taş';
  const indicator=Number.isInteger(game.indicator)?game.indicator:null;
@@ -77,7 +112,6 @@ function render(){
   const joker=tileInfo(indicator,indicator),n=(joker.num%13)+1;
   $('jokerLabel').textContent='Okey: '+colorNames[colors.indexOf(joker.color)]+' '+n;
  }else $('jokerLabel').textContent='Okey —';
- $('discardTile').outerHTML; // Discard holder stays inside the dedicated target.
  $('takeDiscard').querySelector('#discardTile').innerHTML=game.discard===null?'<span class="mini-placeholder">—</span>':tileHtml(game.discard,true);
  const players=game.players||[],seat=Number(game.seat);
  updateSeat('south',players[seat],game.turn===seat&&game.status==='playing',true);
@@ -160,6 +194,7 @@ function shiftSelected(step){
 }
 function showLobby(){
  $('tableView').hidden=true;$('lobby').hidden=false;$('gameEnd').hidden=true;
+ immersiveMode(false);
  if(poll){clearInterval(poll);poll=null}
  const stored=session;if(stored){$('resume').hidden=false;$('resume').textContent='Masaya dön: '+stored.room}
 }
