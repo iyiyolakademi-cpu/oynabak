@@ -114,8 +114,15 @@ const tab=(key,label)=>'<button class="ob-btn '+(state.tab===key?'active':'')+'"
 function render(){
  if(!state||!body())return;
  const opened=state.tickets.filter(t=>t.status==='open'),pending=state.items.filter(i=>i.status==='new'&&opened.some(t=>t.id===i.ticket_id));
- let html='<div class="ob-stats"><div class="ob-card"><span class="ob-muted">Açık adisyon</span><strong class="metric">'+opened.length+'</strong></div><div class="ob-card"><span class="ob-muted">Bekleyen sipariş</span><strong class="metric">'+pending.length+'</strong></div><div class="ob-card"><span class="ob-muted">Açık hesap tutarı</span><strong class="metric">'+money(opened.reduce((v,t)=>v+total(t.id),0))+'</strong></div></div>';
- html+='<div class="ob-tabs">'+tab('tables','▦ Masalar')+tab('kitchen','♨️ Mutfak / Bar')+(state.permission.review?tab('requests','🛎️ QR Siparişleri'+(state.requests.length?' ('+state.requests.length+')':'')):'')+(state.permission.reports?tab('reports','▤ Raporlar'):'')+tab('tools','⚙️ Araçlar')+'</div>';
+ const stationOnly=state.staffRole==='kitchen'||state.staffRole==='bar';
+ const kitchenItems=state.items.filter(i=>opened.some(t=>t.id===i.ticket_id)&&!['void','served'].includes(i.status));
+ let html='<div class="ob-workspace-title"><div><small>'+esc(({waiter:'GARSON',kitchen:'MUTFAK',bar:'BAR',manager:'İŞLETME YÖNETİMİ'}[state.staffRole]||'ADİSYON'))+' ÇALIŞMA EKRANI</small><h3>'+esc(({waiter:'Sipariş ve masa takibi',kitchen:'Mutfak hazırlık ekranı',bar:'Bar hazırlık ekranı',manager:'İşletme operasyonları'}[state.staffRole]||'İşletme yönetimi'))+'</h3></div><span class="ob-live-label" id="ob-live-status">'+(state.realtime?'● Canlı bağlı':'◌ Yedek güncelleme açık')+'</span></div>';
+ if(stationOnly){
+ html+='<div class="ob-stats"><div class="ob-card"><span class="ob-muted">Bekleyen ürün</span><strong class="metric">'+kitchenItems.filter(i=>i.station===state.staffRole&&i.status==='new').length+'</strong></div><div class="ob-card"><span class="ob-muted">Hazırlanıyor</span><strong class="metric">'+kitchenItems.filter(i=>i.station===state.staffRole&&i.status==='preparing').length+'</strong></div></div>';
+ }else{
+ html+='<div class="ob-stats"><div class="ob-card"><span class="ob-muted">Açık masa</span><strong class="metric">'+opened.length+'</strong></div><div class="ob-card"><span class="ob-muted">QR onayı bekleyen</span><strong class="metric">'+state.requests.length+'</strong></div><div class="ob-card"><span class="ob-muted">Adisyon toplamı (tahsilat değil)</span><strong class="metric">'+money(opened.reduce((v,t)=>v+total(t.id),0))+'</strong></div></div>';
+ }
+ html+='<div class="ob-tabs">'+(!stationOnly?tab('tables','▦ Masalar'):'')+tab('kitchen',stationOnly?'♨️ Hazırlık panosu':'♨️ Mutfak / Bar')+(state.permission.review?tab('requests','🛎️ QR Onayı'+(state.requests.length?' ('+state.requests.length+')':'')):'')+(state.permission.reports?tab('reports','▤ Raporlar'):'')+(!stationOnly?tab('tools','⚙️ Araçlar'):'')+'</div>';
  if(state.tab==='tables'){
    if(!state.table){
      html+='<div class="ob-grid">';
@@ -139,9 +146,25 @@ function render(){
    html+=state.requests.length?state.requests.map(r=>'<div class="ob-entry"><div><b>Masa '+esc(r.table_no)+' · '+money(r.total)+'</b><div class="ob-muted">'+esc(r.customer_note||'')+'</div>'+(r.items||[]).map(i=>'<p>'+esc(i.quantity)+' × '+esc(i.name)+(i.variant_name?' / '+esc(i.variant_name):'')+' · '+money(i.line_total)+' · '+esc(i.note||'')+'</p>').join('')+'</div><div><button class="ob-btn primary" data-ob-request-approve="'+esc(r.id)+'">Onayla</button><button class="ob-btn danger" data-ob-request-reject="'+esc(r.id)+'">Reddet</button></div></div>').join(''):'<div class="ob-empty">Onay bekleyen QR siparişi yok.</div>';
    html+='</div>';
  }else if(state.tab==='kitchen'){
-  html+='<div class="ob-card"><h3>Hazırlık ekranı</h3><div class="ob-row"><button class="ob-btn" data-ob-station="all">Tümü</button><button class="ob-btn" data-ob-station="kitchen">Mutfak</button><button class="ob-btn" data-ob-station="bar">Bar</button></div>';
-  const list=state.items.filter(i=>opened.some(t=>t.id===i.ticket_id)&&!['void','served'].includes(i.status)&&(state.kitchenFilter==='all'||i.station===state.kitchenFilter)&&(state.staffRole!=='kitchen'||i.station==='kitchen')&&(state.staffRole!=='bar'||i.station==='bar'))
-  html+=list.length?list.map(i=>{const t=opened.find(t=>t.id===i.ticket_id),next={new:'preparing',preparing:'ready',ready:'served'}[i.status];return '<div class="ob-entry"><div><b>Masa '+esc(t?.table_no)+' · '+i.quantity+' × '+esc(i.name)+'</b><div class="ob-muted">'+esc(i.station==='bar'?'Bar':'Mutfak')+' · '+esc(i.note||'')+'</div></div><button class="ob-btn primary" data-ob-status="'+esc(i.id)+'" data-ob-next="'+next+'">'+({new:'Hazırlanıyor',preparing:'Hazır',ready:'Servis edildi'}[i.status])+'</button></div>'}).join(''):'<div class="ob-empty">Bekleyen sipariş yok.</div>';
+  const station=stationOnly?state.staffRole:state.kitchenFilter;
+  html+='<div class="ob-kds-head"><h3>Hazırlık ve servis panosu</h3>'+(!stationOnly?'<div class="ob-row"><button class="ob-btn" data-ob-station="all">Tümü</button><button class="ob-btn" data-ob-station="kitchen">Mutfak</button><button class="ob-btn" data-ob-station="bar">Bar</button></div>':'')+'</div>';
+  const listed=kitchenItems.filter(i=>(station==='all'||i.station===station));
+  html+='<div class="ob-kds-grid">';
+  for(const stage of ['new','preparing','ready']){
+   const stageList=listed.filter(i=>i.status===stage);
+   const heading={new:'Yeni siparişler',preparing:'Hazırlanıyor',ready:'Servise hazır'}[stage];
+   html+='<section class="ob-kds-column ob-stage-'+stage+'"><div class="ob-kds-column-head"><h4>'+heading+'</h4><b>'+stageList.length+'</b></div>';
+   html+=stageList.length?stageList.map(i=>{
+    const t=opened.find(t=>t.id===i.ticket_id);
+    const elapsed=Math.max(0,Math.floor((Date.now()-new Date(i.created_at).getTime())/60000));
+    const canAct=stage==='ready'?state.permission.review:state.permission.status&&state.staffRole!=='waiter'&&
+       (!stationOnly||state.staffRole===i.station);
+    const next={new:'preparing',preparing:'ready',ready:'served'}[stage];
+    const label={new:'Hazırlamaya başla',preparing:'Hazır olarak işaretle',ready:'Servis edildi'}[stage];
+    return '<article class="ob-kds-ticket '+(elapsed>=15?'ob-kds-delayed':'')+'"><div class="ob-kds-ticket-head"><strong>Masa '+esc(t?.table_no)+'</strong><small>'+elapsed+' dk · '+(i.station==='bar'?'BAR':'MUTFAK')+'</small></div><div class="ob-kds-product">'+esc(i.quantity)+' × '+esc(i.name)+'</div>'+(i.note?'<p class="ob-kds-note">'+esc(i.note)+'</p>':'')+(canAct?'<button class="ob-btn primary ob-kds-action" data-ob-status="'+esc(i.id)+'" data-ob-next="'+next+'">'+label+'</button>':'<span class="ob-muted">İlgili görevli bekleniyor</span>')+'</article>';
+   }).join(''):'<p class="ob-empty">Şu anda sipariş yok.</p>';
+   html+='</section>';
+  }
   html+='</div>';
  }else{
   const closed=state.tickets.filter(t=>t.status==='closed');
