@@ -568,6 +568,26 @@ document.addEventListener('keydown',e=>{
 },true);
 
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&root()&&!$('.ob-product-form',root())){if(state?.floorEditing&&!confirm('Masa düzenini kaydetmeden çıkmak istiyor musun?'))return;close()}});
+function updateConnectionBadge(){
+ const indicator=$('#ob-live-status');
+ if(!indicator)return;
+ indicator.textContent=navigator.onLine
+   ?(state?.realtime?'● Canlı bağlı':'◌ Yedek güncelleme açık')
+   :'● İnternet bağlantısı yok';
+}
+window.addEventListener('offline',()=>{
+ if(!state)return;
+ updateConnectionBadge();
+ notice('İnternet kesildi. Yeni siparişler gecikebilir.',true);
+});
+window.addEventListener('online',()=>{
+ if(!state)return;
+ updateConnectionBadge();
+ refresh().catch(err=>notice('Bağlantı yenilenemedi: '+err.message,true));
+});
+document.addEventListener('visibilitychange',()=>{
+ if(state&&document.visibilityState==='visible')refresh(true).catch(console.warn);
+});
 window.OynaBakAdisyonModule=Object.freeze({open,close});
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup,{once:true});else setup();
 })();
