@@ -1,0 +1,20 @@
+
+.ob-staff-pin-screen{min-height:80vh;background:#f3f6fb;padding:24px 14px;color:#182841;font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+.ob-staff-pin-shell{max-width:760px;margin:24px auto;border-radius:22px;background:#fff;padding:clamp(18px,4vw,34px);box-shadow:0 12px 55px rgba(11,28,55,.07)}
+.ob-staff-pin-shell header{display:flex;flex-wrap:wrap;align-items:start;justify-content:space-between;gap:12px;border-bottom:1px solid #e9eef6;margin-bottom:24px;padding-bottom:20px}
+.ob-staff-pin-shell header h1{font-size:clamp(24px,5vw,32px);margin:8px 0}
+.ob-staff-pin-shell header small{color:#75879f;font-size:12px;font-weight:800;letter-spacing:.08em}
+.ob-staff-pin-shell header p{color:#607188;margin:0}
+.ob-staff-pin-shell header a{color:#1c5b9d;text-decoration:none;font-weight:700}
+.ob-staff-pin-card{border-radius:18px;background:#f8faff;border:1px solid #e0e7f3;padding:clamp(18px,4vw,30px)}
+.ob-staff-pin-card h2{font-size:23px;margin:0 0 14px}
+.ob-staff-pin-card p{color:#52647b;margin:8px 0 20px}
+.ob-staff-pin-card form{display:grid;gap:16px}
+.ob-staff-pin-card label{display:grid;gap:7px;color:#314661;font-weight:750;font-size:14px}
+.ob-staff-pin-card input{font:inherit;padding:13px;border:1px solid #cad5e4;border-radius:10px;min-height:48px;max-width:100%;box-sizing:border-box;background:#fff}
+.ob-staff-pin-card button{border:0;border-radius:10px;background:#182e4d;color:#fff;min-height:52px;padding:12px 18px;font:700 16px system-ui;cursor:pointer;margin-top:9px}
+.ob-staff-pin-card button.ob-pin-secondary{display:block;background:#fff;color:#243955;border:1px solid #cdd9e8}
+.ob-staff-pin-card button:disabled{opacity:.6}
+.ob-staff-pin-card small{display:block;color:#66768a;margin:16px 0}
+.ob-staff-pin-shell #ob-pin-message{font-weight:700;color:#b02b4a}
+@media(max-width:520px){.ob-staff-pin-screen{padding:8px 4px}.ob-staff-pin-shell{border-radius:10px;margin:0;padding:16px}.ob-staff-pin-card{padding:15px}}

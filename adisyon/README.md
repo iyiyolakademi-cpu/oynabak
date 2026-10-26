@@ -59,3 +59,17 @@ Not: `main` üzerinde yayınlandığında sadece özellik anahtarı etkin işlet
 - Freed oturumunun İyi Yol Akademi Realtime sinyalini ve kapalı Freed sinyalini göremediği test edildi.
 - Bütün test değişiklikleri `BEGIN/ROLLBACK` ile geri alındı. İyi Yol Akademi paketini kapatma/açma yapılmadı; 3 masa ve QR kodu sabit kaldı.
 - Tarayıcıda gerçek üç farklı cihazla uçtan uca test **henüz yapılmadı**. Realtime bağlanma başarısı üretim cihazında görülmeli.
+
+## E-postasız personel ve işletme bazlı PIN paketi (26 Ekim 2026)
+- **Ayrı site yok:** Personel girişi `https://oynabak.com/#personel`, yönetici girişi `https://oynabak.com/#panel`. Her iki adres aynı `index.html` ve Supabase projesini kullanır.
+- OynaBak ana yöneticisi her işletmenin kartındaki **Personel PIN sistemi** tuşuyla paket durumunu görür, açar veya kapatır. Adisyon paketi kapalı işletmede PIN açılacaksa işlem açık onay ile adisyonu da açar. PIN kaldırılınca adisyon/QR menü otomatik kapanmaz.
+- **İyi Yol Akademi:** Adisyon açık, 3 masa, PIN açık. **Freed ve Ayberk:** Adisyon/PIN kapalı; yönetici isterse açabilir. İşletme ayarları kopyalanmaz.
+- Yönetici rol seçerek **10 dakikalık tek kullanımlık 24 karakterlik rastgele cihaz eşleştirme kodu** üretir. Çalışan yalnız bu kod ve kendi belirlediği **6 haneli PIN** ile oturum açar; e-posta yazmaz.
+- Personel oturumları ana işletme hesabından **ayrı bir Supabase Auth client storageKey** kullanır. Personel cihazı için Supabase **Anonymous Sign-Ins** provider'ının etkin olması gerekir. Bu proje ayarı SQL üzerinden otomatik değiştirilemez. **Authentication → Providers → Anonymous Sign-Ins** üzerinden yetkili proje sahibi tarafından etkinleştirilmelidir. Mevcut Auth politikalarının anonim kullanıcı (authenticated rolü) ile uyumu incelenmelidir; CAPTCHA önerilir.
+- Yüksek entropili eşleştirme kodu DB'de **SHA-256 hash** olarak, PIN **bcrypt/pgcrypto hash** olarak tutulur; hiçbirinin düz hali saklanmaz. Kod yalnız oluşturma yanıtında görüntülenir. Kod paylaşırken link parametresine konmaz.
+- Anon Auth hesabı yalnız tek cihazla eşleştirilir. Eşleştirme yapılmadan, PIN kilitliyken veya cihaz iptal edildiğinde sunucudaki adisyon yetki kontrolü **erişimi reddeder**. Oturum 8 saat, 5 yanlış deneme sonrası 15 dakika kilit.
+- Yönetici cihaz listesinden erişimi **anında iptal eder**; istemci 30 saniyede bir yeniden kontrol ederek kapatır. PIN/Adisyon kapatmak oturumu kilitler ve kullanılmayan eşleştirme kodlarını geçersizleştirir.
+- Anon personel oturumunun **yetkileri sunucuda** işletme ve rollerle doğrulanır. Diğer işletmenin kayıtlarını, müşteri menüsü dışı operasyonlarını göremez. RLS ve RPC kontrolleri ayrı.
+- `ob_staff_pairing_invites` ve `ob_staff_pin_devices` tabloları RLS etkin ve **doğrudan anon/authenticated tablo izni yok**. Supabase güvenlik danışmanı "policy yok" uyarısını bu iki tablo için gösterebilir; yalnız sunucu RPC erişimi bilinçli tasarım.
+- **Doğrulanan:** migration başarılı; admin listesi İyi Yol Akademi açık, Freed/Ayberk kapalı; admin eşleştirme kodu üretimi; Freed geçici aç/kapat işlemleri ve sonuçları `ROLLBACK` ile test edildi; JS sözdizimi geçti.
+- **Eksik son kabul testi:** Auth Anonymous provider açık mı kontrolü, gerçek telefonda anonim oturum açıp kod+PIN eşleştirmesi, kilit/açma, anlık bildirim ve cihaz iptali uçtan uca tarayıcı testi. Bu gerçekleşmeden personel girişini tümüyle doğrulanmış saymayın.
