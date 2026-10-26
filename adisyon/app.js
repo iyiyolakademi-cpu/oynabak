@@ -455,7 +455,7 @@ document.addEventListener('click',async e=>{
    else if(b.dataset.obTab){state.tab=b.dataset.obTab;try{localStorage.setItem('ob-ops-screen-'+state.vid,state.tab)}catch{}state.table=0;render()}
    else if(b.dataset.obTable){state.table=Number(b.dataset.obTable);state.filter='';render()}
    else if(b.hasAttribute('data-ob-back')){state.table=0;render()}
-   else if(b.dataset.obProduct)productForm(Number(b.dataset.obProduct));
+   else if(b.hasAttribute('data-ob-product'))productForm(Number(b.dataset.obProduct));
    else if(b.dataset.obVoid)await status(b.dataset.obVoid,'void');
    else if(b.dataset.obStatus)await status(b.dataset.obStatus,b.dataset.obNext);
    else if(b.dataset.obCloseTicket)await closeTicket(b.dataset.obCloseTicket);
