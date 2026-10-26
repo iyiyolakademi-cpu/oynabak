@@ -52,11 +52,10 @@ function body(){return $('#ob-adisyon-body')}
 async function open(id){
  const ctx=current(),me=ctx?.me;
  if(!me)throw Error('Panel oturumu gerekli.');
- const assigned=(await rpc('ob_adisyon_my_venues',{}).catch(()=>[])).find(x=>String(x.id)===String(id));
- const v=me.role==='admin'?venue(id):(me.role==='merchant'&&String(me.venue?.id)===String(id))?me.venue:assigned;
- if(!v||String(v.id)!==String(id))throw Error('İşletme yetkisi yok.');
+ const v=me.role==='admin'?venue(id):(me.role==='merchant'&&String(me.venue?.id)===String(id))?me.venue:null;
+ if(!v||String(v.id)!==String(id))throw Error('Bu işletme için mevcut OynaBak hesabınızın yetkisi yok.');
  close();
- const el=document.createElement('section');el.id='ob-adisyon';el.setAttribute('aria-label','Adisyon paneli');
+ const el=document.createElement('section');el.id='ob-adisyon';el.setAttribute('aria-label','OynaBak Sipariş Merkezi');
  el.innerHTML='<div class="ob-shell"><div class="ob-head"><div><div class="ob-muted">OYNABAK · TEK İŞLETME HESABI</div><h2>'+esc(v.name)+'</h2><div class="ob-muted">Sipariş · Mutfak / Bar · Masalar · Tek OynaBak girişi · Ödeme yok</div></div><div class="ob-row"><button class="ob-btn" type="button" data-ob-enable-alerts>🔔 Bildirim sesini aç</button><button class="ob-btn" data-ob-close>✕ Panele dön</button></div></div><div id="ob-adisyon-body">Yükleniyor…</div></div>';
  document.body.appendChild(el);document.body.style.overflow='hidden';
  try{
@@ -155,7 +154,7 @@ function render(){
  const opened=state.tickets.filter(t=>t.status==='open'),pending=state.items.filter(i=>i.status==='new'&&opened.some(t=>t.id===i.ticket_id));
  const stationOnly=state.staffRole==='kitchen'||state.staffRole==='bar';
  const kitchenItems=state.items.filter(i=>opened.some(t=>t.id===i.ticket_id)&&!['void','served'].includes(i.status));
- let html='<div class="ob-workspace-title"><div><small>'+esc(({waiter:'GARSON',kitchen:'MUTFAK',bar:'BAR',manager:'İŞLETME YÖNETİMİ'}[state.staffRole]||'ADİSYON'))+' ÇALIŞMA EKRANI</small><h3>'+esc(({waiter:'Sipariş ve masa takibi',kitchen:'Mutfak hazırlık ekranı',bar:'Bar hazırlık ekranı',manager:'İşletme operasyonları'}[state.staffRole]||'İşletme yönetimi'))+'</h3></div><span class="ob-live-label" id="ob-live-status">'+(state.realtime?'● Canlı bağlı':'◌ Yedek güncelleme açık')+'</span></div>';
+ let html='<div class="ob-workspace-title"><div><small>'+esc('OYNABAK · TEK İŞLETME GİRİŞİ')+' ÇALIŞMA EKRANI</small><h3>'+esc('Sipariş, mutfak ve masa yönetimi')+'</h3></div><span class="ob-live-label" id="ob-live-status">'+(state.realtime?'● Canlı bağlı':'◌ Yedek güncelleme açık')+'</span></div>';
  if(stationOnly){
  html+='<div class="ob-stats"><div class="ob-card"><span class="ob-muted">Bekleyen ürün</span><strong class="metric">'+kitchenItems.filter(i=>i.station===state.staffRole&&i.status==='new').length+'</strong></div><div class="ob-card"><span class="ob-muted">Hazırlanıyor</span><strong class="metric">'+kitchenItems.filter(i=>i.station===state.staffRole&&i.status==='preparing').length+'</strong></div></div>';
  }else{
