@@ -7449,6 +7449,11 @@ async function customer(demo,seq){
     </div>`;
 
   listGames();
+  if(gameImages)gameImages.then(media=>{
+    if(seq!==routeSeq||!document.getElementById('gameList')||!venue)return;
+    (venue.games||[]).forEach(g=>g.image_data=media[String(g.id)]?.image_data||'');
+    listGames();
+  }).catch(err=>console.warn('Oyun kapakları yüklenemedi:',err));
   if(!demo)trackEvent('qr_open');
 }
 
