@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#112c25">
+<meta name="robots" content="noindex,nofollow">
+<title>Pişti · OynaBak</title>
+<link rel="stylesheet" href="./pisti.css">
+<script src="../assets/supabase-client.bundle.js"></script>
+<script defer src="./pisti.js"></script>
+</head>
+<body>
+<header class="site-header">
+ <a id="back" class="back-link" href="../#play" aria-label="OynaBak oyunlarına dön">‹ <span>OynaBak</span></a>
+ <div class="branding">PİŞTİ <small>2 KİŞİLİK · CANLI</small></div>
+ <span id="network" class="network" aria-live="polite">Bağlanıyor</span>
+</header>
+<main>
+ <section id="lobby" class="lobby" aria-labelledby="lobbyTitle">
+  <div class="welcome-icon" aria-hidden="true"><span>♠</span><span>♥</span></div>
+  <p class="eyebrow">İYİ YOL AKADEMİ · OYNABAK</p>
+  <h1 id="lobbyTitle">Bir Pişti atalım mı?</h1>
+  <p class="subtitle">Karşılıklı iki telefondan oyna. Arkadaşını davet et, masaya otur ve 101 puana ulaş!</p>
+  <div class="lobby-card">
+   <label for="playerName">Oyuncu adın</label>
+   <input id="playerName" type="text" maxlength="18" minlength="2" autocomplete="nickname" placeholder="Adını yaz">
+   <div class="choice-group" role="tablist" aria-label="Oyun seçimi">
+    <button id="chooseCreate" type="button" role="tab" aria-selected="true" class="choice active">+ <strong>Masa Kur</strong><small>Yeni oyun aç</small></button>
+    <button id="chooseJoin" type="button" role="tab" aria-selected="false" class="choice">⌗ <strong>Kodla Katıl</strong><small>Arkadaşına katıl</small></button>
+   </div>
+   <form id="createForm">
+    <p class="form-help">Masayı kurduğunda davet kodunu arkadaşına gönderebilirsin.</p>
+    <button type="submit" class="start-button">Masayı Kur <span>→</span></button>
+   </form>
+   <form id="joinForm" hidden>
+    <label for="joinCode">6 karakterli masa kodu</label>
+    <input id="joinCode" maxlength="6" minlength="6" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="A1B2C3">
+    <button type="submit" class="start-button">Oyuna Katıl <span>→</span></button>
+   </form>
+  </div>
+  <button id="resume" class="resume" type="button" hidden>Son masama dön</button>
+  <p class="lobby-footer">52 kart · 4’er kart dağıtılır · Pişti +10 · Vale Pişti +20</p>
+ </section>
+ <section id="game" class="game" hidden>
+  <div class="game-topline">
+   <div class="room-box"><small>MASA KODU</small><button id="copyCode" type="button" aria-label="Masa kodunu kopyala"><span id="roomLabel">------</span> <span>⧉</span></button></div>
+   <div id="statusText" class="turn-pill" aria-live="polite">Oyuncu bekleniyor</div>
+   <button id="invite" class="mini-action" type="button">↗ Davet</button>
+   <button id="switchRoom" class="mini-action" type="button">↩ Çık</button>
+  </div>
+  <div class="scoreboard" aria-label="Maç puanları">
+   <div class="score-person opponent-score"><span id="opponentName">Rakip bekleniyor</span><strong id="opponentPoints">0</strong><small id="opponentCollected">0 kart topladı</small></div>
+   <div class="score-center"><span>HEDEF</span><strong>101</strong><small id="roundLabel">1. EL</small></div>
+   <div class="score-person self-score"><span id="selfName">Sen</span><strong id="selfPoints">0</strong><small id="selfCollected">0 kart topladın</small></div>
+  </div>
+  <div id="felt" class="felt">
+   <div class="felt-pattern" aria-hidden="true"></div>
+   <div class="opponent-area">
+    <div id="opponentAvatar" class="player-avatar">?</div>
+    <div class="opponent-label"><b id="topOpponentName">Rakip bekleniyor</b><small id="opponentTurn">Diğer oyuncu bağlanıyor…</small></div>
+    <div id="opponentHand" class="opponent-hand" aria-label="Rakibin kapalı kartları"></div>
+   </div>
+   <div id="pileDrop" class="play-area" aria-label="Kart oynama alanı">
+    <div id="cardDeck" class="stock-pile"><span class="card-back"></span><small id="stockLabel">40 kart</small></div>
+    <div id="centerPile" class="center-pile"><span id="pileCard" class="empty-pile">Kartlar buraya</span><small id="pileLabel">Ortada 0 kart</small></div>
+    <span id="playHint" class="play-hint">Bir kart oyna</span>
+   </div>
+   <div class="player-area"><div class="player-dot"></div><span id="bottomName">Sen</span><small id="bottomTurn">Oyuncular bekleniyor</small></div>
+  </div>
+  <div class="my-rack">
+   <div class="rack-caption"><span>ELİNDEKİ KARTLAR</span><span id="handLabel">0 kart</span></div>
+   <div id="hand" class="hand" aria-label="Elindeki kartlar"></div>
+   <div class="help-line"><span id="actionHint">İkinci oyuncu katılınca oyun başlayacak.</span><span>Karta dokun veya ortaya sürükle</span></div>
+  </div>
+ </section>
+</main>
+<div id="toast" class="toast" role="alert" hidden></div>
+<div id="resultModal" class="modal" hidden>
+ <div class="result-card"><div class="result-symbol" id="resultSymbol">🏆</div><p class="eyebrow" id="resultEyebrow">EL TAMAMLANDI</p><h2 id="resultTitle">El bitti</h2>
+  <div class="result-scores"><div><span id="resultName0">Oyuncu 1</span><strong id="resultScore0">0</strong></div><div><span id="resultName1">Oyuncu 2</span><strong id="resultScore1">0</strong></div></div>
+  <p id="resultMessage">Maç devam ediyor.</p>
+  <button id="readyButton" type="button" class="start-button">Yeni Ele Hazırım →</button>
+  <button id="dismissResult" type="button" class="flat-button">Masayı görüntüle</button>
+ </div>
+</div>
+</body>
+</html>
