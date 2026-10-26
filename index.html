@@ -7276,7 +7276,7 @@ async function menuManager(vid){
 
 
 function qrParams(){const u=new URL(location.href);return {venueId:String(u.searchParams.get('isletme')||'').trim(),table:1}}
-function customerTable(){return 1}
+function customerTable(){try{const id=String(venue?.id||qrParams().venueId||'');const n=Number(localStorage.getItem('oynabak_table_'+id));return Number.isInteger(n)&&n>=1&&n<=1000?n:0}catch(_){return 0}}
 function validateQrContext(v=venue){const {venueId}=qrParams();if(!venueId)throw Error('Önce işletme kodunu gir.');if(v?.id&&String(v.id)!==venueId)throw Error('İşletme bağlantısı eşleşmiyor.');return {venueId,table:1}}
 function eventKey(prefix){try{return prefix+':'+crypto.randomUUID()}catch{return prefix+':'+Date.now()+':'+Math.random().toString(36).slice(2)}}
 async function trackEvent(et,{game=null,score=null,key=null}={}){
