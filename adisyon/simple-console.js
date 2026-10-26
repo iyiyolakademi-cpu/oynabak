@@ -149,13 +149,21 @@ async function poll(){
   const d=await rpc('ob_simple_state',{p_id:device.id,p_token:device.token});
   if(!d.ok){state=null;alertKeys=[];stopAlarm();waiting(d);return}
   const keys=[...(d.requests||[]).map(x=>'r:'+x.id),...(d.items||[]).filter(i=>i.status==='new').map(x=>'i:'+x.id)];
-  const wasAlert=alertKeys.some(x=>!silenced.has(x));
+  const revision=JSON.stringify({
+    requests:(d.requests||[]).map(x=>x.id),
+    tickets:(d.tickets||[]).map(x=>[x.id,x.table_no,x.status]),
+    items:(d.items||[]).map(x=>[x.id,x.status,x.quantity,x.line_total]),
+    venue:d.venue_id
+  });
+  const changed=revision!==lastRevision;
+  lastRevision=revision;
   state=d;syncAlarm();
-  // Keep active edit forms intact while data still updates and alarms trigger.
+  // Do not reset input/scroll on every network poll.
   const focused=document.activeElement;
-  const editing=focused?.closest?.('#ob-simple-add-form')&&
-   !['BUTTON'].includes(focused.tagName);
-  if(!editing||(!wasAlert&&alertKeys.length))render();
+  const editing=focused?.closest?.('#ob-simple-add-form')&&focused.tagName!=='BUTTON';
+  if(!editing&&(changed||Date.now()-lastRender>30000)){
+    render();lastRender=Date.now();
+  }
  }catch(err){if(!state?.ok)base('<section class="ob-simple-intro"><h1>Bağlantı sorunu</h1><p>'+esc(err.message)+'</p><button type="button" data-simple-retry>Yeniden dene</button></section>');else notice('Bağlantı kesildi. Siparişler otomatik yeniden kontrol ediliyor.')}
  finally{fetching=false}
 }
@@ -172,7 +180,7 @@ document.addEventListener('click',async e=>{
  b.disabled=true;
  try{
   if(b.hasAttribute('data-simple-request'))await enroll();
-  else if(b.hasAttribute('data-simple-reset')){if(!confirm('Bu cihazın mevcut onayını kaldırıp yeniden başlatmak istiyor musun?'))return;device=null;save();state=null;ready=false;silenced.clear();stopAlarm();await firstTime()}
+  else if(b.hasAttribute('data-simple-reset')){if(!confirm('Bu cihazın mevcut onayını kaldırıp yeniden başlatmak istiyor musun?'))return;device=null;save();state=null;ready=false;lastRevision='';silenced.clear();stopAlarm();await firstTime()}
   else if(b.hasAttribute('data-simple-retry'))await poll();
   else if(b.hasAttribute('data-simple-audio'))await audio();
   else if(b.hasAttribute('data-simple-mute'))mute();
@@ -197,7 +205,7 @@ document.addEventListener('submit',async e=>{
 },true);
 async function show(){
  if(!isRoute())return;
- ready=false;state=null;tab='orders';alertKeys=[];stopAlarm();
+ ready=false;state=null;tab='orders';lastRevision='';alertKeys=[];stopAlarm();
  if(device)await poll();else await firstTime();
 }
 window.addEventListener('hashchange',()=>{if(isRoute())setTimeout(show,0);else{stopAlarm();state=null}});
