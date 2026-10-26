@@ -7313,6 +7313,7 @@ async function resolveBusinessCode(raw){const code=String(raw||'').trim().toUppe
 async function customer(demo,seq){
   document.body.classList.remove('games-mode','game-open');
   let branding={};
+  let gameImages=null;
 
   if(demo){
     throw Error('Oyunlar yalnızca geçerli bir işletme QR koduyla açılır.');
