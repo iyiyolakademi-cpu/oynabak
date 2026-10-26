@@ -7341,7 +7341,7 @@ async function customer(demo,seq){
   document.documentElement.style.setProperty('--accent','#ff6a00');
 
   const customGames=currentTenGames(venue.games||[]);
-  const totalGames=customGames.length;
+  const totalGames=customGames.length+(String(venue?.id)==='70abef21-053c-4026-b402-e18311f758d5'?1:0);
 
   $('#app').innerHTML=`
     <div class="customer customer-entry-only">
@@ -7482,6 +7482,25 @@ function listGames(){
     });
   });
 
+  // Native live multiplayer Okey is intentionally limited to İyi Yol Akademi.
+  if(String(venue?.id)==='70abef21-053c-4026-b402-e18311f758d5'){
+    items.push({
+      kind:'okey',key:'okey-live',name:'Okey',type:'4 Kişilik · Canlı',
+      description:'Arkadaşlarınla aynı masaya otur. Klasik Okey, 106 taş ve gerçek zamanlı dört oyuncu.',
+      players:'4 oyuncu',time:'Canlı masa',cats:[],
+      cover:`<svg viewBox="0 0 640 360" role="img" aria-label="Yeşil Okey masası ve taşlar">
+        <defs><linearGradient id="obOkeyBg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#196e4b"/><stop offset="1" stop-color="#083e31"/></linearGradient></defs>
+        <rect width="640" height="360" rx="28" fill="url(#obOkeyBg)"/>
+        <rect x="65" y="44" width="510" height="272" rx="114" fill="#13573f" stroke="#a88457" stroke-width="15"/>
+        <g font-family="system-ui" font-weight="900" font-size="61" text-anchor="middle">
+         <rect x="184" y="111" width="82" height="122" rx="9" fill="#fff0d2"/><text x="225" y="188" fill="#af322d">7</text>
+         <rect x="278" y="96" width="82" height="122" rx="9" fill="#fff0d2"/><text x="319" y="173" fill="#2b75bd">8</text>
+         <rect x="372" y="111" width="82" height="122" rx="9" fill="#fff0d2"/><text x="413" y="188" fill="#343a42">9</text>
+        </g><text x="320" y="285" fill="#e8cf9c" text-anchor="middle" font-size="23" font-family="system-ui" font-weight="800">4 KİŞİLİK OKEY</text>
+      </svg>`
+    });
+  }
+
   const gamePriority=name=>{
     const n=normalizeGameName(name||'');
     if(n.includes('tabu'))return 0;
@@ -7507,7 +7526,7 @@ function listGames(){
 
   const featured=visible[0];
   const rest=visible.slice(1);
-  const featuredAction=`data-custom="${featured.key}"`;
+  const featuredAction=featured.kind==='okey'?'data-action="okey-open"':`data-custom="${featured.key}"`;
 
   const featuredMeta=[
     featured.players?`<span>${metaIcons.users}${esc(featured.players)}</span>`:'',
@@ -7515,7 +7534,7 @@ function listGames(){
   ].join('');
 
   const cards=rest.map(item=>{
-    const action=`data-custom="${item.key}"`;
+    const action=item.kind==='okey'?'data-action="okey-open"':`data-custom="${item.key}"`;
 
     const meta=[
       item.players?`<span>${metaIcons.users}${esc(item.players)}</span>`:'',
@@ -7703,6 +7722,16 @@ if(menuCat){
   return;
 }
 
+if(a==='okey-open'){
+  if(!hasQrGameAccess()||!featureOn(venue,'games')||String(venue?.id)!=='70abef21-053c-4026-b402-e18311f758d5'){
+    toast('Okey yalnızca İyi Yol Akademi işletmesinde açık.');return;
+  }
+  await trackEvent('game_open',{game:'okey'});
+  const okeyUrl=new URL('games/okey.html',location.href);
+  okeyUrl.searchParams.set('isletme',String(venue.id));
+  location.assign(okeyUrl.href);
+  return;
+}
 if(a==='waiter-open'&&!featureOn(venue,'waiter')){toast('Bu işletmede Garson Çağırma özelliği aktif değil.');return}
 if(a==='menu-open'&&!featureOn(venue,'menu')){toast('Bu işletmede Dijital Menü aktif değil.');return}
 if(a==='customer-games'&&!featureOn(venue,'games')){toast('Bu işletmede Oyunlar aktif değil.');return}
