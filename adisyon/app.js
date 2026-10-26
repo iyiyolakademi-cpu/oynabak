@@ -5,7 +5,7 @@ const money=n=>new Intl.NumberFormat('tr-TR',{style:'currency',currency:'TRY'}).
 const when=d=>new Date(d).toLocaleString('tr-TR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
 const bridge=()=>window.OynaBakAdisyonBridge;
 const current=()=>bridge()?.context();
-let state=null,poll=null,mounting=false,seenRequestIds=null,audioCtx=null,signalChannel=null;
+let state=null,poll=null,mounting=false,seenRequestIds=null,audioCtx=null,signalChannel=null,seenItemStages=null;
 async function rpc(fn,args){const db=current()?.db;if(!db)throw Error('Veritabanı bağlantısı bulunamadı.');const {data,error}=await db.rpc(fn,args);if(error)throw Error(error.message||'Sunucu işlemi başarısız.');return data}
 function notice(msg,error=false){let n=$('#ob-adisyon-message');if(!n){n=document.createElement('div');n.id='ob-adisyon-message';document.body.appendChild(n)}n.textContent=msg;n.className=error?'error':'';clearTimeout(n._timer);n._timer=setTimeout(()=>n.remove(),4500)}
 const venue=id=>(current()?.adminData?.venues||[]).find(v=>String(v.id)===String(id));
@@ -50,7 +50,7 @@ let scheduled=false;
 function schedule(){if(scheduled)return;scheduled=true;queueMicrotask(()=>{scheduled=false;mount().catch(console.warn)})}
 function setup(){const app=$('#app');if(app){new MutationObserver(schedule).observe(app,{childList:true,subtree:true});schedule()}}
 function close(){
- seenRequestIds=null;clearInterval(poll);poll=null;
+ seenRequestIds=null;seenItemStages=null;clearInterval(poll);poll=null;
  if(signalChannel){try{current()?.db?.removeChannel(signalChannel)}catch(e){console.warn('Realtime kapatma:',e)}signalChannel=null}
  state=null;$('#ob-adisyon')?.remove();document.body.style.overflow='';
 }
@@ -64,7 +64,7 @@ async function open(id){
  if(!v||String(v.id)!==String(id))throw Error('İşletme yetkisi yok.');
  close();
  const el=document.createElement('section');el.id='ob-adisyon';el.setAttribute('aria-label','Adisyon paneli');
- el.innerHTML='<div class="ob-shell"><div class="ob-head"><div><div class="ob-muted">OYNA BAK / ADİSYON</div><h2>'+esc(v.name)+'</h2><div class="ob-muted">Sipariş ve masa yönetimi · Online ödeme yok</div></div><button class="ob-btn" data-ob-close>✕ Panele dön</button></div><div id="ob-adisyon-body">Yükleniyor…</div></div>';
+ el.innerHTML='<div class="ob-shell"><div class="ob-head"><div><div class="ob-muted">OYNA BAK / ADİSYON</div><h2>'+esc(v.name)+'</h2><div class="ob-muted">Sipariş ve masa yönetimi · Online ödeme yok</div></div><div class="ob-row"><button class="ob-btn" type="button" data-ob-enable-alerts>🔔 Bildirim sesini aç</button><button class="ob-btn" data-ob-close>✕ Panele dön</button></div></div><div id="ob-adisyon-body">Yükleniyor…</div></div>';
  document.body.appendChild(el);document.body.style.overflow='hidden';
  try{
   const s=await rpc('ob_adisyon_status',{p_venue_id:String(id)});
@@ -73,7 +73,7 @@ async function open(id){
   const staffRole=assigned?.role||me.role;
   const defaultTab=staffRole==='kitchen'||staffRole==='bar'?'kitchen':staffRole==='waiter'?'requests':'tables';
   state={vid:String(id),count:Number(s.table_count)||1,tab:defaultTab,table:0,filter:'',tickets:[],items:[],requests:[],products:[],busy:false,permission:{},staffRole,kitchenFilter:staffRole==='kitchen'||staffRole==='bar'?staffRole:'all',realtime:false};
-  for(const action of ['add','review','close','move','split','reports','status'])state.permission[action]=await rpc('ob_adisyon_permission',{p_venue_id:String(id),p_action:action,p_station:action==='status'?'kitchen':null});
+  for(const action of ['add','review','close','move','split','reports','status'])state.permission[action]=await rpc('ob_adisyon_permission',{p_venue_id:String(id),p_action:action,p_station:action==='status'&&staffRole==='bar'?'bar':action==='status'?'kitchen':null});
   const menu=await bridge().menu(id);
   state.products=(menu?.categories||[]).filter(c=>c.active).flatMap(c=>(c.items||[]).filter(i=>i.active&&!i.sold_out).map(i=>({...i,category:c.name})));
   await refresh();
@@ -175,12 +175,32 @@ function render(){
 }
 async function refresh(silent=false){
  if(!state||state.busy)return;
- const d=await rpc('ob_adisyon_list',{p_venue_id:state.vid});
- if(!state)return;
- state.tickets=Array.isArray(d?.tickets)?d.tickets:[];state.items=Array.isArray(d?.items)?d.items:[];
- try{const req=await rpc('ob_customer_orders_list',{p_venue_id:state.vid});if(state)state.requests=Array.isArray(req)?req:[]}catch(e){console.warn('QR orders list:',e)}
- const nextIds=state.requests.map(x=>x.id);if(seenRequestIds!==null&&state.permission.review){const count=nextIds.filter(id=>!seenRequestIds.includes(id)).length;if(count)notifyRequests(count)}seenRequestIds=nextIds;
- if(state.tab==='tools'&&silent)return;
+ const snapshot=state,vid=state.vid;
+ const d=await rpc('ob_adisyon_list',{p_venue_id:vid});
+ if(state!==snapshot)return;
+ snapshot.tickets=Array.isArray(d?.tickets)?d.tickets:[];
+ snapshot.items=Array.isArray(d?.items)?d.items:[];
+ if(snapshot.permission.review){
+  try{const req=await rpc('ob_customer_orders_list',{p_venue_id:vid});if(state===snapshot)snapshot.requests=Array.isArray(req)?req:[]}catch(e){console.warn('QR orders:',e)}
+ }else snapshot.requests=[];
+ if(state!==snapshot)return;
+ const nextIds=snapshot.requests.map(x=>x.id);
+ if(seenRequestIds!==null&&snapshot.permission.review){
+  const count=nextIds.filter(id=>!seenRequestIds.includes(id)).length;
+  if(count)notifyRequests(count);
+ }
+ seenRequestIds=nextIds;
+ const activeTickets=new Set(snapshot.tickets.filter(t=>t.status==='open').map(t=>t.id));
+ const stages=new Map(snapshot.items.filter(i=>activeTickets.has(i.ticket_id)).map(i=>[i.id,i.status]));
+ if(seenItemStages!==null){
+  const isStation=snapshot.staffRole==='kitchen'||snapshot.staffRole==='bar';
+  const changes=snapshot.items.filter(i=>activeTickets.has(i.ticket_id)&&
+    (isStation?i.station===snapshot.staffRole&&i.status==='new'&& !seenItemStages.has(i.id):
+     snapshot.permission.review&&i.status==='ready'&&seenItemStages.get(i.id)!=='ready'));
+  if(changes.length)notifyRequests(changes.length);
+ }
+ seenItemStages=stages;
+ if(snapshot.tab==='tools'&&silent)return;
  if(!silent||(document.activeElement?.id!=='ob-adisyon-search'&&!$('#ob-adisyon-add-form')))render();
 }
 function notifyRequests(n){
