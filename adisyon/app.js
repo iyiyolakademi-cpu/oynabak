@@ -5,7 +5,7 @@ const money=n=>new Intl.NumberFormat('tr-TR',{style:'currency',currency:'TRY'}).
 const when=d=>new Date(d).toLocaleString('tr-TR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
 const bridge=()=>window.OynaBakAdisyonBridge;
 const current=()=>bridge()?.context();
-let state=null,poll=null,mounting=false,seenRequestIds=null,audioCtx=null;
+let state=null,poll=null,mounting=false,seenRequestIds=null,audioCtx=null,signalChannel=null;
 async function rpc(fn,args){const db=current()?.db;if(!db)throw Error('Veritabanı bağlantısı bulunamadı.');const {data,error}=await db.rpc(fn,args);if(error)throw Error(error.message||'Sunucu işlemi başarısız.');return data}
 function notice(msg,error=false){let n=$('#ob-adisyon-message');if(!n){n=document.createElement('div');n.id='ob-adisyon-message';document.body.appendChild(n)}n.textContent=msg;n.className=error?'error':'';clearTimeout(n._timer);n._timer=setTimeout(()=>n.remove(),4500)}
 const venue=id=>(current()?.adminData?.venues||[]).find(v=>String(v.id)===String(id));
@@ -33,20 +33,34 @@ async function mount(){
       rpc('ob_adisyon_status',{p_venue_id:String(id)}).then(s=>{if(b.isConnected&&!s?.enabled){box.dataset.obBlocked='1';b.remove()}}).catch(()=>{box.dataset.obBlocked='1';b.remove()});
     }
   }else{
-    const app=$('#app');if(app&&!app.querySelector('[data-ob-staff-portal]')&&!app.dataset.obStaffLoading){app.dataset.obStaffLoading='1';rpc('ob_adisyon_my_venues',{}).then(venues=>{if(!app.isConnected)return;for(const v of venues||[]){const b=document.createElement('button');b.className='btn coral';b.dataset.obOpen=v.id;b.dataset.obStaffPortal='1';b.textContent='📋 '+v.name+' · '+v.role+' adisyon';app.appendChild(b)}app.dataset.obStaffLoading=''}).catch(()=>{app.dataset.obStaffLoading=''})}
+    const app=$('#app');
+    if(!app||app.querySelector('#ob-staff-landing')||app.dataset.obStaffLoading==='1')return;
+    app.dataset.obStaffLoading='1';
+    rpc('ob_adisyon_my_venues',{}).then(venues=>{
+      if(!app.isConnected||current()?.me!==me||!Array.isArray(venues)||!venues.length)return;
+      const label={manager:'Yönetici',waiter:'Garson',kitchen:'Mutfak',bar:'Bar'};
+      app.innerHTML='<div class="ob-portal-home" id="ob-staff-landing"><header><div><small>OYNABAK · PERSONEL</small><h1>Çalışma alanım</h1><p>Tek site. Rolüne uygun sipariş ekranı.</p></div><button type="button" class="btn light" data-action="logout">Çıkış yap</button></header><div class="ob-portal-venues">'+venues.map(v=>'<button type="button" class="ob-portal-venue" data-ob-open="'+esc(v.id)+'"><span>'+esc(v.name)+'</span><strong>'+esc(label[v.role]||v.role)+' ekranını aç →</strong></button>').join('')+'</div></div>';
+      if(venues.length===1&&$('#ob-staff-landing'))open(venues[0].id).catch(err=>notice(err.message,true));
+    }).catch(err=>console.warn('Personel çalışma alanı:',err)).finally(()=>{delete app.dataset.obStaffLoading});
+
   }
  }finally{mounting=false}
 }
 let scheduled=false;
 function schedule(){if(scheduled)return;scheduled=true;queueMicrotask(()=>{scheduled=false;mount().catch(console.warn)})}
 function setup(){const app=$('#app');if(app){new MutationObserver(schedule).observe(app,{childList:true,subtree:true});schedule()}}
-function close(){seenRequestIds=null;clearInterval(poll);poll=null;state=null;$('#ob-adisyon')?.remove();document.body.style.overflow=''}
+function close(){
+ seenRequestIds=null;clearInterval(poll);poll=null;
+ if(signalChannel){try{current()?.db?.removeChannel(signalChannel)}catch(e){console.warn('Realtime kapatma:',e)}signalChannel=null}
+ state=null;$('#ob-adisyon')?.remove();document.body.style.overflow='';
+}
 function root(){return $('#ob-adisyon')}
 function body(){return $('#ob-adisyon-body')}
 async function open(id){
  const ctx=current(),me=ctx?.me;
  if(!me)throw Error('Panel oturumu gerekli.');
- const v=me.role==='admin'?venue(id):me.role==='merchant'?me.venue:(await rpc('ob_adisyon_my_venues',{})).find(x=>String(x.id)===String(id));
+ const assigned=(await rpc('ob_adisyon_my_venues',{}).catch(()=>[])).find(x=>String(x.id)===String(id));
+ const v=me.role==='admin'?venue(id):(me.role==='merchant'&&String(me.venue?.id)===String(id))?me.venue:assigned;
  if(!v||String(v.id)!==String(id))throw Error('İşletme yetkisi yok.');
  close();
  const el=document.createElement('section');el.id='ob-adisyon';el.setAttribute('aria-label','Adisyon paneli');
@@ -56,13 +70,25 @@ async function open(id){
   const s=await rpc('ob_adisyon_status',{p_venue_id:String(id)});
   if(!s?.allowed)throw Error('Bu işletmeye adisyon erişimi kapalı.');
   if(!s.enabled){body().innerHTML='<div class="ob-card"><h3>Adisyon etkin değil</h3><p>OynaBak yönetim panelinden bu işletmeye adisyonu açın.</p></div>';return}
-  state={vid:String(id),count:Number(s.table_count)||1,tab:'tables',table:0,filter:'',tickets:[],items:[],requests:[],products:[],busy:false,permission:{},staffRole:v.role||me.role,kitchenFilter:'all'};
+  const staffRole=assigned?.role||me.role;
+  const defaultTab=staffRole==='kitchen'||staffRole==='bar'?'kitchen':staffRole==='waiter'?'requests':'tables';
+  state={vid:String(id),count:Number(s.table_count)||1,tab:defaultTab,table:0,filter:'',tickets:[],items:[],requests:[],products:[],busy:false,permission:{},staffRole,kitchenFilter:staffRole==='kitchen'||staffRole==='bar'?staffRole:'all',realtime:false};
   for(const action of ['add','review','close','move','split','reports','status'])state.permission[action]=await rpc('ob_adisyon_permission',{p_venue_id:String(id),p_action:action,p_station:action==='status'?'kitchen':null});
   const menu=await bridge().menu(id);
   state.products=(menu?.categories||[]).filter(c=>c.active).flatMap(c=>(c.items||[]).filter(i=>i.active&&!i.sold_out).map(i=>({...i,category:c.name})));
   await refresh();
-  poll=setInterval(()=>refresh(true).catch(()=>{}),5000);
+  subscribeSignals(String(id));
+  poll=setInterval(()=>refresh(true).catch(()=>{}),15000);
  }catch(e){if(body())body().innerHTML='<div class="ob-card"><h3>Adisyon açılamadı</h3><p>'+esc(e.message)+'</p><p class="ob-muted">Veritabanı kurulumu veya işletme yetkisini kontrol edin. Mevcut QR menü değişmedi.</p></div>'}
+}
+function subscribeSignals(vid){
+ const db=current()?.db;if(!db?.channel)return;
+ try{
+  signalChannel=db.channel('oynabak-adisyon-signal-'+vid+'-'+Math.random().toString(36).slice(2))
+    .on('postgres_changes',{event:'*',schema:'public',table:'ob_adisyon_signals',filter:'venue_id=eq.'+vid},
+     ()=>{if(state?.vid===vid)refresh(true).catch(err=>console.warn('Anlık sipariş:',err))})
+    .subscribe(status=>{if(state?.vid===vid){state.realtime=status==='SUBSCRIBED';const n=$('#ob-live-status');if(n)n.textContent=state.realtime?'● Canlı bağlı':'◌ Yedek güncelleme açık'}});
+ }catch(err){console.warn('Realtime yok, yedek sorgu devam ediyor:',err)}
 }
 async function toggle(id){
  if(current()?.me?.role!=='admin'||!venue(id))throw Error('Yönetici yetkisi gerekli.');
@@ -84,7 +110,7 @@ async function toggle(id){
 const active=n=>state.tickets.find(t=>t.status==='open'&&Number(t.table_no)===Number(n));
 const items=id=>state.items.filter(i=>i.ticket_id===id);
 const total=id=>items(id).filter(i=>i.status!=='void').reduce((n,i)=>n+Number(i.line_total||0),0);
-const tab=(key,label)=>'<button class="ob-btn '+(state.tab===key?'active':'')+'" data-ob-tab="'+key+'">'+label+'</button>';
+const tab=(key,label)=>'<button class="ob-btn '+(state.tab===key?'active':'')+'" data-ob-tab="'+key+'" aria-pressed="'+(state.tab===key?'true':'false')+'">'+label+'</button>';
 function render(){
  if(!state||!body())return;
  const opened=state.tickets.filter(t=>t.status==='open'),pending=state.items.filter(i=>i.status==='new'&&opened.some(t=>t.id===i.ticket_id));
