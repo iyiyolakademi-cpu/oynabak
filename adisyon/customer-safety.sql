@@ -16,7 +16,7 @@ begin
  case when r.ticket_id is not null then (
   select coalesce(jsonb_agg(jsonb_build_object('name',i.name,'status',i.status)
    order by i.created_at),'[]'::jsonb)
-  from public.ob_adisyon_items i where i.ticket_id=r.ticket_id
+  from public.ob_adisyon_items i where i.ticket_id=r.ticket_id and exists (select 1 from public.ob_adisyon_audit a where a.item_id=i.id and a.ticket_id=r.ticket_id and a.action='qr_approved' and a.detail->>'request_id'=r.id::text)
  ) else '[]'::jsonb end,
  'found',true,'id',r.id,'table_no',r.table_no,
    'status',r.status,'total',r.total,'created_at',r.created_at,
