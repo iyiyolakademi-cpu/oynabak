@@ -7298,7 +7298,17 @@ async function trackEvent(et,{game=null,score=null,key=null}={}){
     return false;
   }
 }
-function businessCodeEntry(){document.body.classList.add('customer-mode');document.documentElement.style.setProperty('--accent','#ff6a00');$('#app').innerHTML=`<div class="code-entry-page"><form id="businessCodeForm" class="code-entry-card"><img class="code-entry-logo" src="oynabak-logo.png" alt="OynaBak"><span class="eyebrow">TEK QR · HEMEN OYNA</span><h1>İşletme kodunu gir.</h1><p>Bulunduğun işletmenin OynaBak standında yazan 4 karakterlik kodu gir ve oyunlara geç.</p><input class="code-input" name="business_code" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="4" minlength="4" placeholder="A1B2" required><button class="code-submit" type="submit">Oyunları aç →</button><div class="code-help"></div></form></div>`;requestAnimationFrame(()=>$('#businessCodeForm [name=business_code]')?.focus())}
+function businessCodeEntry(){
+ document.body.classList.add('customer-mode');
+ document.documentElement.style.setProperty('--accent','#ff6a00');
+ let last=null;
+ try{const saved=JSON.parse(localStorage.getItem('ob-last-venue')||'null');
+  if(saved&&/^[0-9a-f-]{36}$/i.test(String(saved.id||''))&&saved.name)last=saved;
+ }catch(_){}
+ const resume=last?'<div class="ob-resume-venue"><p>Son ziyaret ettiğin işletme</p><button type="button" data-action="resume-venue" class="code-submit">'+esc(last.name)+' · Devam et</button><small>Başka bir işletmedeysen standındaki kodu gir.</small></div>':'';
+ $('#app').innerHTML='<div class="code-entry-page"><form id="businessCodeForm" class="code-entry-card"><img class="code-entry-logo" src="oynabak-logo.png" alt="OynaBak"><span class="eyebrow">TEK QR · HEMEN OYNA</span><h1>İşletmeni seç.</h1>'+resume+'<p>İlk ziyaretinde standda yazan 4 karakterlik işletme kodunu gir.</p><input class="code-input" name="business_code" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="4" minlength="4" placeholder="A1B2" required><button class="code-submit" type="submit">İşletmeye giriş yap</button><div class="code-help"></div></form></div>';
+ if(!last)requestAnimationFrame(()=>$('#businessCodeForm [name=business_code]')?.focus());
+}
 async function resolveBusinessCode(raw){const code=String(raw||'').trim().toUpperCase().replace(/[^A-Z0-9]/g,'');if(code.length!==4)throw Error('İşletme kodu 4 karakter olmalı.');const vid=await rpc('ob_code_resolve',{p_code:code});const id=String(vid||'').trim();if(!id)throw Error('İşletme kodu bulunamadı. Kodu kontrol edip tekrar dene.');return id}
 async function customer(demo,seq){
   document.body.classList.remove('games-mode','game-open');
@@ -7320,6 +7330,7 @@ async function customer(demo,seq){
     branding=brand||{};
     venue={...loaded,id:String(loaded?.id||id),logo_data:branding.logo_data||'',menu:menuData};
     validateQrContext(venue);
+    try{localStorage.setItem('ob-last-venue',JSON.stringify({id:venue.id,name:venue.name}))}catch(_){}
     await loadVenueFeatures(venue.id);
 
     const media=await fetchGameMedia((venue.games||[]).map(g=>g.id));
@@ -7647,6 +7658,12 @@ document.addEventListener('click',e=>{
   openInstagramPage();
 },true);
 document.addEventListener('click',async e=>{const b=e.target.closest('[data-action],[data-tab],[data-game],[data-custom],[data-menu-category]');if(!b||b.disabled)return;try{if(b.dataset.tab){tab=b.dataset.tab;drawAdmin();hydrateVenueCodes();obShowOwnerFinancePreview();return}if(b.dataset.game){const key=b.dataset.game;if(!hasQrGameAccess()){toast('Bu oyun yalnızca işletme QR koduyla açılır.');return}if(!venue||!venue.enabled.includes(key))return;await trackEvent('game_open',{game:key});if(embeddedGameBase64[key]){openEmbeddedGame(key);return}return}if(b.dataset.custom){if(!hasQrGameAccess()){toast('Bu oyun yalnızca işletme QR koduyla açılır.');return}const vid=String(venue?.id||qrParams().venueId||''),gid=b.dataset.custom,gmeta=venue.games.find(g=>String(g.id)===String(gid)),gname=gmeta?.name||'Oyun';if(!vid){toast('İşletme bağlantısı bulunamadı. QR kodunu yeniden okut.');return}await trackEvent('game_open',{game:'custom:'+gid});modal(gname,'<div id="customGame"><p style="padding:24px">Oyun yükleniyor…</p></div>');enterGameScreen();const token=++gameLoadSeq;try{const code=await rpc('ob_game',{vid,gid});if(token!==gameLoadSeq||!$('#modal').open)return;safeFrame(code,$('#customGame'),{gameId:gid,gameName:gname})}catch(error){if(token===gameLoadSeq){$('#customGame').innerHTML=`<div style="padding:24px;font:14px/1.5 system-ui;color:#fff;background:#111;min-height:100%"><b>Oyun yüklenemedi.</b><br>${esc(error?.message||'Bilinmeyen hata')}</div>`}}return}const a=b.dataset.action,id=b.dataset.id;
+if(a==='resume-venue'){
+  let last=null;try{last=JSON.parse(localStorage.getItem('ob-last-venue')||'null')}catch(_){}
+  if(!last||!/^[0-9a-f-]{36}$/i.test(String(last.id||'')))throw Error('Önce işletme kodunu girin.');
+  const u=new URL(location.href);u.search='';u.searchParams.set('isletme',last.id);u.hash='play';
+  history.replaceState(null,'',u.href);await route();return;
+}
 
 const menuCat=b.dataset.menuCategory;
 if(menuCat){
