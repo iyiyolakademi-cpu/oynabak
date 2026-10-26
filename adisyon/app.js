@@ -5,12 +5,12 @@ const money=n=>new Intl.NumberFormat('tr-TR',{style:'currency',currency:'TRY'}).
 const when=d=>new Date(d).toLocaleString('tr-TR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
 const bridge=()=>window.OynaBakAdisyonBridge;
 const current=()=>bridge()?.context();
-let state=null,poll=null,mounting=false;
+let state=null,poll=null,mounting=false,seenRequestIds=null,audioCtx=null;
 async function rpc(fn,args){const db=current()?.db;if(!db)throw Error('Veritabanı bağlantısı bulunamadı.');const {data,error}=await db.rpc(fn,args);if(error)throw Error(error.message||'Sunucu işlemi başarısız.');return data}
 function notice(msg,error=false){let n=$('#ob-adisyon-message');if(!n){n=document.createElement('div');n.id='ob-adisyon-message';document.body.appendChild(n)}n.textContent=msg;n.className=error?'error':'';clearTimeout(n._timer);n._timer=setTimeout(()=>n.remove(),4500)}
 const venue=id=>(current()?.adminData?.venues||[]).find(v=>String(v.id)===String(id));
 async function mount(){
- if(mounting)return;const me=current()?.me;if(!me||!['admin','merchant'].includes(me.role))return;
+ if(mounting)return;const me=current()?.me;if(!me)return;
  mounting=true;
  try{
   if(me.role==='admin'){
@@ -25,26 +25,28 @@ async function mount(){
       box.appendChild(line);
     }).catch(()=>{});
    });
-  }else{
+  }else if(me.role==='merchant'){
     const box=$('.merchant-control-grid'),id=me.venue?.id;
     if(box&&id&&!box.dataset.obBlocked&&!box.querySelector('[data-ob-open]')){
       const b=document.createElement('button');b.type='button';b.className='merchant-control-card';b.dataset.obOpen=String(id);
       b.innerHTML='<span>07</span><b>📋 Adisyon Yönetimi</b><small>Masalar, siparişler, mutfak ve raporlar · ödeme yok</small>';box.appendChild(b);
       rpc('ob_adisyon_status',{p_venue_id:String(id)}).then(s=>{if(b.isConnected&&!s?.enabled){box.dataset.obBlocked='1';b.remove()}}).catch(()=>{box.dataset.obBlocked='1';b.remove()});
     }
+  }else{
+    const app=$('#app');if(app&&!app.dataset.obStaffChecked){app.dataset.obStaffChecked='1';rpc('ob_adisyon_my_venues',{}).then(venues=>{if(!app.isConnected)return;for(const v of venues||[]){const b=document.createElement('button');b.className='btn coral';b.dataset.obOpen=v.id;b.textContent='📋 '+v.name+' · '+v.role+' adisyon';app.appendChild(b)}}).catch(()=>{})}
   }
  }finally{mounting=false}
 }
 let scheduled=false;
 function schedule(){if(scheduled)return;scheduled=true;queueMicrotask(()=>{scheduled=false;mount().catch(console.warn)})}
 function setup(){const app=$('#app');if(app){new MutationObserver(schedule).observe(app,{childList:true,subtree:true});schedule()}}
-function close(){clearInterval(poll);poll=null;state=null;$('#ob-adisyon')?.remove();document.body.style.overflow=''}
+function close(){seenRequestIds=null;clearInterval(poll);poll=null;state=null;$('#ob-adisyon')?.remove();document.body.style.overflow=''}
 function root(){return $('#ob-adisyon')}
 function body(){return $('#ob-adisyon-body')}
 async function open(id){
  const ctx=current(),me=ctx?.me;
- if(!me||!['admin','merchant'].includes(me.role))throw Error('Panel oturumu gerekli.');
- const v=me.role==='admin'?venue(id):me.venue;
+ if(!me)throw Error('Panel oturumu gerekli.');
+ const v=me.role==='admin'?venue(id):me.role==='merchant'?me.venue:(await rpc('ob_adisyon_my_venues',{})).find(x=>String(x.id)===String(id));
  if(!v||String(v.id)!==String(id))throw Error('İşletme yetkisi yok.');
  close();
  const el=document.createElement('section');el.id='ob-adisyon';el.setAttribute('aria-label','Adisyon paneli');
@@ -54,7 +56,8 @@ async function open(id){
   const s=await rpc('ob_adisyon_status',{p_venue_id:String(id)});
   if(!s?.allowed)throw Error('Bu işletmeye adisyon erişimi kapalı.');
   if(!s.enabled){body().innerHTML='<div class="ob-card"><h3>Adisyon etkin değil</h3><p>OynaBak yönetim panelinden bu işletmeye adisyonu açın.</p></div>';return}
-  state={vid:String(id),count:Number(s.table_count)||1,tab:'tables',table:0,filter:'',tickets:[],items:[],requests:[],products:[],busy:false};
+  state={vid:String(id),count:Number(s.table_count)||1,tab:'tables',table:0,filter:'',tickets:[],items:[],requests:[],products:[],busy:false,permission:{}};
+  for(const action of ['add','review','close','move','split','reports','status'])state.permission[action]=await rpc('ob_adisyon_permission',{p_venue_id:String(id),p_action:action,p_station:action==='status'?'kitchen':null});
   const menu=await bridge().menu(id);
   state.products=(menu?.categories||[]).filter(c=>c.active).flatMap(c=>(c.items||[]).filter(i=>i.active&&!i.sold_out).map(i=>({...i,category:c.name})));
   await refresh();
@@ -86,7 +89,7 @@ function render(){
  if(!state||!body())return;
  const opened=state.tickets.filter(t=>t.status==='open'),pending=state.items.filter(i=>i.status==='new'&&opened.some(t=>t.id===i.ticket_id));
  let html='<div class="ob-stats"><div class="ob-card"><span class="ob-muted">Açık adisyon</span><strong class="metric">'+opened.length+'</strong></div><div class="ob-card"><span class="ob-muted">Bekleyen sipariş</span><strong class="metric">'+pending.length+'</strong></div><div class="ob-card"><span class="ob-muted">Açık hesap tutarı</span><strong class="metric">'+money(opened.reduce((v,t)=>v+total(t.id),0))+'</strong></div></div>';
- html+='<div class="ob-tabs">'+tab('tables','▦ Masalar')+tab('kitchen','♨️ Mutfak / Bar')+tab('requests','🛎️ QR Siparişleri')+tab('reports','▤ Raporlar')+'</div>';
+ html+='<div class="ob-tabs">'+tab('tables','▦ Masalar')+tab('kitchen','♨️ Mutfak / Bar')+(state.permission.review?tab('requests','🛎️ QR Siparişleri'+(state.requests.length?' ('+state.requests.length+')':'')):'')+(state.permission.reports?tab('reports','▤ Raporlar'):'')+tab('tools','⚙️ Araçlar')+'</div>';
  if(state.tab==='tables'){
    if(!state.table){
      html+='<div class="ob-grid">';
@@ -96,13 +99,15 @@ function render(){
      const t=active(state.table),list=t?items(t.id):[];
      const products=state.products.map((p,i)=>({...p,index:i})).filter(p=>(p.name+' '+p.category).toLocaleLowerCase('tr-TR').includes(state.filter.toLocaleLowerCase('tr-TR')));
      html+='<button class="ob-btn" data-ob-back>← Masalar</button><div class="ob-cols"><section class="ob-card"><h3>Masa '+state.table+' · Menü</h3><label class="ob-field">Ürün ara<input id="ob-adisyon-search" placeholder="Menüde ara" value="'+esc(state.filter)+'"></label><div class="ob-products">';
-     html+=products.length?products.map(p=>'<button class="ob-btn" data-ob-product="'+p.index+'"><b>'+esc(p.name)+'</b><div class="ob-muted">'+esc(p.category)+' · '+money(p.price)+'</div></button>').join(''):'<div class="ob-empty">Aktif menü ürünü yok.</div>';
+     html+=state.permission.add&&products.length?products.map(p=>'<button class="ob-btn" data-ob-product="'+p.index+'"><b>'+esc(p.name)+'</b><div class="ob-muted">'+esc(p.category)+' · '+money(p.price)+'</div></button>').join(''):'<div class="ob-empty">Aktif menü ürünü yok.</div>';
      html+='</div></section><section class="ob-card"><h3>Masa '+state.table+' · Adisyon</h3>';
      html+=list.length?list.map(i=>'<div class="ob-entry"><div><b>'+i.quantity+' × '+esc(i.name)+'</b><div class="ob-muted">'+esc(i.station==='bar'?'Bar':'Mutfak')+' · '+esc(i.status)+' · '+esc(i.note||'')+'</div></div><div><b>'+money(i.line_total)+'</b>'+(i.status==='void'?'':'<br><button class="ob-btn danger" data-ob-void="'+esc(i.id)+'">İptal</button>')+'</div></div>').join(''):'<div class="ob-empty">Bu masada açık sipariş yok.</div>';
      html+='<div class="ob-total">Toplam: '+money(t?total(t.id):0)+'</div><p class="ob-muted">Bu bir hesap toplamıdır, tahsilat kaydı değildir.</p>';
-     if(t)html+='<button class="ob-btn primary" data-ob-close-ticket="'+esc(t.id)+'">Adisyonu manuel kapat</button>';
+     if(t&&state.permission.close)html+='<button class="ob-btn primary" data-ob-close-ticket="'+esc(t.id)+'">Adisyonu manuel kapat</button>';
      html+='</section></div>';
    }
+ }else if(state.tab==='tools'){
+ html+='<div class="ob-card"><h3>İşletme araçları</h3><div class="ob-row">'+(state.permission.move?'<button class="ob-btn" data-ob-tool="move">Masa taşı</button>':'')+(state.permission.split?'<button class="ob-btn" data-ob-tool="split">Hesabı bölüştür</button>':'')+(state.permission.reports?'<button class="ob-btn" data-ob-tool="stats">Raporlar</button>':'')+'<button class="ob-btn" data-ob-tool="codes">Masa kodları</button>'+'<button class="ob-btn" data-ob-tool="staff">Personel</button></div><div id="ob-extra-results"></div></div>';
  }else if(state.tab==='requests'){
    html+='<div class="ob-card"><h3>Garson onayı bekleyen QR siparişleri ('+state.requests.length+')</h3><p class="ob-muted">Müşterilerin gönderdiği siparişler onaylanmadan mutfağa düşmez.</p>';
    html+=state.requests.length?state.requests.map(r=>'<div class="ob-entry"><div><b>Masa '+esc(r.table_no)+' · '+money(r.total)+'</b><div class="ob-muted">'+esc(r.customer_note||'')+'</div>'+(r.items||[]).map(i=>'<p>'+esc(i.quantity)+' × '+esc(i.name)+(i.variant_name?' / '+esc(i.variant_name):'')+' · '+money(i.line_total)+' · '+esc(i.note||'')+'</p>').join('')+'</div><div><button class="ob-btn primary" data-ob-request-approve="'+esc(r.id)+'">Onayla</button><button class="ob-btn danger" data-ob-request-reject="'+esc(r.id)+'">Reddet</button></div></div>').join(''):'<div class="ob-empty">Onay bekleyen QR siparişi yok.</div>';
@@ -125,7 +130,13 @@ async function refresh(silent=false){
  if(!state)return;
  state.tickets=Array.isArray(d?.tickets)?d.tickets:[];state.items=Array.isArray(d?.items)?d.items:[];
  try{const req=await rpc('ob_customer_orders_list',{p_venue_id:state.vid});if(state)state.requests=Array.isArray(req)?req:[]}catch(e){console.warn('QR orders list:',e)}
+ const nextIds=state.requests.map(x=>x.id);if(seenRequestIds!==null&&state.permission.review){const count=nextIds.filter(id=>!seenRequestIds.includes(id)).length;if(count)notifyRequests(count)}seenRequestIds=nextIds;
  if(!silent||(document.activeElement?.id!=='ob-adisyon-search'&&!$('#ob-adisyon-add-form')))render();
+}
+function notifyRequests(n){
+ notice(n+' yeni QR siparişi var.');
+ try{if(window.Notification&&Notification.permission==='granted')new Notification('OynaBak · Yeni Sipariş',{body:n+' sipariş garson onayı bekliyor'})}catch(_){}
+ try{audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.frequency.value=830;g.gain.value=.15;o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+.3)}catch(_){}
 }
 function productForm(index){
  const p=state.products[index];if(!p)return;
