@@ -166,13 +166,42 @@ async function decideRequest(id,approve){
  notice(approve?'Sipariş onaylandı ve masa adisyonuna eklendi.':'Sipariş reddedildi.');
  await refresh();
 }
+async function toolAction(action){
+ const vid=state.vid,out=()=>$('#ob-extra-results');
+ if(action==='move'){
+  const source=Number(prompt('Taşınacak masa numarası:'));if(!source)return;
+  const target=Number(prompt('Hedef masa numarası:'));if(!target)return;
+  const t=active(source);if(!t)throw Error('Kaynak masada açık adisyon yok.');
+  await rpc('ob_adisyon_move_ticket',{p_venue_id:vid,p_ticket_id:t.id,p_new_table:target});notice('Adisyon taşındı.');await refresh();
+ }else if(action==='split'){
+  const no=Number(prompt('Bölüştürülecek masa:'));if(!no)return;
+  const t=active(no);if(!t)throw Error('Bu masada açık adisyon yok.');
+  const parts=items(t.id).filter(i=>i.status!=='void');
+  if(!parts.length)throw Error('Bu masada ürün yok.');
+  const summary=parts.map((i,k)=>(k+1)+'. '+i.name+' × '+i.quantity).join('\n');
+  const idx=Number(prompt('Ürün sıra numarası:\n'+summary));const item=parts[idx-1];if(!item)return;
+  const group=prompt('Kişi/hesap adı (ör. Kişi 1):');if(!group)return;
+  const qty=Number(prompt('Bu kişiye ayrılacak adet:','1'));
+  const d=await rpc('ob_adisyon_split_assign',{p_venue_id:vid,p_ticket_id:t.id,p_item_id:item.id,p_group:group,p_quantity:qty});
+  if(out())out().innerHTML='<h4>Hesap bölüştürme</h4>'+d.map(x=>'<p>'+esc(x.group)+' · '+esc(x.quantity)+' adet · '+money(x.amount)+'</p>').join('')+'<p class="ob-muted">Tahsilat kaydı değildir.</p>';
+ }else if(action==='stats'){
+  const d=await rpc('ob_adisyon_analytics',{p_venue_id:vid,p_days:30});
+  if(out())out().innerHTML='<h4>Son 30 gün</h4><p>Sipariş tutarı: <b>'+money(d.totals?.ordered)+'</b></p><p>Ürün satırı: '+esc(d.totals?.items||0)+' · İptal: '+esc(d.totals?.cancelled||0)+' · Ortalama işlem süresi: '+esc(d.totals?.average_prep_minutes||0)+' dk</p><h4>Popüler ürünler</h4>'+(d.top_products||[]).map(x=>'<p>'+esc(x.name)+' · '+esc(x.qty)+' adet</p>').join('')+'<h4>Yoğun saatler</h4>'+(d.hours||[]).map(x=>'<p>'+esc(x.hour_of_day)+':00 · '+esc(x.orders)+' sipariş</p>').join('')+'<p class="ob-muted">Tahsil edilmiş gelir değildir.</p>';
+ }else if(action==='codes'){
+  const d=await rpc('ob_adisyon_table_security',{p_venue_id:vid});
+  if(out())out().innerHTML='<h4>Masa doğrulaması: '+(d.required?'Açık':'Kapalı')+'</h4><button class="ob-btn" data-ob-security-toggle="'+(d.required?'disable':'enable')+'">'+(d.required?'Kodu zorunlu olmaktan çıkar':'Masa doğrulamasını aç')+'</button>'+(d.codes||[]).map(x=>'<p>Masa '+x.table_no+' · <b>'+esc(x.code)+'</b> <button class="ob-btn" data-ob-code-rotate="'+x.table_no+'">Kodu yenile</button></p>').join('')+'<p class="ob-muted">Kodları masa üzerinde ayrıca gösterin; QR değişmez.</p>';
+ }else if(action==='staff'){
+  const d=await rpc('ob_adisyon_staff_list',{p_venue_id:vid});
+  if(out())out().innerHTML='<h4>Personel yönetimi</h4><p>Çalışanın önce OynaBak hesabı açması gerekir.</p><label>E-posta <input id="ob-staff-email" type="email" placeholder="calisan@ornek.com"></label><label>Yetki <select id="ob-staff-role"><option value="waiter">Garson</option><option value="kitchen">Mutfak</option><option value="bar">Bar</option><option value="manager">Yönetici</option><option value="remove">Erişimi kaldır</option></select></label><button class="ob-btn primary" data-ob-staff-save>Kaydet</button><h4>Kayıtlı kişiler</h4>'+d.map(x=>'<p>'+esc(x.email)+' · '+esc(x.role)+'</p>').join('');
+ }
+}
 async function closeTicket(id){
  if(!confirm('Adisyon manuel kapatılsın mı? Bu işlem ödeme veya tahsilat kaydı oluşturmaz.'))return;
  await rpc('ob_adisyon_close',{p_venue_id:state.vid,p_ticket_id:id});
  state.table=0;notice('Adisyon manuel kapatıldı.');await refresh();
 }
 document.addEventListener('click',async e=>{
- const b=e.target.closest?.('[data-ob-open],[data-ob-toggle],[data-ob-close],[data-ob-tab],[data-ob-table],[data-ob-back],[data-ob-product],[data-ob-dismiss],[data-ob-void],[data-ob-status],[data-ob-close-ticket],[data-ob-request-approve],[data-ob-request-reject]');
+ const b=e.target.closest?.('[data-ob-open],[data-ob-toggle],[data-ob-close],[data-ob-tab],[data-ob-table],[data-ob-back],[data-ob-product],[data-ob-dismiss],[data-ob-void],[data-ob-status],[data-ob-close-ticket],[data-ob-request-approve],[data-ob-request-reject],[data-ob-tool],[data-ob-security-toggle],[data-ob-code-rotate],[data-ob-staff-save]');
  if(!b||b.disabled)return;e.preventDefault();e.stopImmediatePropagation();
  if(b.hasAttribute('data-ob-close')){close();return}
  if(b.hasAttribute('data-ob-dismiss')){$('.ob-product-form',root())?.remove();return}
@@ -182,7 +211,11 @@ document.addEventListener('click',async e=>{
   if(b.dataset.obOpen)await open(b.dataset.obOpen);
   else if(b.dataset.obToggle)await toggle(b.dataset.obToggle);
   else if(state){
-   if(b.dataset.obTab){state.tab=b.dataset.obTab;state.table=0;render()}
+   if(b.dataset.obTool)await toolAction(b.dataset.obTool);
+   else if(b.dataset.obSecurityToggle){await rpc('ob_adisyon_table_code_action',{p_venue_id:state.vid,p_table_no:1,p_action:b.dataset.obSecurityToggle});await toolAction('codes')}
+   else if(b.dataset.obCodeRotate){await rpc('ob_adisyon_table_code_action',{p_venue_id:state.vid,p_table_no:Number(b.dataset.obCodeRotate),p_action:'rotate'});await toolAction('codes')}
+   else if(b.hasAttribute('data-ob-staff-save')){await rpc('ob_adisyon_staff_assign',{p_venue_id:state.vid,p_email:$('#ob-staff-email').value,p_role:$('#ob-staff-role').value});await toolAction('staff')}
+   else if(b.dataset.obTab){state.tab=b.dataset.obTab;state.table=0;render()}
    else if(b.dataset.obTable){state.table=Number(b.dataset.obTable);state.filter='';render()}
    else if(b.hasAttribute('data-ob-back')){state.table=0;render()}
    else if(b.dataset.obProduct)productForm(Number(b.dataset.obProduct));
