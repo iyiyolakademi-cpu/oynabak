@@ -112,8 +112,11 @@ returns jsonb language plpgsql security definer set search_path=''
 as $$
 begin
  if not public.ob_adisyon_has_access(p_venue_id,true) then raise exception 'Yetkisiz islem'; end if;
- if p_venue_id is null or length(p_venue_id)<3 or p_table_count not between 1 and 200 then
+ if p_venue_id is null or p_table_count is null or p_table_count not between 1 and 200 then
   raise exception 'Gecersiz isletme veya masa sayisi';
+ end if;
+ if not exists (select 1 from oynabak_private.venues v where v.id::text=p_venue_id) then
+  raise exception 'Isletme bulunamadi';
  end if;
  insert into public.ob_adisyon_settings(venue_id,enabled,table_count)
  values(p_venue_id,p_enabled,p_table_count)
@@ -149,7 +152,7 @@ create or replace function public.ob_adisyon_add_item(
  p_note text default '',p_menu_item_id text default null,p_variant_id text default null)
 returns uuid language plpgsql security definer set search_path=''
 as $$
-declare t_id uuid; item_id uuid;
+declare t_id uuid; item_id uuid; product jsonb; variant jsonb; expected_price numeric;
 begin
  if not public.ob_adisyon_has_access(p_venue_id) then raise exception 'Yetkisiz islem'; end if;
  if not exists(select 1 from public.ob_adisyon_settings
@@ -159,6 +162,35 @@ begin
     or p_unit_price is null or p_unit_price<0 or p_unit_price>1000000
     or p_quantity not between 1 and 99 or p_station not in ('kitchen','bar')
     or length(coalesce(p_note,''))>300 then raise exception 'Urun bilgileri gecersiz'; end if;
+ -- Fiyat, ad ve varyant MUST match the server-stored digital menu.
+ if nullif(trim(coalesce(p_menu_item_id,'')),'') is null then
+  raise exception 'Menu urunu secilmelidir';
+ end if;
+ select i into product
+ from public.ob_venue_menus m
+ cross join lateral jsonb_array_elements(coalesce(m.menu->'categories','[]'::jsonb)) c
+ cross join lateral jsonb_array_elements(coalesce(c->'items','[]'::jsonb)) i
+ where m.venue_id=p_venue_id
+   and i->>'id'=p_menu_item_id
+   and coalesce(c->>'active','true')<>'false'
+   and coalesce(i->>'active','true')<>'false'
+   and coalesce(i->>'sold_out','false')<>'true'
+ limit 1;
+ if product is null or trim(p_name) is distinct from product->>'name' then
+   raise exception 'Urun menude bulunamadi veya ad uyusmuyor';
+ end if;
+ if nullif(p_variant_id,'') is null then
+   expected_price := (product->>'price')::numeric;
+ else
+   select v into variant
+   from jsonb_array_elements(coalesce(product->'variants','[]'::jsonb)) v
+   where v->>'id'=p_variant_id limit 1;
+   if variant is null then raise exception 'Menu varyanti bulunamadi'; end if;
+   expected_price := (variant->>'price')::numeric;
+ end if;
+ if expected_price is null or round(expected_price,2) <> round(p_unit_price,2) then
+  raise exception 'Menu fiyati degismis olabilir; menuyu yenileyip tekrar deneyin';
+ end if;
  -- Garsonun eszamanli iki ekrandan ayni masaya ekleme yapmasini guvenli kilar.
  perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(p_venue_id||':'||p_table_no,0));
  select id into t_id from public.ob_adisyon_tickets
@@ -191,6 +223,11 @@ begin
  select status into ticket_status from public.ob_adisyon_tickets where id=row_.ticket_id for update;
  if ticket_status<>'open' then raise exception 'Kapali adisyon degistirilemez'; end if;
  if row_.status='void' then raise exception 'Iptal edilmis urun degistirilemez'; end if;
+ if p_status <> 'void' and not (
+   (row_.status='new' and p_status='preparing') or
+   (row_.status='preparing' and p_status='ready') or
+   (row_.status='ready' and p_status='served')
+ ) then raise exception 'Siparis asamalari sirayla ilerlemelidir'; end if;
  update public.ob_adisyon_items set status=p_status,updated_at=now() where id=p_item_id;
  insert into public.ob_adisyon_audit(venue_id,ticket_id,item_id,action,actor_id,detail)
  values(p_venue_id,row_.ticket_id,p_item_id,'status',(select auth.uid()),
@@ -231,5 +268,5 @@ grant execute on function
  public.ob_adisyon_close(text,uuid) to authenticated;
 
 -- Bilgi: fiyat snapshot'i sadece yetkili personel tarafindan eklenebilir;
--- ilk surumde fiyatlar menuden arayuze alinip burada kaydedilir.
+-- fiyatlar backend tarafinda kayitli dijital menuyle dogrulanir.
 -- Sistem muhasebe/gercek tahsilat kaydi olusturmaz.
