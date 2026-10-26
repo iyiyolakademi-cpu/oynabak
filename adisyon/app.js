@@ -16,10 +16,14 @@ async function mount(){
   if(me.role==='admin'){
    document.querySelectorAll('.card [data-action="venue-edit"]').forEach(el=>{
     const box=el.closest('.card'),id=el.dataset.id;
-    if(!box||!id||box.querySelector('[data-ob-open]'))return;
-    const line=document.createElement('div');line.className='ob-adm-actions';
-    line.innerHTML='<button class="btn small light" type="button" data-ob-open="'+esc(id)+'">📋 Adisyon</button><button class="btn small light" type="button" data-ob-toggle="'+esc(id)+'">⚙️ Adisyon ayarı</button>';
-    box.appendChild(line);
+    if(!box||!id||box.dataset.obAdisyonChecked)return;
+    box.dataset.obAdisyonChecked='1';
+    rpc('ob_adisyon_status',{p_venue_id:String(id)}).then(s=>{
+      if(!box.isConnected||!s?.allowed||!s?.enabled)return;
+      const line=document.createElement('div');line.className='ob-adm-actions';
+      line.innerHTML='<button class="btn small light" type="button" data-ob-open="'+esc(id)+'">📋 Adisyon</button><button class="btn small light" type="button" data-ob-toggle="'+esc(id)+'">⚙️ Adisyon ayarı</button>';
+      box.appendChild(line);
+    }).catch(()=>{});
    });
   }else{
     const box=$('.merchant-control-grid'),id=me.venue?.id;
@@ -116,7 +120,7 @@ async function refresh(silent=false){
  const d=await rpc('ob_adisyon_list',{p_venue_id:state.vid});
  if(!state)return;
  state.tickets=Array.isArray(d?.tickets)?d.tickets:[];state.items=Array.isArray(d?.items)?d.items:[];
- if(!silent||document.activeElement?.id!=='ob-adisyon-search')render();
+ if(!silent||(document.activeElement?.id!=='ob-adisyon-search'&&!$('#ob-adisyon-add-form')))render();
 }
 function productForm(index){
  const p=state.products[index];if(!p)return;
