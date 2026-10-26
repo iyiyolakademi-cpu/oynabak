@@ -5539,7 +5539,9 @@ function setupNotice(){return `<div class="notice">${esc(initError||'Bu sitenin 
 function authView(){ $('#app').innerHTML=`<div class="wrap page"><div class="card narrow"><span class="eyebrow">İŞLETMENE HOŞ GELDİN</span><h2>OynaBak hesabın.</h2>${!db?setupNotice():`<form id="authForm"><label class="field">E-posta<input name="email" type="email" autocomplete="email" required maxlength="254"></label><label class="field">Şifre<input name="password" type="password" autocomplete="current-password" required minlength="8" maxlength="128"></label><div class="row"><button class="btn coral" type="submit" name="mode" value="login">Giriş yap</button><button class="btn light" type="submit" name="mode" value="signup">Hesap oluştur</button></div><button type="button" data-action="reset" class="btn small light" style="margin-top:18px">Şifremi unuttum</button></form><p class="muted" style="font-size:13px;margin-top:18px">Hesap oluşturmak paketi etkinleştirmez. İşletme erişimi OynaBak yönetimi tarafından onaylandıktan sonra açılır.</p>`}</div></div>`}
 function recoveryView(valid){if(!valid){$('#app').innerHTML=`<div class="wrap page"><div class="card narrow"><h2>Yeni şifre bağlantısı gerekli.</h2><p>Bağlantının süresi dolmuş, daha önce kullanılmış veya doğrulama bilgileri siteye ulaşmamış olabilir. Yeni bir bağlantı iste ve en son gelen e-postayı aç.</p><form id="recoveryRequestForm"><label class="field">E-posta<input name="email" type="email" required autocomplete="email"></label><button class="btn coral">Yeni bağlantı gönder</button></form><a href="${esc(location.pathname)}#panel">Giriş ekranına dön</a></div></div>`;return}$('#app').innerHTML=`<div class="wrap page"><form id="passwordForm" class="card narrow"><h2>Yeni şifreni belirle.</h2><label class="field">Yeni şifre<input name="password" type="password" minlength="8" maxlength="128" required autocomplete="new-password"></label><label class="field">Yeni şifreyi tekrar yaz<input name="confirm_password" type="password" minlength="8" maxlength="128" required autocomplete="new-password"></label><button class="btn coral">Şifreyi güncelle</button></form></div>`}
 async function panel(seq){if(!db){authView();return}const {data:{session},error}=await db.auth.getSession();if(seq!==routeSeq)return;if(recoveryMode||recoveryFailure){recoveryView(Boolean(session)&&!error&&!recoveryFailure);return}if(error)throw error;if(!session){authView();return}me=await rpc('ob_me');if(seq!==routeSeq)return;
- if(me.role==='admin'){adminData=await rpc('ob_admin_data');if(seq!==routeSeq)return;adminGameMedia=await fetchGameMedia((adminData.games||[]).map(g=>g.id));(adminData.games||[]).forEach(g=>g.image_data=adminGameMedia[String(g.id)]?.image_data||'');if(seq!==routeSeq)return;drawAdmin();hydrateVenueCodes();obShowOwnerFinancePreview()}else{if(me?.venue?.id)await loadVenueFeatures(me.venue.id);drawMerchant(session.user.email);hydrateVenueCodes()}}
+ if(me.role==='admin'){adminData=await rpc('ob_admin_data');if(seq!==routeSeq)return;adminGameMedia=await fetchGameMedia((adminData.games||[]).map(g=>g.id));(adminData.games||[]).forEach(g=>g.image_data=adminGameMedia[String(g.id)]?.image_data||'');if(seq!==routeSeq)return;drawAdmin();hydrateVenueCodes();obShowOwnerFinancePreview()}else if(me.role==='staff'){
+  $('#app').innerHTML='<div class="wrap page"><div class="card"><h2>Personel çalışma alanınız açılıyor…</h2><p>İşletme yetkileriniz yükleniyor.</p></div></div>';
+ }else{if(me?.venue?.id)await loadVenueFeatures(me.venue.id);drawMerchant(session.user.email);hydrateVenueCodes()}}
 function panelTop(title){return `<div class="row" style="justify-content:space-between"><div><span class="eyebrow">OYNABAK PANEL</span><h2>${esc(title)}</h2></div><button data-action="logout" class="btn small light">Çıkış yap</button></div>`}
 async function obShowOwnerFinancePreview(){
  try{
@@ -6917,13 +6919,14 @@ function normalizeMenu(raw){
     id:String(c?.id||('cat-'+ci)),
     name:String(c?.name||'Kategori').slice(0,80),
     active:c?.active!==false,
+    station:['kitchen','bar'].includes(c?.station)?c.station:'auto',
     subcategories:(Array.isArray(c?.subcategories)?c.subcategories:[]).slice(0,30).map((sub,si)=>({
       id:String(sub?.id||('sub-'+ci+'-'+si)).slice(0,120),
       name:String(sub?.name||'Alt başlık').slice(0,80)
     })),
     items:(Array.isArray(c?.items)?c.items:[]).slice(0,100).map((it,ii)=>({
       id:String(it?.id||('item-'+ii)),subcategory_id:String(it?.subcategory_id||'').slice(0,120),name:String(it?.name||'Ürün').slice(0,120),description:String(it?.description||'').slice(0,300),
-      price:Number(it?.price||0),image_url:String(it?.image_url||'').slice(0,1200),image_data:String(it?.image_data||'').slice(0,900000),active:it?.active!==false,sold_out:Boolean(it?.sold_out),featured:Boolean(it?.featured),variants:(Array.isArray(it?.variants)?it.variants:[]).slice(0,30).map(v=>({id:String(v?.id||menuId('var')),name:String(v?.name||'').slice(0,100),price:Number(v?.price||0)}))
+      price:Number(it?.price||0),image_url:String(it?.image_url||'').slice(0,1200),image_data:String(it?.image_data||'').slice(0,900000),active:it?.active!==false,sold_out:Boolean(it?.sold_out),featured:Boolean(it?.featured),station:['kitchen','bar'].includes(it?.station)?it.station:'auto',variants:(Array.isArray(it?.variants)?it.variants:[]).slice(0,30).map(v=>({id:String(v?.id||menuId('var')),name:String(v?.name||'').slice(0,100),price:Number(v?.price||0)}))
     }))
   }))};
 }
@@ -7161,6 +7164,11 @@ function menuAdminCategoryHtml(c){
   return `<section class="menu-admin-cat" data-menu-cat="${esc(c.id)}">
     <div class="menu-admin-cat-head">
       <label>Kategori adı<input class="menu-cat-name" maxlength="80" value="${esc(c.name||'')}"></label>
+      <label>Hazırlık bölümü<select class="menu-cat-station">
+        <option value="auto" ${!['kitchen','bar'].includes(c.station)?'selected':''}>Otomatik</option>
+        <option value="kitchen" ${c.station==='kitchen'?'selected':''}>Mutfak</option>
+        <option value="bar" ${c.station==='bar'?'selected':''}>Bar</option>
+      </select></label>
       <button type="button" class="danger" data-action="menu-remove-category">Kategoriyi sil</button>
     </div>
     <div class="menu-admin-subcat-panel">
@@ -7193,6 +7201,11 @@ function menuAdminItemHtml(i,subcategories=[]){
     <label>Fiyat (TL)
       <input class="menu-item-price" type="number" min="0" step="0.01" placeholder="0" value="${Number(i.price||0)}">
     </label>
+    <label>Hazırlık yeri<select class="menu-item-station">
+      <option value="auto" ${!['kitchen','bar'].includes(i.station)?'selected':''}>Kategoriden al</option>
+      <option value="kitchen" ${i.station==='kitchen'?'selected':''}>Mutfak</option>
+      <option value="bar" ${i.station==='bar'?'selected':''}>Bar</option>
+    </select></label>
     <button type="button" class="danger" data-action="menu-remove-item">Sil</button>
 
     <label class="desc">Kısa açıklama
@@ -7220,6 +7233,7 @@ function collectMenuForm(){
     return {
       id,
       name:cat.querySelector('.menu-cat-name')?.value.trim()||'Kategori',
+      station:cat.querySelector('.menu-cat-station')?.value||'auto',
       active:previous?.active!==false,
       subcategories:menuEditorSubcategories(cat),
       items:[...cat.querySelectorAll('[data-menu-item]')].map(it=>{
@@ -7230,6 +7244,7 @@ function collectMenuForm(){
           name:it.querySelector('.menu-item-name')?.value.trim()||'Ürün',
           description:it.querySelector('.menu-item-desc')?.value.trim()||'',
           price:Math.max(0,Number(it.querySelector('.menu-item-price')?.value||0)),
+          station:it.querySelector('.menu-item-station')?.value||'auto',
           image_url:original?.image_url||'',
           image_data:original?.image_data||'',
           active:Boolean(it.querySelector('.menu-item-active')?.checked),
@@ -7248,7 +7263,7 @@ function collectMenuForm(){
 }
 async function menuManager(vid){
   const menu=await loadVenueMenu(vid);menuEditorOriginal=menu;const v=(adminData?.venues||[]).find(x=>String(x.id)===String(vid))||me?.venue||{};
-  modal('Dijital Menü',`<form id="menuForm" data-vid="${esc(vid)}"><p class="muted" style="margin-top:0"><b>${esc(v.name||'İşletme')}</b> için dijital menü. Ana kategorileri, alt başlıkları, ürünleri ve fiyatları buradan yönetebilirsin.</p><div id="menuAdminCategories" class="menu-admin">${menu.categories.map(menuAdminCategoryHtml).join('')}</div><div class="row" style="margin-top:14px"><button type="button" class="btn light" data-action="menu-add-category">+ Kategori ekle</button><button class="btn coral" type="submit">Menüyü kaydet</button></div></form>`);
+  modal('Dijital Menü',`<form id="menuForm" data-vid="${esc(vid)}"><p class="muted" style="margin-top:0"><b>${esc(v.name||'İşletme')}</b> için dijital menü. Ana kategorileri, alt başlıkları, ürünleri, fiyatları ve mutfak/bar yönlendirmesini buradan yönetebilirsin.</p><div id="menuAdminCategories" class="menu-admin">${menu.categories.map(menuAdminCategoryHtml).join('')}</div><div class="row" style="margin-top:14px"><button type="button" class="btn light" data-action="menu-add-category">+ Kategori ekle</button><button class="btn coral" type="submit">Menüyü kaydet</button></div></form>`);
 }
 
 
@@ -7605,7 +7620,7 @@ async function route(){
   }catch(_){}
 
   document.body.classList.remove('customer-mode','games-mode','game-open','freed-gallery-mode');
-  const hash=location.hash.slice(1);$('#app').innerHTML='<div class="wrap page"><p class="muted">Yükleniyor…</p></div>';try{if(hash==='siparis-ekrani')await window.OynaBakSimpleConsole?.show();else if(hash==='personel')await window.OynaBakStaffPin?.show();else if(recoveryMode||recoveryFailure||hash==='panel'||new URL(location.href).searchParams.has('recovery'))await panel(seq);else if(hash==='freed-kesfet')freedDiscoverPage();else if(hash==='demo')qrOnlyPage();else if(hash==='blog')blogListPage();else if(hash.startsWith('blog-'))blogPostPage(hash.replace(/^blog-/,''));else if(hash==='play'){if(new URL(location.href).searchParams.has('isletme'))await customer(false,seq);else businessCodeEntry()}else if(!hash&&new URL(location.href).searchParams.has('isletme'))await customer(false,seq);else if(['privacy','kvkk','terms','contact'].includes(hash))legalPage(hash);else{home();if(['features','referanslar','faq','pricing'].includes(hash))requestAnimationFrame(()=>document.getElementById(hash)?.scrollIntoView({behavior:'smooth'}))}}catch(e){if(seq===routeSeq)$('#app').innerHTML=`<div class="wrap page"><div class="notice">${esc(e.message)}</div><button class="btn light" data-action="retry">Tekrar dene</button> <a href="${esc(location.pathname)}" class="btn light">Ana sayfa</a></div>`}}
+  const hash=location.hash.slice(1);$('#app').innerHTML='<div class="wrap page"><p class="muted">Yükleniyor…</p></div>';try{if(hash==='siparis-ekrani'||hash==='personel'){location.hash='panel';return}else if(recoveryMode||recoveryFailure||hash==='panel'||new URL(location.href).searchParams.has('recovery'))await panel(seq);else if(hash==='freed-kesfet')freedDiscoverPage();else if(hash==='demo')qrOnlyPage();else if(hash==='blog')blogListPage();else if(hash.startsWith('blog-'))blogPostPage(hash.replace(/^blog-/,''));else if(hash==='play'){if(new URL(location.href).searchParams.has('isletme'))await customer(false,seq);else businessCodeEntry()}else if(!hash&&new URL(location.href).searchParams.has('isletme'))await customer(false,seq);else if(['privacy','kvkk','terms','contact'].includes(hash))legalPage(hash);else{home();if(['features','referanslar','faq','pricing'].includes(hash))requestAnimationFrame(()=>document.getElementById(hash)?.scrollIntoView({behavior:'smooth'}))}}catch(e){if(seq===routeSeq)$('#app').innerHTML=`<div class="wrap page"><div class="notice">${esc(e.message)}</div><button class="btn light" data-action="retry">Tekrar dene</button> <a href="${esc(location.pathname)}" class="btn light">Ana sayfa</a></div>`}}
 function hasQrGameAccess(){
   try{
     if(!venue||venue.demo||!document.body.classList.contains('customer-mode'))return false;
@@ -8034,16 +8049,13 @@ window.OynaBakAdisyonBridge=Object.freeze({
 window.OynaBakCustomerBridge=Object.freeze({context:()=>({db,venue})});
 </script>
 <script defer src="adisyon/customer-orders.js"></script>
-<link rel="stylesheet" href="adisyon/staff-pin.css">
-<script>window.OynaBakStaffPinConfig=Object.freeze({url:SUPABASE_URL,key:SUPABASE_PUBLISHABLE_KEY});</script>
-<script defer src="adisyon/staff-pin.js"></script>
 
-<link rel="stylesheet" href="adisyon/simple-console.css">
-<link rel="stylesheet" href="adisyon/simple-admin.css">
-<script>
-window.OynaBakSimpleConfig=Object.freeze({url:SUPABASE_URL,key:SUPABASE_PUBLISHABLE_KEY});
-window.OynaBakSimpleAdminBridge=()=>({db,me,adminData});
-</script>
-<script defer src="adisyon/simple-console.js"></script>
-<script defer src="adisyon/simple-admin.js"></script>
+
+
+
+
+
+
+
+
 </body></html>
