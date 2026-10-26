@@ -7065,6 +7065,7 @@ async function openCustomerMenu(){
   const body=m.querySelector('.dialog-body');
   if(body)body.scrollTop=0;
   setTimeout(()=>body&&body.scrollTo({top:0,behavior:'auto'}),0);
+  window.OynaBakCustomerOrders?.start().catch(console.warn);
 }
 function menuAdminSubcategoryHtml(sub){
   return `<div class="menu-admin-subcat-row" data-menu-subcategory="${esc(sub.id)}">
@@ -8028,4 +8029,9 @@ window.OynaBakAdisyonBridge=Object.freeze({
 });
 </script>
 <script defer src="adisyon/app.js"></script>
+<link rel="stylesheet" href="adisyon/customer-orders.css">
+<script>
+window.OynaBakCustomerBridge=Object.freeze({context:()=>({db,venue})});
+</script>
+<script defer src="adisyon/customer-orders.js"></script>
 </body></html>
