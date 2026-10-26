@@ -73,3 +73,22 @@ Not: `main` üzerinde yayınlandığında sadece özellik anahtarı etkin işlet
 - `ob_staff_pairing_invites` ve `ob_staff_pin_devices` tabloları RLS etkin ve **doğrudan anon/authenticated tablo izni yok**. Supabase güvenlik danışmanı "policy yok" uyarısını bu iki tablo için gösterebilir; yalnız sunucu RPC erişimi bilinçli tasarım.
 - **Doğrulanan:** migration başarılı; admin listesi İyi Yol Akademi açık, Freed/Ayberk kapalı; admin eşleştirme kodu üretimi; Freed geçici aç/kapat işlemleri ve sonuçları `ROLLBACK` ile test edildi; JS sözdizimi geçti.
 - **Eksik son kabul testi:** Auth Anonymous provider açık mı kontrolü, gerçek telefonda anonim oturum açıp kod+PIN eşleştirmesi, kilit/açma, anlık bildirim ve cihaz iptali uçtan uca tarayıcı testi. Bu gerçekleşmeden personel girişini tümüyle doğrulanmış saymayın.
+
+## Sade Hızlı Sipariş Ekranı — giriş/PIN/kod yok
+- **İşletme çalışanı:** `https://oynabak.com/#siparis-ekrani` adresinden girer. Kayıt, e-posta, şifre, günlük personel PIN'i veya eşleştirme kodu **yoktur**.
+- **Tek seferlik güvenlik:** Cihaz ilk açılışta işletmeyi seçip "Cihazı kullanıma aç" der. Yönetici `oynabak.com/#panel` içindeki ilgili işletme kartında `⚡ Hızlı Sipariş Ekranı` → **Cihazı onayla** işlemini yapar. Onaylanmayan cihaz hiçbir sipariş okuyamaz/değiştiremez.
+- **Günlük kullanım:** Aynı tarayıcı/cihaz kendi rastgele 256-bit anahtarını cihazda hatırlar; sonraki açılışlarda doğrudan siparişleri gösterir. Anahtar URL parametresiyle gönderilmez; Supabase yalnız SHA-256 özetini tutar. Veriler temizlenirse yeniden cihaz onayı gerekir.
+- **İşletme bazlı açma/kapama:** OynaBak ana yöneticisi her işletmede ayrı `simple_console_enabled` ayarını yönetir. Adisyon paketi kapalı işletmede ayrı onayla önce adisyonu etkinleştirir. Freed ve Ayberk kapalıdır. **İyi Yol Akademi 3 masa ile açık**.
+- **Üç sade bölüm:** `Siparişler` (müşteri QR talebini al/reddet), `Masalar` (açık adisyon, dijital menü ürünü/varyant ekle, manuel kapat), `Mutfak / Bar` (Yeni → Hazırlanıyor → Hazır → Servis edildi). Ödeme, sanal POS, kasa tahsilatı yok.
+- **Alarm:** Yetkili cihazın sipariş sayfasında henüz susturulmamış yeni QR talebi veya yeni mutfak ürünü varsa görsel alarm ve tekrar eden WebAudio tonu 1.8 saniyede bir çalışır. `🔕 Sustur` o anda bekleyen bildirimleri susturur; yeni sipariş gelince yeniden öter.
+- **Tarayıcı sesi:** Chrome/iOS Safari/Android'in otomatik ses politikaları nedeniyle her yeni sayfa açılışında `🔔 Sesi etkinleştir` düğmesine bir kez basılmalıdır. Ekran kilitliyken veya tarayıcı arka plandayken kesintisiz ses garantisi yoktur; sabit açık tablet önerilir.
+- **Yenileme:** Siparişler 4 saniyelik aralıklarla sunucudan okunur. Bağlantı geri gelince otomatik yenilenir; bu yeni ekranın gerçek zamanlı olmasına rağmen Realtime teslim garantisi iddia edilmez. Açık ürün ekleme formu veri yenilenirken korunur.
+- **Güvenlik:** `ob_simple_devices` tablosunda RLS açıktır ve anonim/düzenli hesaplara tablo izni verilmez. İşlemler yalnız tek işletmeye ait, yönetici onaylı, geri alınmamış 256-bit cihaz anahtarıyla yapılır. Onay isteği 30 dakika geçerli, aynı işletmede bekleyen istek sayısı ve saatlik istek sayısı sınırlı. Yönetici tüm cihazların erişimini anında iptal edebilir.
+- **Denetim:** Garson ve mutfak işlemleri `ob_adisyon_audit` içinde onaylayan yönetici ve işlem yapan cihaz ID'siyle izlenebilir; bireysel çalışan adı tutmaz.
+- **Mevcut sistem:** Önceki gelişmiş roller/PIN ekranları korunur, ancak basit ekran bunları gerektirmez. Basılı QR kodları, müşteri menüsü, oyunlar, garson çağrı ve ön muhasebe bozulmaz.
+
+### Kurulum / test durumu
+- OynaBak Supabase'e `oynabak_simple_console_device_approval` ve `oynabak_simple_console_pending_expiry_and_disable` migrasyonları uygulandı.
+- Veritabanı transaction + rollback testlerinde cihaz isteği/onayı, sipariş onayı, mutfak durumu, manuel ürün ekleme, manuel adisyon kapatma, cihaz iptali, yanlış token reddi, anon rolü erişimi, işletme paket aç/kapat ve yönetici dışı erişimin engellenmesi doğrulandı.
+- **Eksik:** Gerçek tablet/telefon ekranı, tarayıcı ses izni, operasyon alarmının fiziksel cihazda susturulması ve 2 eşzamanlı cihaz kabul testi. Bu olmadan üretimde kesintisiz alarm/ses garantisi verilmez.
+- OynaBak ana `index.html` betiklerinin sözdizimi kontrol edildi; yeni JS dosyaları `new Function(...)` kontrolünden geçti.

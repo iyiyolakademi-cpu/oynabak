@@ -7605,7 +7605,7 @@ async function route(){
   }catch(_){}
 
   document.body.classList.remove('customer-mode','games-mode','game-open','freed-gallery-mode');
-  const hash=location.hash.slice(1);$('#app').innerHTML='<div class="wrap page"><p class="muted">Yükleniyor…</p></div>';try{if(hash==='personel')await window.OynaBakStaffPin?.show();else if(recoveryMode||recoveryFailure||hash==='panel'||new URL(location.href).searchParams.has('recovery'))await panel(seq);else if(hash==='freed-kesfet')freedDiscoverPage();else if(hash==='demo')qrOnlyPage();else if(hash==='blog')blogListPage();else if(hash.startsWith('blog-'))blogPostPage(hash.replace(/^blog-/,''));else if(hash==='play'){if(new URL(location.href).searchParams.has('isletme'))await customer(false,seq);else businessCodeEntry()}else if(!hash&&new URL(location.href).searchParams.has('isletme'))await customer(false,seq);else if(['privacy','kvkk','terms','contact'].includes(hash))legalPage(hash);else{home();if(['features','referanslar','faq','pricing'].includes(hash))requestAnimationFrame(()=>document.getElementById(hash)?.scrollIntoView({behavior:'smooth'}))}}catch(e){if(seq===routeSeq)$('#app').innerHTML=`<div class="wrap page"><div class="notice">${esc(e.message)}</div><button class="btn light" data-action="retry">Tekrar dene</button> <a href="${esc(location.pathname)}" class="btn light">Ana sayfa</a></div>`}}
+  const hash=location.hash.slice(1);$('#app').innerHTML='<div class="wrap page"><p class="muted">Yükleniyor…</p></div>';try{if(hash==='siparis-ekrani')await window.OynaBakSimpleConsole?.show();else if(hash==='personel')await window.OynaBakStaffPin?.show();else if(recoveryMode||recoveryFailure||hash==='panel'||new URL(location.href).searchParams.has('recovery'))await panel(seq);else if(hash==='freed-kesfet')freedDiscoverPage();else if(hash==='demo')qrOnlyPage();else if(hash==='blog')blogListPage();else if(hash.startsWith('blog-'))blogPostPage(hash.replace(/^blog-/,''));else if(hash==='play'){if(new URL(location.href).searchParams.has('isletme'))await customer(false,seq);else businessCodeEntry()}else if(!hash&&new URL(location.href).searchParams.has('isletme'))await customer(false,seq);else if(['privacy','kvkk','terms','contact'].includes(hash))legalPage(hash);else{home();if(['features','referanslar','faq','pricing'].includes(hash))requestAnimationFrame(()=>document.getElementById(hash)?.scrollIntoView({behavior:'smooth'}))}}catch(e){if(seq===routeSeq)$('#app').innerHTML=`<div class="wrap page"><div class="notice">${esc(e.message)}</div><button class="btn light" data-action="retry">Tekrar dene</button> <a href="${esc(location.pathname)}" class="btn light">Ana sayfa</a></div>`}}
 function hasQrGameAccess(){
   try{
     if(!venue||venue.demo||!document.body.classList.contains('customer-mode'))return false;
@@ -8037,4 +8037,13 @@ window.OynaBakCustomerBridge=Object.freeze({context:()=>({db,venue})});
 <link rel="stylesheet" href="adisyon/staff-pin.css">
 <script>window.OynaBakStaffPinConfig=Object.freeze({url:SUPABASE_URL,key:SUPABASE_PUBLISHABLE_KEY});</script>
 <script defer src="adisyon/staff-pin.js"></script>
+
+<link rel="stylesheet" href="adisyon/simple-console.css">
+<link rel="stylesheet" href="adisyon/simple-admin.css">
+<script>
+window.OynaBakSimpleConfig=Object.freeze({url:SUPABASE_URL,key:SUPABASE_PUBLISHABLE_KEY});
+window.OynaBakSimpleAdminBridge=()=>({db,me,adminData});
+</script>
+<script defer src="adisyon/simple-console.js"></script>
+<script defer src="adisyon/simple-admin.js"></script>
 </body></html>
