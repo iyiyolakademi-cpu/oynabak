@@ -68,7 +68,7 @@ async function open(id){
   const savedScreen=(()=>{try{return localStorage.getItem('ob-ops-screen-'+id)}catch{return null}})();
   const defaultTab=['requests','kitchen','tables','reports'].includes(savedScreen)?savedScreen:'requests';
   const savedStation=(()=>{try{return localStorage.getItem('ob-ops-station-'+id)}catch{return null}})();
-  state={vid:String(id),count:Number(s.table_count)||1,tab:defaultTab,table:0,filter:'',tickets:[],items:[],requests:[],calls:[],products:[],busy:false,permission:{},staffRole,kitchenFilter:['all','kitchen','bar'].includes(savedStation)?savedStation:'all',realtime:false,canManage:Boolean(s.can_manage),floorEditing:false,floorSaved:[],floorDraft:[],floorVersion:0,floorAvailable:true};
+  state={vid:String(id),count:Number(s.table_count)||1,tab:defaultTab,table:0,filter:'',tickets:[],items:[],requests:[],calls:[],products:[],busy:false,permission:{},staffRole,kitchenFilter:['all','kitchen','bar'].includes(savedStation)?savedStation:'all',realtime:false,canManage:Boolean(s.can_manage),floorEditing:false,floorSaved:[],floorDraft:[],floorVersion:0,floorAvailable:true,floorSelected:1};
   const actions=['add','review','close','move','split','reports','status'];
   const allowed=await Promise.all(actions.map(action=>rpc('ob_adisyon_permission',{p_venue_id:String(id),p_action:action,p_station:action==='status'&&staffRole==='bar'?'bar':action==='status'?'kitchen':null})));
   if(!state||state.vid!==String(id))return;
@@ -126,7 +126,7 @@ function defaultFloor(count){
  const cols=Math.min(5,count),rows=Math.ceil(count/cols),arr=[];
  for(let i=0;i<count;i++){
   const col=i%cols,row=Math.floor(i/cols);
-  arr.push({table:i+1,x:cols===1?45:Math.round(4+92*col/(cols-1)),
+  arr.push({table:i+1,shape:'square',x:cols===1?45:Math.round(4+92*col/(cols-1)),
    y:rows===1?38:Math.round(6+88*row/(rows-1))});
  }
  return arr;
@@ -136,7 +136,7 @@ function normalizeFloor(stored,count){
  return defaults.map(item=>{
   const p=saved.find(x=>Number(x.table)===item.table);
   return p&&Number.isFinite(Number(p.x))&&Number.isFinite(Number(p.y))?
-   {table:item.table,x:Math.max(0,Math.min(100,Number(p.x))),
+   {table:item.table,shape:p.shape==='round'?'round':'square',x:Math.max(0,Math.min(100,Number(p.x))),
     y:Math.max(0,Math.min(100,Number(p.y)))}:item;
  });
 }
@@ -177,7 +177,7 @@ async function saveFloor(){
  if(!state?.floorEditing||!state.canManage||!state.floorAvailable)return;
  if(!confirm(state.count+' masanın bu yeni yerleşimini işletme için kaydedip onaylıyor musunuz?'))return;
  const currentState=state;
- const positions=state.floorDraft.map(p=>({table:p.table,x:p.x,y:p.y}));
+ const positions=state.floorDraft.map(p=>({table:p.table,x:p.x,y:p.y,shape:p.shape==='round'?'round':'square'}));
  const result=await rpc('ob_adisyon_floor_save',{p_venue_id:state.vid,p_positions:positions,
   p_expected_version:state.floorVersion});
  if(state!==currentState)return;
