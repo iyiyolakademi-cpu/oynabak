@@ -71,3 +71,11 @@
 #ob-adisyon button:focus-visible,.ob-portal-venue:focus-visible{outline:3px solid #2680c6;outline-offset:2px}
 @media(max-width:1100px){#ob-adisyon .ob-kds-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:690px){#ob-adisyon .ob-kds-grid{grid-template-columns:1fr}#ob-adisyon .ob-kds-column{min-height:160px}#ob-adisyon .ob-kds-ticket{padding:16px}#ob-adisyon .ob-kds-product{font-size:19px}#ob-adisyon .ob-workspace-title h3{font-size:19px}.ob-portal-home{margin:10px;padding:15px}.ob-portal-home header{flex-wrap:wrap}}
+
+#ob-adisyon .ob-tool-form{display:grid;gap:13px;margin-top:16px;padding:20px;background:#f7f9fd;border:1px solid #e3e9f2;border-radius:16px;max-width:680px}
+#ob-adisyon .ob-tool-form h4{font-size:19px;margin:0}
+#ob-adisyon .ob-tool-form label{display:grid;gap:6px;font-size:14px;font-weight:700;color:#43536a}
+#ob-adisyon .ob-tool-form select,#ob-adisyon .ob-tool-form input{width:100%;min-height:50px;border-radius:10px;border:1px solid #c6d2e2;background:white;padding:10px;font:inherit}
+#ob-adisyon .ob-tool-form button[type=submit]{min-height:51px}
+#ob-adisyon #ob-split-results{background:white;border-radius:12px;padding:6px 12px}
+@media(max-width:600px){#ob-adisyon .ob-tool-form{padding:13px}}
