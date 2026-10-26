@@ -56,7 +56,7 @@ async function open(id){
   const s=await rpc('ob_adisyon_status',{p_venue_id:String(id)});
   if(!s?.allowed)throw Error('Bu işletmeye adisyon erişimi kapalı.');
   if(!s.enabled){body().innerHTML='<div class="ob-card"><h3>Adisyon etkin değil</h3><p>OynaBak yönetim panelinden bu işletmeye adisyonu açın.</p></div>';return}
-  state={vid:String(id),count:Number(s.table_count)||1,tab:'tables',table:0,filter:'',tickets:[],items:[],requests:[],products:[],busy:false,permission:{}};
+  state={vid:String(id),count:Number(s.table_count)||1,tab:'tables',table:0,filter:'',tickets:[],items:[],requests:[],products:[],busy:false,permission:{},staffRole:v.role||me.role,kitchenFilter:'all'};
   for(const action of ['add','review','close','move','split','reports','status'])state.permission[action]=await rpc('ob_adisyon_permission',{p_venue_id:String(id),p_action:action,p_station:action==='status'?'kitchen':null});
   const menu=await bridge().menu(id);
   state.products=(menu?.categories||[]).filter(c=>c.active).flatMap(c=>(c.items||[]).filter(i=>i.active&&!i.sold_out).map(i=>({...i,category:c.name})));
@@ -113,8 +113,8 @@ function render(){
    html+=state.requests.length?state.requests.map(r=>'<div class="ob-entry"><div><b>Masa '+esc(r.table_no)+' · '+money(r.total)+'</b><div class="ob-muted">'+esc(r.customer_note||'')+'</div>'+(r.items||[]).map(i=>'<p>'+esc(i.quantity)+' × '+esc(i.name)+(i.variant_name?' / '+esc(i.variant_name):'')+' · '+money(i.line_total)+' · '+esc(i.note||'')+'</p>').join('')+'</div><div><button class="ob-btn primary" data-ob-request-approve="'+esc(r.id)+'">Onayla</button><button class="ob-btn danger" data-ob-request-reject="'+esc(r.id)+'">Reddet</button></div></div>').join(''):'<div class="ob-empty">Onay bekleyen QR siparişi yok.</div>';
    html+='</div>';
  }else if(state.tab==='kitchen'){
-  html+='<div class="ob-card"><h3>Hazırlık ekranı</h3>';
-  const list=state.items.filter(i=>opened.some(t=>t.id===i.ticket_id)&&!['void','served'].includes(i.status));
+  html+='<div class="ob-card"><h3>Hazırlık ekranı</h3><div class="ob-row"><button class="ob-btn" data-ob-station="all">Tümü</button><button class="ob-btn" data-ob-station="kitchen">Mutfak</button><button class="ob-btn" data-ob-station="bar">Bar</button></div>';
+  const list=state.items.filter(i=>opened.some(t=>t.id===i.ticket_id)&&!['void','served'].includes(i.status)&&(state.kitchenFilter==='all'||i.station===state.kitchenFilter)&&(state.staffRole!=='kitchen'||i.station==='kitchen')&&(state.staffRole!=='bar'||i.station==='bar'))
   html+=list.length?list.map(i=>{const t=opened.find(t=>t.id===i.ticket_id),next={new:'preparing',preparing:'ready',ready:'served'}[i.status];return '<div class="ob-entry"><div><b>Masa '+esc(t?.table_no)+' · '+i.quantity+' × '+esc(i.name)+'</b><div class="ob-muted">'+esc(i.station==='bar'?'Bar':'Mutfak')+' · '+esc(i.note||'')+'</div></div><button class="ob-btn primary" data-ob-status="'+esc(i.id)+'" data-ob-next="'+next+'">'+({new:'Hazırlanıyor',preparing:'Hazır',ready:'Servis edildi'}[i.status])+'</button></div>'}).join(''):'<div class="ob-empty">Bekleyen sipariş yok.</div>';
   html+='</div>';
  }else{
@@ -131,6 +131,7 @@ async function refresh(silent=false){
  state.tickets=Array.isArray(d?.tickets)?d.tickets:[];state.items=Array.isArray(d?.items)?d.items:[];
  try{const req=await rpc('ob_customer_orders_list',{p_venue_id:state.vid});if(state)state.requests=Array.isArray(req)?req:[]}catch(e){console.warn('QR orders list:',e)}
  const nextIds=state.requests.map(x=>x.id);if(seenRequestIds!==null&&state.permission.review){const count=nextIds.filter(id=>!seenRequestIds.includes(id)).length;if(count)notifyRequests(count)}seenRequestIds=nextIds;
+ if(state.tab==='tools'&&silent)return;
  if(!silent||(document.activeElement?.id!=='ob-adisyon-search'&&!$('#ob-adisyon-add-form')))render();
 }
 function notifyRequests(n){
@@ -201,7 +202,7 @@ async function closeTicket(id){
  state.table=0;notice('Adisyon manuel kapatıldı.');await refresh();
 }
 document.addEventListener('click',async e=>{
- const b=e.target.closest?.('[data-ob-open],[data-ob-toggle],[data-ob-close],[data-ob-tab],[data-ob-table],[data-ob-back],[data-ob-product],[data-ob-dismiss],[data-ob-void],[data-ob-status],[data-ob-close-ticket],[data-ob-request-approve],[data-ob-request-reject],[data-ob-tool],[data-ob-security-toggle],[data-ob-code-rotate],[data-ob-staff-save]');
+ const b=e.target.closest?.('[data-ob-open],[data-ob-toggle],[data-ob-close],[data-ob-tab],[data-ob-table],[data-ob-back],[data-ob-product],[data-ob-dismiss],[data-ob-void],[data-ob-status],[data-ob-close-ticket],[data-ob-request-approve],[data-ob-request-reject],[data-ob-tool],[data-ob-security-toggle],[data-ob-code-rotate],[data-ob-staff-save],[data-ob-station]');
  if(!b||b.disabled)return;e.preventDefault();e.stopImmediatePropagation();
  if(b.hasAttribute('data-ob-close')){close();return}
  if(b.hasAttribute('data-ob-dismiss')){$('.ob-product-form',root())?.remove();return}
@@ -211,7 +212,8 @@ document.addEventListener('click',async e=>{
   if(b.dataset.obOpen)await open(b.dataset.obOpen);
   else if(b.dataset.obToggle)await toggle(b.dataset.obToggle);
   else if(state){
-   if(b.dataset.obTool)await toolAction(b.dataset.obTool);
+   if(b.dataset.obStation){state.kitchenFilter=b.dataset.obStation;render()}
+   else if(b.dataset.obTool)await toolAction(b.dataset.obTool);
    else if(b.dataset.obSecurityToggle){await rpc('ob_adisyon_table_code_action',{p_venue_id:state.vid,p_table_no:1,p_action:b.dataset.obSecurityToggle});await toolAction('codes')}
    else if(b.dataset.obCodeRotate){await rpc('ob_adisyon_table_code_action',{p_venue_id:state.vid,p_table_no:Number(b.dataset.obCodeRotate),p_action:'rotate'});await toolAction('codes')}
    else if(b.hasAttribute('data-ob-staff-save')){await rpc('ob_adisyon_staff_assign',{p_venue_id:state.vid,p_email:$('#ob-staff-email').value,p_role:$('#ob-staff-role').value});await toolAction('staff')}
