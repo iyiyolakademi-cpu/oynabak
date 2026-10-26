@@ -1,0 +1,103 @@
+/* OynaBak Okey: focused mobile landscape experience and simple lobby */
+.lobby-simple{max-width:535px;margin-inline:auto;padding:28px}
+.lobby-simple .name-label{font-size:12px;color:#d3e0d8;font-weight:800}
+.lobby-simple>input{display:block;margin:7px 0 21px;width:100%;background:#0c1917;border:1px solid #486256;border-radius:12px;color:white;min-height:52px;padding:12px 15px;font-size:16px}
+.lobby-choice{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:0 0 20px}
+.lobby-choice .choice{display:flex;align-items:flex-start;justify-content:center;flex-direction:column;gap:3px;min-height:97px;border:1px solid #446052;border-radius:14px;background:#12261f;color:#dee6da;padding:13px;font-size:17px;text-align:left}
+.lobby-choice .choice b{display:block;font-size:15px}
+.lobby-choice .choice small{font-size:11px;color:#b3c6b8;line-height:1.25}
+.lobby-choice .choice.active{background:#345540;border-color:#e6bb79;box-shadow:inset 0 0 0 1px #e6bb79;color:#fff3d6}
+.lobby-simple form{margin:0}.lobby-simple form[hidden]{display:none}
+.lobby-simple form .primary{width:100%;margin-top:12px;text-align:left}
+.lobby-simple #joinGame input{width:100%;padding:13px;border-radius:10px;letter-spacing:3px;text-transform:uppercase;font-weight:850;font-size:20px;text-align:center}
+.lobby-simple #joinGame label{font-size:12px;color:#c6d5cb}
+.lobby-simple .fine{margin:0 0 7px;line-height:1.7}
+.fullscreen-toggle{white-space:nowrap}
+.rack-drop-hint{display:none;position:absolute;inset:34px 7px 42px;align-items:center;justify-content:center;text-align:center;pointer-events:none;border:2px dashed #d7b477;border-radius:13px;background:#1b4c3acc;color:#fff1ca;font-size:12px;font-weight:900;z-index:12}
+.rack-wrap{position:relative}
+.rack-wrap.drag-over .rack-drop-hint{display:flex}
+.tile.ghost-tile{position:fixed!important;z-index:5000;pointer-events:none;opacity:.97;box-shadow:0 12px 28px #0009!important;min-width:42px;min-height:55px;transform:translate(-50%,-50%) rotate(-6deg) scale(1.08)!important;touch-action:none}
+.tile.drag-origin{opacity:.24}
+.tile.drop-target{outline:3px solid #e9c47b;outline-offset:2px}
+.stack.drag-origin,.last-discard.drag-origin{opacity:.5}
+.stack,.last-discard{touch-action:none}
+.rack-actions button.drop-active{outline:3px dashed #e6bc79;outline-offset:3px;background:#a7793c;color:#fff}
+body.okey-playing{overscroll-behavior:none}
+@media(max-width:800px){
+ .lobby{max-width:550px}
+ .hero h1{font-size:clamp(32px,8vw,48px)}
+ .lobby-simple{padding:18px}
+}
+/* Immersive controls: the browser's fullscreen/orientation APIs are requested
+   from a user gesture, and CSS handles iOS Safari where those APIs are limited. */
+@media(max-width:1024px) and (pointer:coarse){
+ html:has(body.okey-playing),body.okey-playing{overflow:hidden!important;width:100%;height:100%;margin:0}
+ body.okey-playing .topbar{display:none}
+ body.okey-playing main{margin:0;padding:0;max-width:none}
+ body.okey-playing .game{
+   position:fixed;inset:0;z-index:40;width:100vw;height:100dvh;
+   display:grid;grid-template-rows:38px minmax(100px,1fr) minmax(132px,43%);
+   gap:5px;padding:4px max(8px,env(safe-area-inset-right)) max(5px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left));
+   background:#0e211c;overflow:hidden
+ }
+ body.okey-playing .game-meta{margin:0;display:flex;justify-content:space-between;gap:8px;min-height:0}
+ body.okey-playing .game-meta>div:first-child{display:flex;align-items:center;gap:7px}
+ body.okey-playing .game-meta small{font-size:8px;letter-spacing:.7px}
+ body.okey-playing .room-code{font-size:15px;letter-spacing:1px}
+ body.okey-playing .round-status{padding:5px 12px;font-size:11px;white-space:nowrap}
+ body.okey-playing .fullscreen-toggle{padding:6px 9px;font-size:11px}
+ body.okey-playing #leaveTable{padding:6px 10px;font-size:11px;white-space:nowrap}
+ body.okey-playing .felt-wrap{min-height:0;border-width:2px;border-radius:72px;padding:4px;box-shadow:0 7px 21px #0008}
+ body.okey-playing .table-surface{width:100%;height:100%;min-height:0;border-radius:68px}
+ body.okey-playing .seat{min-height:28px;padding:3px 7px;gap:4px;max-width:28%}
+ body.okey-playing .seat .avatar{width:20px;height:20px;font-size:10px}
+ body.okey-playing .seat .seat-name{font-size:10px;max-width:105px}
+ body.okey-playing .seat small{display:none}
+ body.okey-playing .north{top:4px}.game body.okey-playing .south{bottom:4px}
+ body.okey-playing .south{bottom:4px}body.okey-playing .west{left:5px}body.okey-playing .east{right:5px}
+ body.okey-playing .board-center{width:min(290px,48%)}
+ body.okey-playing .deck-title{font-size:9px;letter-spacing:.7px}
+ body.okey-playing .center-tiles{margin-top:4px;gap:13px}
+ body.okey-playing .tile.mini,body.okey-playing .indicator-tile{width:32px;height:41px;min-height:41px}
+ body.okey-playing .tile.mini b{font-size:16px}
+ body.okey-playing .tile.mini .suit{font-size:7px}
+ body.okey-playing .stack-backs{width:27px;height:33px;border-width:2px}
+ body.okey-playing .stack,.game body.okey-playing .last-discard{min-width:37px}
+ body.okey-playing .stack,body.okey-playing .last-discard{min-width:43px}
+ body.okey-playing .stack b{font-size:9px}
+ body.okey-playing .stack small,body.okey-playing .last-discard small{font-size:8px}
+ body.okey-playing .last-discard .mini-placeholder{width:32px;height:40px}
+ body.okey-playing .waiting-panel{font-size:10px;margin:2px 0 -4px}
+ body.okey-playing .rack-wrap{width:100%;max-width:none;min-height:0;margin:0;padding:5px 8px 6px;border-radius:10px;border-top-width:3px;display:flex;flex-direction:column}
+ body.okey-playing .rack-toolbar{min-height:21px;flex:none}
+ body.okey-playing .rack-toolbar strong{font-size:9px}
+ body.okey-playing .rack-toolbar small{display:none}
+ body.okey-playing .toolbar-actions button{font-size:9px;padding:4px 8px}
+ body.okey-playing .rack{flex:1;min-height:0;display:grid;grid-template-columns:repeat(15,minmax(0,1fr));align-items:stretch;gap:3px;margin:4px 0 6px}
+ body.okey-playing .rack .tile{width:100%;min-width:0;height:100%;min-height:0;border-width:1px;border-radius:5px;gap:2px;padding:1px;box-shadow:0 3px 0 #977d5d,0 4px 4px #0005}
+ body.okey-playing .rack .tile b{font-size:clamp(15px,2.5vw,25px)}
+ body.okey-playing .rack .tile .suit{font-size:8px}
+ body.okey-playing .rack .tile.fake b{font-size:12px}
+ body.okey-playing .rack-footer{gap:6px;min-height:31px;flex:none;flex-wrap:nowrap}
+ body.okey-playing .rack-footer>span{font-size:10px;min-width:0;flex:1;flex-basis:auto}
+ body.okey-playing .rack-actions{width:auto;flex:none;gap:5px}
+ body.okey-playing .rack-actions button{min-height:30px;padding:4px 10px;font-size:11px}
+ body.okey-playing .game-help{display:none}
+ body.okey-playing .rack-drop-hint{inset:25px 5px 30px}
+}
+@media(max-width:1024px) and (pointer:coarse) and (orientation:portrait){
+ /* CSS-rotated landscape fallback for browsers that cannot lock orientation,
+    notably Safari on iPhone.  Rotating the phone removes this transform. */
+ body.okey-playing .game{
+   inset:auto;top:0;left:0;width:100dvh;height:100dvw;
+   transform-origin:top left;transform:translateX(100dvw) rotate(90deg);
+ }
+}
+@media(max-width:1024px) and (pointer:coarse) and (max-height:360px) and (orientation:landscape){
+ body.okey-playing .game{grid-template-rows:32px minmax(85px,1fr) minmax(120px,44%);gap:3px}
+ body.okey-playing .rack-footer{min-height:28px}
+ body.okey-playing .rack-actions button{min-height:28px}
+}
+@media(max-width:650px) and (orientation:portrait){
+ .lobby-choice .choice{min-height:92px;padding:10px}
+}
