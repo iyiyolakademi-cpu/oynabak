@@ -160,11 +160,17 @@ function floorBoard(){
     '<button type="button" class="ob-btn primary" data-ob-floor-edit>✥ Masaları düzenle</button>';
  }else if(!state.floorAvailable)html+='<span class="ob-muted">Plan düzeni yüklenemedi; yeniden açıp deneyin.</span>';
  html+='</div></header>';
- html+='<div class="ob-floor-scroll"><div class="ob-floor-canvas '+(state.floorEditing?'is-editing':'')+'" data-ob-floor-canvas style="height:'+height+'px">';
+ if(state.floorEditing){
+  const selected=Number(state.floorSelected)||1;
+  html+='<div class="ob-floor-edit-controls"><label>Masa seç <select data-ob-floor-select>'+
+    positions.map(p=>'<option value="'+p.table+'"'+(p.table===selected?' selected':'')+'>Masa '+p.table+'</option>').join('')+
+    '</select></label><button type="button" class="ob-btn" data-ob-floor-toggle-shape>Seçilen masanın şeklini değiştir</button></div>';
+ }
+ html+='<div class="ob-floor-scroll'><div class="ob-floor-canvas '+(state.floorEditing?'is-editing':'')+'" data-ob-floor-canvas style="height:'+height+'px">';
  html+='<div class="ob-floor-entrance">🚪 GİRİŞ</div>';
  for(const pos of positions){
   const t=active(pos.table),c=t?'open':'';
-  html+='<button type="button" class="ob-floor-table '+c+(state.floorEditing?' is-draggable':'')+
+  html+='<button type="button" class="ob-floor-table '+c+(pos.shape==='round'?' is-round':'')+(state.floorEditing?' is-draggable':'')+
    '" style="'+floorStyle(pos)+'"'+(state.floorEditing?' data-ob-floor-drag="'+pos.table+'"':
    ' data-ob-table="'+pos.table+'"')+
    ' aria-label="Masa '+pos.table+(state.floorEditing?' sürükleyerek yerini değiştir':' adisyonunu aç')+'">'+
