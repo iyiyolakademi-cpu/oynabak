@@ -5744,18 +5744,15 @@ function openWaiterRequest(){
 }
 // POS siparis bildirimi: tok, belirgin, cift tonlu zil.
 // Ses kullanici etkilesimi ile acilir; bekleyen cagri susturulana veya tamamlanana kadar tekrarlar.
-function waiterBeep(){
-  if(!waiterSoundEnabled)return;
-  if(!waiterAudioCtx||waiterAudioCtx.state!=='running'){
-    unlockWaiterAudio();
-    return;
-  }
-  try{
-    const ctx=waiterAudioCtx, now=ctx.currentTime+.015;
+// Both Garson Çağırma and Sipariş Merkezi play this EXACT same original POS melody.
+window.OynaBakPlayWaiterTone=function(ctx){
+ if(!ctx||ctx.state!=='running')return false;
+ try{
+    const now=ctx.currentTime+.015;
     const master=ctx.createGain();
     master.gain.value=.95;
     master.connect(ctx.destination);
-    // Iki belirgin POS vurusunun her birinde tok ana ton ve parlak ust harmonik.
+    // Original dual-strike POS notification: keep pitch, length and harmonics identical.
     [[0,.23],[.34,.27]].forEach(([offset,duration])=>{
       [[740,.44,'triangle'],[1110,.22,'sine'],[1480,.08,'sine']].forEach(([frequency,level,wave])=>{
         const osc=ctx.createOscillator(), gain=ctx.createGain();
@@ -5769,10 +5766,18 @@ function waiterBeep(){
         osc.start(start);osc.stop(end+.02);
       });
     });
-    // Tekrar araligi titreşimden uzundur; ses seviyesi cihazdan daha yukari zorlanamaz.
     if(navigator.vibrate)navigator.vibrate([160,110,180]);
     setTimeout(()=>{try{master.disconnect()}catch(_){}},1000);
-  }catch(e){console.warn('POS alarm sesi calinamadi:',e)}
+    return true;
+ }catch(e){console.warn('POS alarm sesi çalınamadı:',e);return false}
+};
+function waiterBeep(){
+  if(!waiterSoundEnabled)return;
+  if(!waiterAudioCtx||waiterAudioCtx.state!=='running'){
+    unlockWaiterAudio();
+    return;
+  }
+  window.OynaBakPlayWaiterTone(waiterAudioCtx);
 }
 function showWaiterAlert(call){
   if(!call?.id||waiterMutedCalls.has(String(call.id)))return;
