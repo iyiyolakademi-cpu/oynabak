@@ -168,15 +168,15 @@ function wire(){
  if(v!==VENUE){$('lobby').innerHTML='<div class="panel"><h2>Okey burada etkin değil</h2><p>Okey ilk etapta yalnızca İyi Yol Akademi içinde açılabilir.</p><a href="../#play" style="color:#e7bc7c">OynaBak’a dön</a></div>';return}
  const back='../?isletme='+encodeURIComponent(VENUE)+'#play';
  $('goBack').href=back;
- $('leaveTable').addEventListener('click',()=>{location.href=back});
+ $('leaveTable').addEventListener('click',showLobby);
  const cached=(()=>{try{return JSON.parse(localStorage.getItem(storageKey)||'null')}catch(_){return null}})();
  const lastName=(()=>{try{return localStorage.getItem('ob-okey:name')||''}catch(_){return ''}})();
  $('hostName').value=lastName;$('guestName').value=lastName;
  if(cached&&/^[A-F0-9]{6}$/.test(String(cached.room||''))&&/^[0-9a-f-]{36}$/i.test(String(cached.token||''))){
   session=cached;$('resume').hidden=false;$('resume').textContent='Masaya dön: '+cached.room;
-  $('resume').addEventListener('click',()=>joinRoom(cached.name||lastName||'Oyuncu',cached.room,cached.token));
   joinRoom(cached.name||lastName||'Oyuncu',cached.room,cached.token);
  }
+ $('resume').addEventListener('click',()=>{if(session)joinRoom(session.name,session.room,session.token)});
  $('newGame').addEventListener('submit',e=>{e.preventDefault();joinRoom($('hostName').value.trim())});
  $('joinGame').addEventListener('submit',e=>{
   e.preventDefault();
