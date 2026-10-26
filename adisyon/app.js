@@ -68,11 +68,18 @@ async function open(id){
   const savedScreen=(()=>{try{return localStorage.getItem('ob-ops-screen-'+id)}catch{return null}})();
   const defaultTab=['requests','kitchen','tables','reports'].includes(savedScreen)?savedScreen:'requests';
   const savedStation=(()=>{try{return localStorage.getItem('ob-ops-station-'+id)}catch{return null}})();
-  state={vid:String(id),count:Number(s.table_count)||1,tab:defaultTab,table:0,filter:'',tickets:[],items:[],requests:[],calls:[],products:[],busy:false,permission:{},staffRole,kitchenFilter:['all','kitchen','bar'].includes(savedStation)?savedStation:'all',realtime:false,canManage:Boolean(s.can_manage),floorEditing:false,floorSaved:[],floorDraft:[],floorVersion:0};
+  state={vid:String(id),count:Number(s.table_count)||1,tab:defaultTab,table:0,filter:'',tickets:[],items:[],requests:[],calls:[],products:[],busy:false,permission:{},staffRole,kitchenFilter:['all','kitchen','bar'].includes(savedStation)?savedStation:'all',realtime:false,canManage:Boolean(s.can_manage),floorEditing:false,floorSaved:[],floorDraft:[],floorVersion:0,floorAvailable:true};
   const actions=['add','review','close','move','split','reports','status'];
   const allowed=await Promise.all(actions.map(action=>rpc('ob_adisyon_permission',{p_venue_id:String(id),p_action:action,p_station:action==='status'&&staffRole==='bar'?'bar':action==='status'?'kitchen':null})));
   if(!state||state.vid!==String(id))return;
   actions.forEach((action,i)=>{state.permission[action]=Boolean(allowed[i])});
+  try{
+   const saved=await rpc('ob_adisyon_floor_get',{p_venue_id:String(id)});
+   if(!state||state.vid!==String(id))return;
+   state.floorSaved=Array.isArray(saved?.positions)?saved.positions:[];
+   state.floorVersion=Number(saved?.version)||0;
+  }catch(err){state.floorAvailable=false;console.warn('Masa planı yüklenemedi:',err)}
+  state.floorDraft=normalizeFloor(state.floorSaved,state.count);
   const menu=await bridge().menu(id);
   state.products=(menu?.categories||[]).filter(c=>c.active).flatMap(c=>(c.items||[]).filter(i=>i.active&&!i.sold_out).map(i=>({...i,category:c.name,categoryStation:c.station||'auto'})));
   try{const alarmOpt=localStorage.getItem('ob-ops-alarm-'+id)==='1';
@@ -115,6 +122,69 @@ const items=id=>state.items.filter(i=>i.ticket_id===id);
 const total=id=>items(id).filter(i=>i.status!=='void').reduce((n,i)=>n+Number(i.line_total||0),0);
 const tab=(key,label)=>'<button class="ob-btn '+(state.tab===key?'active':'')+'" data-ob-tab="'+key+'" aria-pressed="'+(state.tab===key?'true':'false')+'">'+label+'</button>';
 
+function defaultFloor(count){
+ const cols=Math.min(5,count),rows=Math.ceil(count/cols),arr=[];
+ for(let i=0;i<count;i++){
+  const col=i%cols,row=Math.floor(i/cols);
+  arr.push({table:i+1,x:cols===1?45:Math.round(4+92*col/(cols-1)),
+   y:rows===1?38:Math.round(6+88*row/(rows-1))});
+ }
+ return arr;
+}
+function normalizeFloor(stored,count){
+ const defaults=defaultFloor(count),saved=Array.isArray(stored)?stored:[];
+ return defaults.map(item=>{
+  const p=saved.find(x=>Number(x.table)===item.table);
+  return p&&Number.isFinite(Number(p.x))&&Number.isFinite(Number(p.y))?
+   {table:item.table,x:Math.max(0,Math.min(100,Number(p.x))),
+    y:Math.max(0,Math.min(100,Number(p.y)))}:item;
+ });
+}
+function floorSet(table,x,y){
+ const pos=state?.floorDraft?.find(x=>x.table===table);if(!pos)return;
+ pos.x=Math.round(Math.max(0,Math.min(100,x))*10)/10;
+ pos.y=Math.round(Math.max(0,Math.min(100,y))*10)/10;
+}
+function floorStyle(position){
+ return 'left:calc((100% - var(--ob-floor-table-size))*'+(position.x/100)+');'+
+ 'top:calc((100% - var(--ob-floor-table-size))*'+(position.y/100)+')';
+}
+function floorBoard(){
+ const positions=state.floorDraft.length===state.count?state.floorDraft:normalizeFloor(state.floorSaved,state.count);
+ const count=state.count,rows=Math.ceil(count/5),height=Math.max(425,rows*115+85);
+ let html='<section class="ob-floor"><header class="ob-floor-header"><div><h3>İşletme masa düzeni</h3><p class="ob-muted">'+(state.floorEditing?'Masalara dokunup sürükleyin. Kaydetmeden çıkarsanız düzen değişmez.':'Masaların yerleşimi bu işletmeye özeldir. Masaya basarak adisyonu açın.')+'</p></div><div class="ob-floor-actions">';
+ if(state.canManage&&state.floorAvailable){
+   html+=state.floorEditing?'<button type="button" class="ob-btn" data-ob-floor-auto>Otomatik diz</button><button type="button" class="ob-btn" data-ob-floor-cancel>Vazgeç</button><button type="button" class="ob-btn primary" data-ob-floor-confirm>✓ Kaydet ve onayla</button>':
+    '<button type="button" class="ob-btn primary" data-ob-floor-edit>✥ Masaları düzenle</button>';
+ }else if(!state.floorAvailable)html+='<span class="ob-muted">Plan düzeni yüklenemedi; yeniden açıp deneyin.</span>';
+ html+='</div></header>';
+ html+='<div class="ob-floor-scroll"><div class="ob-floor-canvas '+(state.floorEditing?'is-editing':'')+'" data-ob-floor-canvas style="height:'+height+'px">';
+ html+='<div class="ob-floor-entrance">🚪 GİRİŞ</div>';
+ for(const pos of positions){
+  const t=active(pos.table),c=t?'open':'';
+  html+='<button type="button" class="ob-floor-table '+c+(state.floorEditing?' is-draggable':'')+
+   '" style="'+floorStyle(pos)+'"'+(state.floorEditing?' data-ob-floor-drag="'+pos.table+'"':
+   ' data-ob-table="'+pos.table+'"')+
+   ' aria-label="Masa '+pos.table+(state.floorEditing?' sürükleyerek yerini değiştir':' adisyonunu aç')+'">'+
+   '<b>Masa '+pos.table+'</b><small>'+(t?money(total(t.id)):'Boş')+'</small></button>';
+ }
+ html+='</div></div>'+(state.floorEditing?'<p class="ob-muted">Telefon ve tablette sürükleyin. Klavyede ok tuşlarıyla da ince ayar yapabilirsiniz.</p>':'')+'</section>';
+ return html;
+}
+async function saveFloor(){
+ if(!state?.floorEditing||!state.canManage||!state.floorAvailable)return;
+ if(!confirm(state.count+' masanın bu yeni yerleşimini işletme için kaydedip onaylıyor musunuz?'))return;
+ const currentState=state;
+ const positions=state.floorDraft.map(p=>({table:p.table,x:p.x,y:p.y}));
+ const result=await rpc('ob_adisyon_floor_save',{p_venue_id:state.vid,p_positions:positions,
+  p_expected_version:state.floorVersion});
+ if(state!==currentState)return;
+ state.floorSaved=positions.map(p=>({...p}));state.floorDraft=positions.map(p=>({...p}));
+ state.floorVersion=Number(result.version);state.floorEditing=false;
+ notice('Masa planı kaydedildi. Tüm cihazlarda aynı düzen kullanılacak.');
+ render();
+}
+
 function stopAlarm(){if(alarmTimer){clearInterval(alarmTimer);alarmTimer=null}}
 function audibleBeep(){
  if(!audioEnabled||!audioCtx||audioCtx.state!=='running')return;
@@ -124,7 +194,7 @@ function audibleBeep(){
 }
 function updateAlarmButton(){
  if(!root())return;
- root().querySelectorAll('[data-ob-enable-alerts]').forEach(btn=>{
+ root().querySelectorAll('[data-ob-enable-alerts],[data-ob-floor-edit],[data-ob-floor-cancel],[data-ob-floor-auto],[data-ob-floor-confirm]').forEach(btn=>{
   btn.textContent=audioEnabled?'🔊 Alarm açık · Sesi dene':'🔔 Bildirim sesini aç';
   btn.setAttribute('aria-pressed',audioEnabled?'true':'false');
  });
@@ -189,9 +259,7 @@ function render(){
  html+='<div class="ob-tabs">'+(state.permission.review?tab('requests','🛎️ Siparişler ('+(state.requests.length+state.calls.length)+')'):'')+tab('kitchen','♨️ Mutfak / Bar')+(!stationOnly?tab('tables','▦ Masalar'):'')+(state.permission.reports?tab('reports','▤ Raporlar'):'')+'</div>';
  if(state.tab==='tables'){
    if(!state.table){
-     html+='<div class="ob-grid">';
-     for(let n=1;n<=state.count;n++){const t=active(n);html+='<button class="ob-table '+(t?'open':'')+'" data-ob-table="'+n+'">▣<b>Masa '+n+'</b><small>'+(t?money(total(t.id)):'Boş')+'</small></button>'}
-     html+='</div>';
+     html+=floorBoard();
    }else{
      const t=active(state.table),list=t?items(t.id):[];
      const products=state.products.map((p,i)=>({...p,index:i})).filter(p=>(p.name+' '+p.category).toLocaleLowerCase('tr-TR').includes(state.filter.toLocaleLowerCase('tr-TR')));
@@ -352,6 +420,18 @@ document.addEventListener('click',async e=>{
     try{await enableAlarm()}catch(err){notice('Ses açılamadı: '+err.message,true)}
    }
    else if(b.dataset.obWaiterDone){await rpc('ob_ops_waiter_done',{p_venue_id:state.vid,p_call_id:b.dataset.obWaiterDone});await refresh();notice('Garson çağrısı tamamlandı.')}
+   else if(b.hasAttribute('data-ob-floor-edit')){
+    state.floorDraft=normalizeFloor(state.floorSaved,state.count);
+    state.floorEditing=true;render();
+   }
+   else if(b.hasAttribute('data-ob-floor-cancel')){
+    state.floorDraft=normalizeFloor(state.floorSaved,state.count);
+    state.floorEditing=false;render();
+   }
+   else if(b.hasAttribute('data-ob-floor-auto')){
+    state.floorDraft=defaultFloor(state.count);render();
+   }
+   else if(b.hasAttribute('data-ob-floor-confirm'))await saveFloor();
    else if(b.dataset.obStation){state.kitchenFilter=b.dataset.obStation;try{localStorage.setItem('ob-ops-station-'+state.vid,state.kitchenFilter)}catch{}render()}
    else if(b.dataset.obTool)await toolAction(b.dataset.obTool);
    else if(b.dataset.obSecurityToggle){await rpc('ob_adisyon_table_code_action',{p_venue_id:state.vid,p_table_no:1,p_action:b.dataset.obSecurityToggle});await toolAction('codes')}
@@ -407,6 +487,53 @@ document.addEventListener('input',e=>{
  const pos=e.target.selectionStart;state.filter=e.target.value;render();
  const field=$('#ob-adisyon-search');field?.focus();try{field?.setSelectionRange(pos,pos)}catch(_){}
 },true);
+
+document.addEventListener('pointerdown',e=>{
+ const btn=e.target.closest?.('[data-ob-floor-drag]');
+ if(!btn||!state?.floorEditing||!root()?.contains(btn)||floorDrag)return;
+ if(e.pointerType==='mouse'&&e.button!==0)return;
+ const canvas=btn.closest('[data-ob-floor-canvas]');if(!canvas)return;
+ e.preventDefault();
+ const r=btn.getBoundingClientRect();
+ floorDrag={pointerId:e.pointerId,el:btn,canvas,
+  table:Number(btn.dataset.obFloorDrag),offsetX:e.clientX-r.left,offsetY:e.clientY-r.top};
+ btn.classList.add('is-moving');
+ try{btn.setPointerCapture(e.pointerId)}catch(_){}
+},true);
+document.addEventListener('pointermove',e=>{
+ if(!floorDrag||floorDrag.pointerId!==e.pointerId||!state?.floorEditing)return;
+ e.preventDefault();
+ const {el,canvas,table,offsetX,offsetY}=floorDrag,
+  stage=canvas.getBoundingClientRect(),tile=el.getBoundingClientRect();
+ const availableX=Math.max(1,stage.width-tile.width),
+  availableY=Math.max(1,stage.height-tile.height);
+ const x=100*(e.clientX-stage.left-offsetX)/availableX,
+  y=100*(e.clientY-stage.top-offsetY)/availableY;
+ floorSet(table,x,y);
+ const pos=state.floorDraft.find(p=>p.table===table);
+ if(pos)el.style.cssText=floorStyle(pos);
+},true);
+function finishFloorDrag(e){
+ if(!floorDrag||floorDrag.pointerId!==e.pointerId)return;
+ const el=floorDrag.el;
+ el.classList.remove('is-moving');
+ try{el.releasePointerCapture(e.pointerId)}catch(_){}
+ floorDrag=null;
+}
+document.addEventListener('pointerup',finishFloorDrag,true);
+document.addEventListener('pointercancel',finishFloorDrag,true);
+document.addEventListener('keydown',e=>{
+ const btn=e.target.closest?.('[data-ob-floor-drag]');
+ if(!btn||!state?.floorEditing||!['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key))return;
+ e.preventDefault();
+ const num=Number(btn.dataset.obFloorDrag),pos=state.floorDraft.find(p=>p.table===num);
+ if(!pos)return;
+ const step=e.shiftKey?1:3;
+ floorSet(num,pos.x+(e.key==='ArrowRight'?step:e.key==='ArrowLeft'?-step:0),
+  pos.y+(e.key==='ArrowDown'?step:e.key==='ArrowUp'?-step:0));
+ btn.style.cssText=floorStyle(state.floorDraft.find(p=>p.table===num));
+},true);
+
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&root()&&!$('.ob-product-form',root()))close()});
 window.OynaBakAdisyonModule=Object.freeze({open,close});
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup,{once:true});else setup();
