@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#112c25">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>Okey · OynaBak</title>
+<link rel="icon" href="../favicon.png">
+<link rel="stylesheet" href="./okey.css">
+<script src="../assets/supabase-client.bundle.js"></script>
+<script defer src="./okey.js"></script>
+</head>
+<body>
+<header class="topbar">
+ <a class="back" id="goBack" href="../#play" aria-label="OynaBak oyunlarına dön">‹ <span>OynaBak</span></a>
+ <div class="brand"><span class="brand-dot"></span> OKEY <small>İYİ YOL AKADEMİ</small></div>
+ <div id="connection" class="connection" aria-live="polite">● Bağlanıyor</div>
+</header>
+<main>
+ <section id="lobby" class="lobby" aria-labelledby="lobby-title">
+  <div class="hero"><p class="kicker">4 KİŞİ · KLASİK OKEY</p><h1 id="lobby-title">Masada yerin hazır.</h1><p>Arkadaşlarınla aynı masaya otur. Odayı kur veya verilen masa koduyla katıl.</p></div>
+  <div class="lobby-grid">
+   <form id="newGame" class="panel">
+    <div class="step">01 · YENİ MASA</div><h2>Oyun kur</h2>
+    <label>Oyuncu adın<input id="hostName" name="name" maxlength="18" minlength="2" autocomplete="nickname" placeholder="Adını yaz" required></label>
+    <button type="submit" class="primary">Yeni masa oluştur <span>→</span></button>
+    <p class="fine">Masanın kodunu arkadaşlarınla paylaş.</p>
+   </form>
+   <form id="joinGame" class="panel">
+    <div class="step">02 · MASAYA KATIL</div><h2>Arkadaşına katıl</h2>
+    <label>Oyuncu adın<input id="guestName" name="name" maxlength="18" minlength="2" autocomplete="nickname" placeholder="Adını yaz" required></label>
+    <label>6 karakterli masa kodu<input id="roomCode" name="code" maxlength="6" minlength="6" spellcheck="false" autocapitalize="characters" autocomplete="off" placeholder="A1B2C3" required></label>
+    <button type="submit" class="primary soft">Masaya katıl <span>→</span></button>
+   </form>
+  </div>
+  <button id="resume" class="resume" hidden>Önceki oyununa dön</button>
+  <p class="rules-note">106 taş · 4 oyuncu · 14 taş ile perler veya 7 çift. İlk oyuncu 15 taşla başlar. 101 Okey değildir.</p>
+ </section>
+ <section id="tableView" class="game" hidden>
+  <div class="game-meta">
+   <div><small>MASA KODU</small><button id="copyRoom" class="room-code" aria-label="Masa kodunu kopyala"><span id="roomText">------</span> <span class="copy-icon">⧉</span></button></div>
+   <div id="roundStatus" class="round-status" aria-live="polite">Oyuncular bekleniyor</div>
+   <button id="leaveTable" class="secondary" title="Masadan ayrıl">← Çık</button>
+  </div>
+  <div class="felt-wrap">
+    <div class="table-surface">
+      <div class="table-glow" aria-hidden="true"></div>
+      <div id="north" class="seat north"><span class="avatar">?</span><span class="seat-name">Bekleniyor</span><small>0 taş</small></div>
+      <div id="west" class="seat west"><span class="avatar">?</span><span class="seat-name">Bekleniyor</span><small>0 taş</small></div>
+      <div id="east" class="seat east"><span class="avatar">?</span><span class="seat-name">Bekleniyor</span><small>0 taş</small></div>
+      <div class="board-center">
+        <div class="deck-title">GÖSTERGE <span id="jokerLabel">Okey —</span></div>
+        <div class="center-tiles">
+          <div class="indicator-tile" id="indicator"></div>
+          <button id="drawStack" class="stack" aria-label="Ortadan taş çek"><span class="stack-backs" aria-hidden="true"></span><b>Taş Çek</b><small id="stockCount">— taş</small></button>
+          <button id="takeDiscard" class="last-discard" aria-label="Atılan taşı al"><span id="discardTile" class="mini-placeholder">—</span><small>Yerden Al</small></button>
+        </div>
+        <div id="waitingPanel" class="waiting-panel">Diğer oyuncular bekleniyor…</div>
+      </div>
+      <div id="south" class="seat south"><span class="avatar">?</span><span class="seat-name">Sen</span><small>0 taş</small></div>
+    </div>
+  </div>
+  <section class="rack-wrap" aria-label="Elindeki taşlar">
+   <div class="rack-toolbar"><div><strong>TAŞLARIN</strong><small id="handCount">0 taş</small></div><div class="toolbar-actions"><button id="sortColors" type="button">Renklere göre</button><button id="sortNumbers" type="button">Sayıya göre</button></div></div>
+   <div id="rack" class="rack" role="list" aria-live="off"></div>
+   <div class="rack-footer">
+    <span id="turnHint">Dört oyuncu katılınca oyun başlar.</span>
+    <div class="rack-actions">
+      <button id="moveLeft" type="button" class="secondary" aria-label="Seçili taşı sola kaydır">←</button>
+      <button id="moveRight" type="button" class="secondary" aria-label="Seçili taşı sağa kaydır">→</button>
+      <button id="discardBtn" type="button" class="accent" disabled>Taş At</button>
+      <button id="finishBtn" type="button" class="finish" disabled>Bitir ✓</button>
+    </div>
+   </div>
+  </section>
+  <p class="game-help">Bir taşı seçerek sola/sağa taşıyabilir veya sürükleyerek dizilimini değiştirebilirsin. Bitir'e basınca son taşı atarsın; kalan 14 taşın kurallara uygunluğu sunucuda kontrol edilir.</p>
+ </section>
+</main>
+<div id="toast" class="toast" role="alert" hidden></div>
+<div id="gameEnd" class="end-overlay" hidden><div class="end-card"><div class="end-trophy">🏆</div><h2 id="endTitle">Oyun bitti</h2><p id="endDescription"></p><button id="newRound" type="button" class="primary">Yeni masa kur</button><button id="closeEnd" type="button" class="secondary">Masada kal</button></div></div>
+</body></html>
