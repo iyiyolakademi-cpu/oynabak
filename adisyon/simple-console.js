@@ -75,7 +75,7 @@ function tabs(){
   .map(([v,title])=>'<button type="button" data-simple-tab="'+v+'" class="'+(tab===v?'selected':'')+'" aria-pressed="'+(tab===v)+'">'+title+'</button>').join('')+'</nav>';
 }
 function requestCard(r){
- const lines=(r.items||[]).map(i=>'<li><b>'+esc(i.quantity)+' × '+esc(i.name)+(i.variant_name?' / '+i.variant_name:'')+'</b>'+(i.note?' <small>· '+esc(i.note)+'</small>':'')+'</li>').join('');
+ const lines=(r.items||[]).map(i=>'<li><b>'+esc(i.quantity)+' × '+esc(i.name)+(i.variant_name?' / '+esc(i.variant_name):'')+'</b>'+(i.note?' <small>· '+esc(i.note)+'</small>':'')+'</li>').join('');
  return '<article class="ob-simple-order"><div class="ob-simple-cardhead"><strong>Masa '+esc(r.table_no)+'</strong><span>YENİ SİPARİŞ · '+new Date(r.created_at).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})+'</span></div><ul>'+lines+'</ul>'+(r.customer_note?'<p class="ob-simple-note">Not: '+esc(r.customer_note)+'</p>':'')+'<div class="ob-simple-cardbottom"><b>'+money(r.total)+'</b><div><button type="button" data-simple-reject="'+esc(r.id)+'" class="ob-simple-danger">Reddet</button><button type="button" data-simple-approve="'+esc(r.id)+'" class="ob-simple-primary">Siparişi al</button></div></div></article>';
 }
 function requestList(){
