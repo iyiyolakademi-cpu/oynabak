@@ -195,7 +195,7 @@ function audibleBeep(){
 function updateAlarmButton(){
  if(!root())return;
  root().querySelectorAll('[data-ob-enable-alerts],[data-ob-floor-edit],[data-ob-floor-cancel],[data-ob-floor-auto],[data-ob-floor-confirm]').forEach(btn=>{
-  btn.textContent=audioEnabled?'🔊 Alarm açık · Sesi dene':'🔔 Bildirim sesini aç';
+  btn.textContent=audioEnabled&&audioCtx?.state==='running'?'🔊 Alarm açık · Sesi dene':audioEnabled?'🔔 Alarm için ekrana dokun':'🔔 Bildirim sesini aç';
   btn.setAttribute('aria-pressed',audioEnabled?'true':'false');
  });
 }
@@ -216,7 +216,7 @@ async function enableAlarm(){
 }
 function unlockAlarmFromGesture(){
  if(!state||!audioEnabled||!audioCtx||audioCtx.state==='running')return;
- audioCtx.resume().then(()=>{if(state?.alarmCount)syncAlarm()}).catch(()=>{});
+ audioCtx.resume().then(()=>{updateAlarmButton();if(state?.alarmCount)syncAlarm()}).catch(()=>{});
 }
 document.addEventListener('pointerdown',unlockAlarmFromGesture,{passive:true});
 document.addEventListener('keydown',unlockAlarmFromGesture);
@@ -319,6 +319,19 @@ async function refresh(silent=false){
   try{const calls=await rpc('ob_ops_waiter_list',{p_venue_id:vid});if(state===snapshot)snapshot.calls=Array.isArray(calls)?calls:[]}catch(e){console.warn('Garson çağrıları:',e)}
  }else {snapshot.requests=[];snapshot.calls=[]}
  if(state!==snapshot)return;
+ // A second open browser receives the manager's newly approved arrangement.
+ if(snapshot.tab==='tables'&&!snapshot.floorEditing){
+  try{
+   const plan=await rpc('ob_adisyon_floor_get',{p_venue_id:vid});
+   if(state!==snapshot)return;
+   const revision=Number(plan?.version)||0;
+   if(revision!==snapshot.floorVersion){
+    snapshot.floorSaved=Array.isArray(plan?.positions)?plan.positions:[];
+    snapshot.floorDraft=normalizeFloor(snapshot.floorSaved,snapshot.count);
+    snapshot.floorVersion=revision;
+   }
+  }catch(err){console.warn('Masa planı senkronizasyonu:',err)}
+ }
  const nextIds=snapshot.requests.map(x=>x.id);
  if(seenRequestIds!==null&&snapshot.permission.review){
   const count=nextIds.filter(id=>!seenRequestIds.includes(id)).length;
@@ -405,9 +418,9 @@ async function closeTicket(id){
 }
 
 document.addEventListener('click',async e=>{
- const b=e.target.closest?.('[data-ob-alarm-mute],[data-ob-waiter-done],[data-ob-open],[data-ob-toggle],[data-ob-close],[data-ob-tab],[data-ob-table],[data-ob-back],[data-ob-product],[data-ob-dismiss],[data-ob-void],[data-ob-status],[data-ob-close-ticket],[data-ob-request-approve],[data-ob-request-reject],[data-ob-tool],[data-ob-security-toggle],[data-ob-code-rotate],[data-ob-staff-save],[data-ob-station],[data-ob-enable-alerts]');
+ const b=e.target.closest?.('[data-ob-alarm-mute],[data-ob-waiter-done],[data-ob-open],[data-ob-toggle],[data-ob-close],[data-ob-tab],[data-ob-table],[data-ob-back],[data-ob-product],[data-ob-dismiss],[data-ob-void],[data-ob-status],[data-ob-close-ticket],[data-ob-request-approve],[data-ob-request-reject],[data-ob-tool],[data-ob-security-toggle],[data-ob-code-rotate],[data-ob-staff-save],[data-ob-station],[data-ob-enable-alerts],[data-ob-floor-edit],[data-ob-floor-auto],[data-ob-floor-cancel],[data-ob-floor-confirm]');
  if(!b||b.disabled)return;e.preventDefault();e.stopImmediatePropagation();
- if(b.hasAttribute('data-ob-close')){close();return}
+ if(b.hasAttribute('data-ob-close')){if(state?.floorEditing&&!confirm('Kaydedilmemiş masa düzeni var. Kaydetmeden çıkılsın mı?'))return;close();return}
  if(b.hasAttribute('data-ob-dismiss')){$('.ob-product-form',root())?.remove();return}
  if(b.hasAttribute('data-ob-alarm-mute')){muteAlarm();return}
  if(state?.busy)return;
@@ -534,7 +547,7 @@ document.addEventListener('keydown',e=>{
  btn.style.cssText=floorStyle(state.floorDraft.find(p=>p.table===num));
 },true);
 
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&root()&&!$('.ob-product-form',root()))close()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&root()&&!$('.ob-product-form',root())){if(state?.floorEditing&&!confirm('Masa düzenini kaydetmeden çıkmak istiyor musun?'))return;close()}});
 window.OynaBakAdisyonModule=Object.freeze({open,close});
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup,{once:true});else setup();
 })();
