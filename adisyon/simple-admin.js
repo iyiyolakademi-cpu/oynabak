@@ -1,7 +1,7 @@
 (()=>{'use strict';
 const ctx=()=>window.OynaBakSimpleAdminBridge?.();
 const $=(sel,root=document)=>root.querySelector(sel);
-const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&gt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let selected=null,viewBusy=false;
 async function rpc(fn,args={}){const db=ctx()?.db;if(!db)throw Error('Supabase bağlantısı bulunamadı');const {data,error}=await db.rpc(fn,args);if(error)throw Error(error.message);return data}
 function mount(){
