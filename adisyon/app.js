@@ -33,7 +33,7 @@ async function mount(){
       rpc('ob_adisyon_status',{p_venue_id:String(id)}).then(s=>{if(b.isConnected&&!s?.enabled){box.dataset.obBlocked='1';b.remove()}}).catch(()=>{box.dataset.obBlocked='1';b.remove()});
     }
   }else{
-    const app=$('#app');if(app&&!app.dataset.obStaffChecked){app.dataset.obStaffChecked='1';rpc('ob_adisyon_my_venues',{}).then(venues=>{if(!app.isConnected)return;for(const v of venues||[]){const b=document.createElement('button');b.className='btn coral';b.dataset.obOpen=v.id;b.textContent='📋 '+v.name+' · '+v.role+' adisyon';app.appendChild(b)}}).catch(()=>{})}
+    const app=$('#app');if(app&&!app.querySelector('[data-ob-staff-portal]')&&!app.dataset.obStaffLoading){app.dataset.obStaffLoading='1';rpc('ob_adisyon_my_venues',{}).then(venues=>{if(!app.isConnected)return;for(const v of venues||[]){const b=document.createElement('button');b.className='btn coral';b.dataset.obOpen=v.id;b.dataset.obStaffPortal='1';b.textContent='📋 '+v.name+' · '+v.role+' adisyon';app.appendChild(b)}app.dataset.obStaffLoading=''}).catch(()=>{app.dataset.obStaffLoading=''})}
   }
  }finally{mounting=false}
 }
@@ -101,13 +101,13 @@ function render(){
      html+='<button class="ob-btn" data-ob-back>← Masalar</button><div class="ob-cols"><section class="ob-card"><h3>Masa '+state.table+' · Menü</h3><label class="ob-field">Ürün ara<input id="ob-adisyon-search" placeholder="Menüde ara" value="'+esc(state.filter)+'"></label><div class="ob-products">';
      html+=state.permission.add&&products.length?products.map(p=>'<button class="ob-btn" data-ob-product="'+p.index+'"><b>'+esc(p.name)+'</b><div class="ob-muted">'+esc(p.category)+' · '+money(p.price)+'</div></button>').join(''):'<div class="ob-empty">Aktif menü ürünü yok.</div>';
      html+='</div></section><section class="ob-card"><h3>Masa '+state.table+' · Adisyon</h3>';
-     html+=list.length?list.map(i=>'<div class="ob-entry"><div><b>'+i.quantity+' × '+esc(i.name)+'</b><div class="ob-muted">'+esc(i.station==='bar'?'Bar':'Mutfak')+' · '+esc(i.status)+' · '+esc(i.note||'')+'</div></div><div><b>'+money(i.line_total)+'</b>'+(i.status==='void'?'':'<br><button class="ob-btn danger" data-ob-void="'+esc(i.id)+'">İptal</button>')+'</div></div>').join(''):'<div class="ob-empty">Bu masada açık sipariş yok.</div>';
+     html+=list.length?list.map(i=>'<div class="ob-entry"><div><b>'+i.quantity+' × '+esc(i.name)+'</b><div class="ob-muted">'+esc(i.station==='bar'?'Bar':'Mutfak')+' · '+esc(i.status)+' · '+esc(i.note||'')+'</div></div><div><b>'+money(i.line_total)+'</b>'+(i.status==='void'||!state.permission.review?'':'<br><button class="ob-btn danger" data-ob-void="'+esc(i.id)+'">İptal</button>')+'</div></div>').join(''):'<div class="ob-empty">Bu masada açık sipariş yok.</div>';
      html+='<div class="ob-total">Toplam: '+money(t?total(t.id):0)+'</div><p class="ob-muted">Bu bir hesap toplamıdır, tahsilat kaydı değildir.</p>';
      if(t&&state.permission.close)html+='<button class="ob-btn primary" data-ob-close-ticket="'+esc(t.id)+'">Adisyonu manuel kapat</button>';
      html+='</section></div>';
    }
  }else if(state.tab==='tools'){
- html+='<div class="ob-card"><h3>İşletme araçları</h3><div class="ob-row">'+(state.permission.move?'<button class="ob-btn" data-ob-tool="move">Masa taşı</button>':'')+(state.permission.split?'<button class="ob-btn" data-ob-tool="split">Hesabı bölüştür</button>':'')+(state.permission.reports?'<button class="ob-btn" data-ob-tool="stats">Raporlar</button>':'')+'<button class="ob-btn" data-ob-tool="codes">Masa kodları</button>'+'<button class="ob-btn" data-ob-tool="staff">Personel</button></div><div id="ob-extra-results"></div></div>';
+ html+='<div class="ob-card"><h3>İşletme araçları</h3><div class="ob-row"><button class="ob-btn" data-ob-enable-alerts>🔔 Sipariş bildirimlerini aç</button>'+(state.permission.move?'<button class="ob-btn" data-ob-tool="move">Masa taşı</button>':'')+(state.permission.split?'<button class="ob-btn" data-ob-tool="split">Hesabı bölüştür</button>':'')+(state.permission.reports?'<button class="ob-btn" data-ob-tool="stats">Raporlar</button>':'')+(state.permission.review?'<button class="ob-btn" data-ob-tool="codes">Masa kodları</button>':'')+(state.permission.reports?'<button class="ob-btn" data-ob-tool="staff">Personel</button>':'')+'</div><div id="ob-extra-results"></div></div>';
  }else if(state.tab==='requests'){
    html+='<div class="ob-card"><h3>Garson onayı bekleyen QR siparişleri ('+state.requests.length+')</h3><p class="ob-muted">Müşterilerin gönderdiği siparişler onaylanmadan mutfağa düşmez.</p>';
    html+=state.requests.length?state.requests.map(r=>'<div class="ob-entry"><div><b>Masa '+esc(r.table_no)+' · '+money(r.total)+'</b><div class="ob-muted">'+esc(r.customer_note||'')+'</div>'+(r.items||[]).map(i=>'<p>'+esc(i.quantity)+' × '+esc(i.name)+(i.variant_name?' / '+esc(i.variant_name):'')+' · '+money(i.line_total)+' · '+esc(i.note||'')+'</p>').join('')+'</div><div><button class="ob-btn primary" data-ob-request-approve="'+esc(r.id)+'">Onayla</button><button class="ob-btn danger" data-ob-request-reject="'+esc(r.id)+'">Reddet</button></div></div>').join(''):'<div class="ob-empty">Onay bekleyen QR siparişi yok.</div>';
@@ -202,7 +202,7 @@ async function closeTicket(id){
  state.table=0;notice('Adisyon manuel kapatıldı.');await refresh();
 }
 document.addEventListener('click',async e=>{
- const b=e.target.closest?.('[data-ob-open],[data-ob-toggle],[data-ob-close],[data-ob-tab],[data-ob-table],[data-ob-back],[data-ob-product],[data-ob-dismiss],[data-ob-void],[data-ob-status],[data-ob-close-ticket],[data-ob-request-approve],[data-ob-request-reject],[data-ob-tool],[data-ob-security-toggle],[data-ob-code-rotate],[data-ob-staff-save],[data-ob-station]');
+ const b=e.target.closest?.('[data-ob-open],[data-ob-toggle],[data-ob-close],[data-ob-tab],[data-ob-table],[data-ob-back],[data-ob-product],[data-ob-dismiss],[data-ob-void],[data-ob-status],[data-ob-close-ticket],[data-ob-request-approve],[data-ob-request-reject],[data-ob-tool],[data-ob-security-toggle],[data-ob-code-rotate],[data-ob-staff-save],[data-ob-station],[data-ob-enable-alerts]');
  if(!b||b.disabled)return;e.preventDefault();e.stopImmediatePropagation();
  if(b.hasAttribute('data-ob-close')){close();return}
  if(b.hasAttribute('data-ob-dismiss')){$('.ob-product-form',root())?.remove();return}
@@ -212,7 +212,8 @@ document.addEventListener('click',async e=>{
   if(b.dataset.obOpen)await open(b.dataset.obOpen);
   else if(b.dataset.obToggle)await toggle(b.dataset.obToggle);
   else if(state){
-   if(b.dataset.obStation){state.kitchenFilter=b.dataset.obStation;render()}
+   if(b.dataset.obEnableAlerts){try{if(window.Notification&&Notification.permission==='default')await Notification.requestPermission();audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();await audioCtx.resume();notice('Sesli bildirimler açıldı.')}catch(e){notice('Bildirim izni verilemedi.',true)}}
+   else if(b.dataset.obStation){state.kitchenFilter=b.dataset.obStation;render()}
    else if(b.dataset.obTool)await toolAction(b.dataset.obTool);
    else if(b.dataset.obSecurityToggle){await rpc('ob_adisyon_table_code_action',{p_venue_id:state.vid,p_table_no:1,p_action:b.dataset.obSecurityToggle});await toolAction('codes')}
    else if(b.dataset.obCodeRotate){await rpc('ob_adisyon_table_code_action',{p_venue_id:state.vid,p_table_no:Number(b.dataset.obCodeRotate),p_action:'rotate'});await toolAction('codes')}
