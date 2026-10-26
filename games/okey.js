@@ -176,13 +176,18 @@ async function joinRoom(name,code='',token=null){
  }catch(err){toast(err.message);status('● Bağlantı sorunu')}
  finally{busy=false;document.querySelectorAll('button[type="submit"]').forEach(b=>b.disabled=false)}
 }
-async function doMove(action){
+async function doMove(action,tileOverride=null,insertAt=null){
  if(!session||!game||busy)return;
+ const beforeHand=new Set((game.hand||[]).map(Number));
  busy=true;
- const tile=(action==='discard'||action==='finish')?selected:null;
+ const tile=(action==='discard'||action==='finish')?(tileOverride??selected):null;
  $('discardBtn').disabled=true;$('finishBtn').disabled=true;
  try{
   const next=await api('ob_okey_act',{p_code:session.room,p_token:session.token,p_action:action,p_tile:tile});
+  if(insertAt!==null&&(action==='draw'||action==='take')){
+   const added=(next.hand||[]).map(Number).find(id=>!beforeHand.has(id));
+   if(added!==undefined){order=order.filter(id=>id!==added);order.splice(Math.max(0,Math.min(order.length,insertAt)),0,added)}
+  }
   game=next;selected=null;lastRack='';render();
  }catch(err){toast(err.message);render()}
  finally{busy=false}
