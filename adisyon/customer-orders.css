@@ -1,1 +1,12 @@
 .ob-qr-order{padding:20px;margin:20px 0;border:1px solid #ddd;border-radius:18px;background:#fff;color:#171717}.ob-qr-order h3{font-size:22px;margin:0 0 10px}.ob-qr-order label{display:grid;gap:6px;margin:15px 0}.ob-qr-order select,.ob-qr-order textarea{border:1px solid #ccc;padding:10px;min-height:40px;border-radius:10px;max-width:100%;width:100%;box-sizing:border-box}.ob-qr-products{max-height:360px;overflow:auto}.ob-qr-line{display:flex;gap:8px;padding:10px 0;align-items:center;justify-content:space-between;border-bottom:1px solid #eee}.ob-qr-line div{flex:1}.ob-qr-line small{display:block;color:#666}.ob-qr-line select{width:100px;flex:0 1 100px}.ob-qr-order button{padding:10px;border-radius:10px;background:#171717;color:white;border:none;cursor:pointer}.ob-qr-order button:disabled{opacity:.4}.ob-qr-order [role=alert]{color:#a12}
+.ob-qr-cart-jump{position:fixed;right:12px;bottom:calc(16px + env(safe-area-inset-bottom, 0px));z-index:10002;max-width:min(94vw,440px);background:#111;color:#fff;border:1px solid #333;border-radius:22px;padding:15px 22px;box-shadow:0 12px 32px rgba(0,0,0,.25);font:600 15px/1.25 system-ui;cursor:pointer}
+.ob-qr-cart-jump[hidden]{display:none!important}
+.ob-qr-order{scroll-margin-top:20px;max-width:720px;margin:32px auto;padding:24px}
+.ob-qr-order .ob-qr-products{max-height:480px;overflow-y:auto;overscroll-behavior:contain}
+.ob-qr-order .ob-qr-line{flex-wrap:wrap;min-height:56px;gap:12px}
+.ob-qr-order .ob-qr-line b{font-size:15px}
+.ob-qr-order .ob-qr-line button{min-height:40px;white-space:nowrap}
+.ob-qr-order [data-ob-submit]{min-height:51px;width:100%;background:#111;font-weight:700;font-size:16px}
+.ob-qr-order [data-ob-submit]:not(:disabled):active{transform:scale(.99)}
+.ob-qr-order input{border:1px solid #ccc;border-radius:10px;min-height:44px;padding:10px;box-sizing:border-box}
+@media(max-width:540px){.ob-qr-order{padding:16px;margin:22px 0 70px}.ob-qr-order .ob-qr-line select{flex:1 1 130px}.ob-qr-cart-jump{left:12px;right:12px;width:calc(100% - 24px);box-sizing:border-box;text-align:center}}
