@@ -262,7 +262,7 @@ function render(){
  if(state.tab==='tables'){
    if(!state.table){
      html+=floorBoard();
-     html+='<section class="ob-card"><h3>Masa araçları</h3><div class="ob-row">'+
+     html+='<section class="ob-card ob-ops-tools"><h3>Masa araçları</h3><div class="ob-row">'+
        (state.permission.move?'<button class="ob-btn" data-ob-tool="move">Masa taşı</button>':'')+
        (state.permission.split?'<button class="ob-btn" data-ob-tool="split">Hesabı bölüştür</button>':'')+
        (state.canManage?'<button class="ob-btn" data-ob-tool="codes">Masa doğrulaması</button>':'')+
