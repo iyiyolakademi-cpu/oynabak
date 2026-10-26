@@ -54,7 +54,7 @@ function schedule(){if(scheduled)return;scheduled=true;queueMicrotask(()=>{sched
 function setup(){const app=$('#app');if(app){new MutationObserver(schedule).observe(app,{childList:true,subtree:true});schedule()}}
 function close(){
  stopAlarm();alarmAcknowledged.clear();audioEnabled=false;
- seenRequestIds=null;seenItemStages=null;clearInterval(poll);poll=null;
+ seenRequestIds=null;seenItemStages=null;refreshRunning=false;clearInterval(poll);poll=null;
  if(signalChannel){try{current()?.db?.removeChannel(signalChannel)}catch(e){console.warn('Realtime kapatma:',e)}signalChannel=null}
  state=null;$('#ob-adisyon')?.remove();document.body.style.overflow='';
 }
@@ -187,7 +187,7 @@ function render(){
      html+='</section></div>';
    }
  }else if(state.tab==='tools'){
- html+='<div class="ob-card"><h3>İşletme araçları</h3><div class="ob-row"><button class="ob-btn" data-ob-enable-alerts>🔔 Sipariş bildirimlerini aç</button>'+(state.permission.move?'<button class="ob-btn" data-ob-tool="move">Masa taşı</button>':'')+(state.permission.split?'<button class="ob-btn" data-ob-tool="split">Hesabı bölüştür</button>':'')+(state.permission.reports?'<button class="ob-btn" data-ob-tool="stats">Raporlar</button>':'')+(state.permission.review?'<button class="ob-btn" data-ob-tool="codes">Masa kodları</button>':'')+(state.permission.reports?'<button class="ob-btn" data-ob-tool="staff">Personel</button>':'')+'</div><div id="ob-extra-results"></div></div>';
+ html+='<div class="ob-card"><h3>İşletme araçları</h3><div class="ob-row"><button class="ob-btn" data-ob-enable-alerts>🔔 Sipariş bildirimlerini aç</button>'+(state.permission.move?'<button class="ob-btn" data-ob-tool="move">Masa taşı</button>':'')+(state.permission.split?'<button class="ob-btn" data-ob-tool="split">Hesabı bölüştür</button>':'')+(state.permission.reports?'<button class="ob-btn" data-ob-tool="stats">Raporlar</button>':'')+(['admin','merchant'].includes(state.staffRole)?'<button class="ob-btn" data-ob-tool="staff">Personel</button>':'')+'</div><div id="ob-extra-results"></div></div>';
  }else if(state.tab==='requests'){
    html+='<div class="ob-card"><h3>Garson çağrıları ('+state.calls.length+')</h3>'+(state.calls.length?state.calls.map(c=>'<div class="ob-entry"><div><b>Masa '+esc(c.table_no)+'</b><div class="ob-muted">'+esc(({waiter:'Garson çağırma',bill:'Hesap isteği',water:'Su isteği',napkin:'Peçete isteği'}[c.request_type]||c.request_type))+' · '+when(c.created_at)+'</div></div><button class="ob-btn primary" data-ob-waiter-done="'+esc(c.id)+'">Tamamlandı</button></div>').join(''):'<div class="ob-empty">Bekleyen garson çağrısı yok.</div>')+'</div>';
    html+='<div class="ob-card"><h3>Garson onayı bekleyen QR siparişleri ('+state.requests.length+')</h3><p class="ob-muted">Müşterilerin gönderdiği siparişler onaylanmadan mutfağa düşmez.</p>';
@@ -273,7 +273,7 @@ async function addItem(form){
  const v=f.get('variant'),variation=v===''?null:p.variants?.[Number(v)];
  const price=Number(variation?variation.price:p.price),quantity=Number(f.get('quantity'));
  if(!Number.isFinite(price)||price<0||!Number.isInteger(quantity)||quantity<1||quantity>99)throw Error('Fiyat veya adet geçersiz.');
- await rpc('ob_adisyon_add_item',{p_venue_id:state.vid,p_table_no:state.table,p_name:p.name,p_unit_price:price,p_quantity:quantity,p_station:String(f.get('station')),p_note:String(f.get('note')||''),p_menu_item_id:String(p.id),p_variant_id:variation?String(variation.id):null});
+ await rpc('ob_adisyon_add_item',{p_venue_id:state.vid,p_table_no:state.table,p_name:p.name,p_unit_price:price,p_quantity:quantity,p_station:(p.station==='bar'||p.categoryStation==='bar')?'bar':'kitchen',p_note:String(f.get('note')||''),p_menu_item_id:String(p.id),p_variant_id:variation?String(variation.id):null});
  $('.ob-product-form',root())?.remove();notice('Sipariş kaydedildi.');await refresh();
 }
 async function status(id,to){
@@ -324,6 +324,7 @@ document.addEventListener('click',async e=>{
  if(!b||b.disabled)return;e.preventDefault();e.stopImmediatePropagation();
  if(b.hasAttribute('data-ob-close')){close();return}
  if(b.hasAttribute('data-ob-dismiss')){$('.ob-product-form',root())?.remove();return}
+ if(b.hasAttribute('data-ob-alarm-mute')){muteAlarm();return}
  if(state?.busy)return;
  b.disabled=true;
  try{
@@ -336,7 +337,6 @@ document.addEventListener('click',async e=>{
  if(window.Notification&&Notification.permission==='default')await Notification.requestPermission();
  stopAlarm();syncAlarm();notice('Alarm etkin. Gelen siparişlerde susturulana kadar çalacak.');
  }catch(e){notice('Ses etkinleşmedi: '+e.message,true)}}
-   else if(b.hasAttribute('data-ob-alarm-mute'))muteAlarm()
    else if(b.dataset.obWaiterDone){await rpc('ob_ops_waiter_done',{p_venue_id:state.vid,p_call_id:b.dataset.obWaiterDone});await refresh();notice('Garson çağrısı tamamlandı.')}
    else if(b.dataset.obStation){state.kitchenFilter=b.dataset.obStation;render()}
    else if(b.dataset.obTool)await toolAction(b.dataset.obTool);
