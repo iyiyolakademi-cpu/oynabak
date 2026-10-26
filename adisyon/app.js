@@ -61,8 +61,16 @@ async function toggle(id){
  if(current()?.me?.role!=='admin'||!venue(id))throw Error('Yönetici yetkisi gerekli.');
  const s=await rpc('ob_adisyon_status',{p_venue_id:id});
  if(!s?.can_manage)throw Error('Bu işletmede yetki bulunamadı.');
- const count=Math.max(1,Math.min(200,Number(s.table_count)||Number(venue(id).tables)||1));
- if(!confirm(venue(id).name+' işletmesi için adisyon '+(s.enabled?'kapatılsın':'('+count+' masa) açılsın')+'?'))return;
+ const defaultCount=Math.max(1,Math.min(200,Number(s.table_count)||Number(venue(id).tables)||1));
+ let count=defaultCount;
+ if(!s.enabled){
+   const response=prompt(venue(id).name+' için adisyon masası sayısı (1–200):',String(defaultCount));
+   if(response===null)return;
+   if(!/^[0-9]+$/.test(response.trim()))throw Error('Masa sayısı tam sayı olmalıdır.');
+   count=Number(response.trim());
+   if(count<1||count>200)throw Error('Masa sayısı 1–200 arasında olmalıdır.');
+ }
+ if(!confirm(venue(id).name+' için adisyon '+(s.enabled?'kapatılsın':'('+count+' masa olarak açılsın')+'?'))return;
  const next=await rpc('ob_adisyon_set_enabled',{p_venue_id:id,p_enabled:!s.enabled,p_table_count:count});
  notice(next?.enabled?'Adisyon açıldı.':'Adisyon kapatıldı.');
 }
