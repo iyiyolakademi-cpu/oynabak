@@ -7341,7 +7341,7 @@ async function customer(demo,seq){
   document.documentElement.style.setProperty('--accent','#ff6a00');
 
   const customGames=currentTenGames(venue.games||[]);
-  const totalGames=customGames.length+(String(venue?.id)==='70abef21-053c-4026-b402-e18311f758d5'?1:0);
+  const totalGames=customGames.length+(String(venue?.id)==='70abef21-053c-4026-b402-e18311f758d5'?2:0);
 
   $('#app').innerHTML=`
     <div class="customer customer-entry-only">
@@ -7501,8 +7501,28 @@ function listGames(){
     });
   }
 
+  // Two-player live Pişti is enabled only for the İyi Yol Akademi pilot venue.
+  if(String(venue?.id)==='70abef21-053c-4026-b402-e18311f758d5'){
+    items.push({
+      kind:'pisti',key:'pisti-live',name:'Pişti',type:'2 Kişilik · Canlı',
+      description:'İki telefondan karşılıklı Pişti! Arkadaşınla özel masa kur, kartları topla ve 101 puana ulaş.',
+      players:'2 oyuncu',time:'Canlı masa',cats:[],
+      cover:`<svg viewBox="0 0 640 360" role="img" aria-label="Yeşil Pişti masası üzerinde oyun kartları">
+        <defs><linearGradient id="obPistiBg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#208c61"/><stop offset="1" stop-color="#073a31"/></linearGradient></defs>
+        <rect width="640" height="360" rx="26" fill="url(#obPistiBg)"/>
+        <rect x="34" y="28" width="572" height="304" rx="95" fill="#105b45" stroke="#b79255" stroke-width="13"/>
+        <g font-family="system-ui" text-anchor="middle" font-weight="850">
+          <g transform="translate(184 70) rotate(-11 60 110)"><rect width="125" height="192" rx="9" fill="#fff9e7"/><text x="27" y="38" font-size="32" fill="#c94348">A</text><text x="62" y="126" font-size="78" fill="#c94348">♥</text></g>
+          <g transform="translate(328 62) rotate(10 60 110)"><rect width="125" height="192" rx="9" fill="#fff9e7"/><text x="29" y="38" font-size="32" fill="#17334a">J</text><text x="62" y="126" font-size="78" fill="#17334a">♠</text></g>
+          <text x="320" y="299" font-size="22" fill="#f2d7a4" letter-spacing="5">PİŞTİ · 2 KİŞİ</text>
+        </g>
+      </svg>`
+    });
+  }
+
   const gamePriority=name=>{
     const n=normalizeGameName(name||'');
+    if(n.includes('pisti')||n.includes('pişti'))return -1;
     if(n.includes('tabu'))return 0;
     if(n.includes('bilardo'))return 1;
     if(n.includes('tavla'))return 2;
@@ -7526,7 +7546,7 @@ function listGames(){
 
   const featured=visible[0];
   const rest=visible.slice(1);
-  const featuredAction=featured.kind==='okey'?'data-action="okey-open"':`data-custom="${featured.key}"`;
+  const featuredAction=featured.kind==='okey'?'data-action="okey-open"':featured.kind==='pisti'?'data-action="pisti-open"':`data-custom="${featured.key}"`;
 
   const featuredMeta=[
     featured.players?`<span>${metaIcons.users}${esc(featured.players)}</span>`:'',
@@ -7534,7 +7554,7 @@ function listGames(){
   ].join('');
 
   const cards=rest.map(item=>{
-    const action=item.kind==='okey'?'data-action="okey-open"':`data-custom="${item.key}"`;
+    const action=item.kind==='okey'?'data-action="okey-open"':item.kind==='pisti'?'data-action="pisti-open"':`data-custom="${item.key}"`;
 
     const meta=[
       item.players?`<span>${metaIcons.users}${esc(item.players)}</span>`:'',
@@ -7722,6 +7742,16 @@ if(menuCat){
   return;
 }
 
+if(a==='pisti-open'){
+  if(!hasQrGameAccess()||!featureOn(venue,'games')||String(venue?.id)!=='70abef21-053c-4026-b402-e18311f758d5'){
+    toast('Pişti yalnızca İyi Yol Akademi işletmesinde açık.');return;
+  }
+  await trackEvent('game_open',{game:'pisti'});
+  const pistiUrl=new URL('games/pisti.html',location.href);
+  pistiUrl.searchParams.set('isletme',String(venue.id));
+  location.assign(pistiUrl.href);
+  return;
+}
 if(a==='okey-open'){
   if(!hasQrGameAccess()||!featureOn(venue,'games')||String(venue?.id)!=='70abef21-053c-4026-b402-e18311f758d5'){
     toast('Okey yalnızca İyi Yol Akademi işletmesinde açık.');return;
