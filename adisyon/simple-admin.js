@@ -25,9 +25,10 @@ async function draw(vid){
   selected=vid;
   const devices=v.devices||[];
   const deviceCards=devices.length?devices.map(d=>{
-   const status=d.revoked?'İptal edildi':d.approved?'Onaylı cihaz':'Onay bekliyor';
+   const expired=!d.approved&&Date.now()-new Date(d.requested_at).getTime()>1800000;
+   const status=d.revoked?'İptal edildi':d.approved?'Onaylı cihaz':expired?'Süresi doldu':'Onay bekliyor';
    return '<article class="ob-simple-admin-device"><div><strong>İşletme ekranı cihazı</strong><p>'+status+' · '+new Date(d.requested_at).toLocaleString('tr-TR')+'</p></div>'+
-   (!d.revoked?(d.approved?'<button type="button" class="ob-simple-admin-danger" data-simple-device-action="revoke" data-simple-device-id="'+esc(d.id)+'">Erişimi iptal et</button>':'<div class="ob-simple-admin-group"><button type="button" data-simple-device-action="approve" data-simple-device-id="'+esc(d.id)+'" class="ob-simple-admin-positive">Onayla</button><button type="button" data-simple-device-action="revoke" data-simple-device-id="'+esc(d.id)+'" class="ob-simple-admin-danger">Reddet</button></div>'):'')+'</article>';
+   (!d.revoked?(d.approved||expired?'<button type="button" class="ob-simple-admin-danger" data-simple-device-action="revoke" data-simple-device-id="'+esc(d.id)+'">Erişimi iptal et</button>':'<div class="ob-simple-admin-group"><button type="button" data-simple-device-action="approve" data-simple-device-id="'+esc(d.id)+'" class="ob-simple-admin-positive">Onayla</button><button type="button" data-simple-device-action="revoke" data-simple-device-id="'+esc(d.id)+'" class="ob-simple-admin-danger">Reddet</button></div>'):'')+'</article>';
   }).join(''):'<p>Bu işletme için henüz cihaz erişim isteği yok.</p>';
   const el=$('#ob-simple-admin');if(!el)return;
   el.innerHTML='<div class="ob-simple-admin-shell"><header><div><small>OYNABAK · İŞLETME YÖNETİMİ</small><h2>'+esc(v.name)+'</h2></div><button type="button" data-simple-admin-close>✕ Kapat</button></header>'+
@@ -78,5 +79,6 @@ document.addEventListener('click',async e=>{
  finally{if(b.isConnected)b.disabled=false}
 },true);
 setInterval(mount,1600);
+setInterval(()=>{if(selected&&$('#ob-simple-admin')&&!viewBusy&&!$('#ob-simple-admin').contains(document.activeElement))draw(selected).catch(console.warn)},7000);
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});else mount();
 })();
