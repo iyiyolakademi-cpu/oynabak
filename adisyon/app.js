@@ -113,7 +113,7 @@ async function refresh(silent=false){
 function productForm(index){
  const p=state.products[index];if(!p)return;
  const variants=Array.isArray(p.variants)?p.variants.filter(v=>v.name):[];
- $('#ob-adisyon-add-form')?.remove();
+ $('.ob-product-form',root())?.remove();
  const wrap=document.createElement('div');wrap.className='ob-card ob-product-form';wrap.innerHTML='<form id="ob-adisyon-add-form" data-index="'+index+'"><div class="ob-row"><h3>'+esc(p.name)+'</h3><button type="button" class="ob-btn" data-ob-dismiss>✕</button></div><label class="ob-field">Varyant<select name="variant"><option value="">Standart · '+money(p.price)+'</option>'+variants.map((v,i)=>'<option value="'+i+'">'+esc(v.name)+' · '+money(v.price)+'</option>').join('')+'</select></label><label class="ob-field">Adet<input name="quantity" type="number" min="1" max="99" value="1" required></label><label class="ob-field">Hazırlık bölümü<select name="station"><option value="kitchen">Mutfak</option><option value="bar">Bar</option></select></label><label class="ob-field">Sipariş notu<textarea name="note" maxlength="300"></textarea></label><button class="ob-btn primary" type="submit">Masa '+state.table+' adisyonuna ekle</button></form>';
  body().appendChild(wrap);
 }
