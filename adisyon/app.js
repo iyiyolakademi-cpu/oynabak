@@ -262,6 +262,11 @@ function render(){
  if(state.tab==='tables'){
    if(!state.table){
      html+=floorBoard();
+     html+='<section class="ob-card"><h3>Masa araçları</h3><div class="ob-row">'+
+       (state.permission.move?'<button class="ob-btn" data-ob-tool="move">Masa taşı</button>':'')+
+       (state.permission.split?'<button class="ob-btn" data-ob-tool="split">Hesabı bölüştür</button>':'')+
+       (state.canManage?'<button class="ob-btn" data-ob-tool="codes">Masa doğrulaması</button>':'')+
+       '</div><div id="ob-extra-results" aria-live="polite"></div></section>';
    }else{
      const t=active(state.table),list=t?items(t.id):[];
      const products=state.products.map((p,i)=>({...p,index:i})).filter(p=>(p.name+' '+p.category).toLocaleLowerCase('tr-TR').includes(state.filter.toLocaleLowerCase('tr-TR')));
