@@ -166,7 +166,7 @@ function floorBoard(){
     positions.map(p=>'<option value="'+p.table+'"'+(p.table===selected?' selected':'')+'>Masa '+p.table+'</option>').join('')+
     '</select></label><button type="button" class="ob-btn" data-ob-floor-toggle-shape>Seçilen masanın şeklini değiştir</button></div>';
  }
- html+='<div class="ob-floor-scroll'><div class="ob-floor-canvas '+(state.floorEditing?'is-editing':'')+'" data-ob-floor-canvas style="height:'+height+'px">';
+ html+='<div class="ob-floor-scroll"><div class="ob-floor-canvas '+(state.floorEditing?'is-editing':'')+'" data-ob-floor-canvas style="height:'+height+'px">';
  html+='<div class="ob-floor-entrance">🚪 GİRİŞ</div>';
  for(const pos of positions){
   const t=active(pos.table),c=t?'open':'';
