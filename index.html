@@ -5782,6 +5782,7 @@ function waiterBeep(){
   window.OynaBakPlayWaiterTone(waiterAudioCtx);
 }
 function showWaiterAlert(call){
+  if(document.getElementById('ob-adisyon'))return; // Same call is visible in Sipariş Merkezi
   if(!call?.id||waiterMutedCalls.has(String(call.id)))return;
   document.querySelector('.waiter-alert')?.remove();
   clearTimeout(waiterAlertTimer);
