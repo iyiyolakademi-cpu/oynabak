@@ -239,21 +239,16 @@ async function decideRequest(id,approve){
 async function toolAction(action){
  const vid=state.vid,out=()=>$('#ob-extra-results');
  if(action==='move'){
-  const source=Number(prompt('Taşınacak masa numarası:'));if(!source)return;
-  const target=Number(prompt('Hedef masa numarası:'));if(!target)return;
-  const t=active(source);if(!t)throw Error('Kaynak masada açık adisyon yok.');
-  await rpc('ob_adisyon_move_ticket',{p_venue_id:vid,p_ticket_id:t.id,p_new_table:target});notice('Adisyon taşındı.');await refresh();
+  const opened=state.tickets.filter(t=>t.status==='open');
+  if(!opened.length)throw Error('Taşınabilecek açık masa bulunamadı.');
+  const sourceOptions=opened.map(t=>'<option value="'+esc(t.id)+'">Masa '+esc(t.table_no)+' · '+money(total(t.id))+'</option>').join('');
+  const targetOptions=Array.from({length:state.count},(_,n)=>'<option value="'+(n+1)+'">Masa '+(n+1)+'</option>').join('');
+  if(out())out().innerHTML='<form class="ob-tool-form" id="ob-move-form"><h4>Masayı taşı</h4><p>Hedef masada açık adisyon bulunmamalı.</p><label>Kaynak adisyon<select name="ticket" required>'+sourceOptions+'</select></label><label>Hedef masa<select name="target" required>'+targetOptions+'</select></label><button type="submit" class="ob-btn primary">Masayı taşı</button></form>';
  }else if(action==='split'){
-  const no=Number(prompt('Bölüştürülecek masa:'));if(!no)return;
-  const t=active(no);if(!t)throw Error('Bu masada açık adisyon yok.');
-  const parts=items(t.id).filter(i=>i.status!=='void');
-  if(!parts.length)throw Error('Bu masada ürün yok.');
-  const summary=parts.map((i,k)=>(k+1)+'. '+i.name+' × '+i.quantity).join('\n');
-  const idx=Number(prompt('Ürün sıra numarası:\n'+summary));const item=parts[idx-1];if(!item)return;
-  const group=prompt('Kişi/hesap adı (ör. Kişi 1):');if(!group)return;
-  const qty=Number(prompt('Bu kişiye ayrılacak adet:','1'));
-  const d=await rpc('ob_adisyon_split_assign',{p_venue_id:vid,p_ticket_id:t.id,p_item_id:item.id,p_group:group,p_quantity:qty});
-  if(out())out().innerHTML='<h4>Hesap bölüştürme</h4>'+d.map(x=>'<p>'+esc(x.group)+' · '+esc(x.quantity)+' adet · '+money(x.amount)+'</p>').join('')+'<p class="ob-muted">Tahsilat kaydı değildir.</p>';
+  const opened=state.tickets.filter(t=>t.status==='open');
+  const options=opened.flatMap(t=>items(t.id).filter(i=>i.status!=='void').map(i=>'<option value="'+esc(i.id)+'" data-ticket="'+esc(t.id)+'">Masa '+t.table_no+' · '+esc(i.quantity)+' × '+esc(i.name)+'</option>')).join('');
+  if(!options)throw Error('Bölüştürülecek açık sipariş yok.');
+  if(out())out().innerHTML='<form class="ob-tool-form" id="ob-split-form"><h4>Kişi bazlı hesabı bölüştür</h4><p>Ürün ve adetleri kişilere ayır; ödeme kaydı oluşturulmaz.</p><label>Ürün<select name="item" required>'+options+'</select></label><label>Kişi adı<input name="group" required maxlength="40" placeholder="Örneğin Kişi 1"></label><label>Adet<input name="quantity" type="number" min="1" max="99" value="1" required></label><button type="submit" class="ob-btn primary">Kişiye ayır</button><div id="ob-split-results"></div></form>';
  }else if(action==='stats'){
   const d=await rpc('ob_adisyon_analytics',{p_venue_id:vid,p_days:30});
   if(out())out().innerHTML='<h4>Son 30 gün</h4><p>Sipariş tutarı: <b>'+money(d.totals?.ordered)+'</b></p><p>Ürün satırı: '+esc(d.totals?.items||0)+' · İptal: '+esc(d.totals?.cancelled||0)+' · Ortalama işlem süresi: '+esc(d.totals?.average_prep_minutes||0)+' dk</p><h4>Popüler ürünler</h4>'+(d.top_products||[]).map(x=>'<p>'+esc(x.name)+' · '+esc(x.qty)+' adet</p>').join('')+'<h4>Yoğun saatler</h4>'+(d.hours||[]).map(x=>'<p>'+esc(x.hour_of_day)+':00 · '+esc(x.orders)+' sipariş</p>').join('')+'<p class="ob-muted">Tahsil edilmiş gelir değildir.</p>';
@@ -299,6 +294,33 @@ document.addEventListener('click',async e=>{
   }
  }catch(err){notice(err.message||String(err),true)}
  finally{b.disabled=false}
+},true);
+document.addEventListener('submit',async e=>{
+ if(!['ob-move-form','ob-split-form'].includes(e.target.id))return;
+ e.preventDefault();e.stopImmediatePropagation();
+ if(!state||state.busy)return;
+ state.busy=true;
+ const form=e.target,btn=form.querySelector('[type=submit]');if(btn)btn.disabled=true;
+ try{
+  const data=new FormData(form);
+  if(form.id==='ob-move-form'){
+   const ticket=state.tickets.find(t=>t.id===data.get('ticket')&&t.status==='open');
+   if(!ticket)throw Error('Açık adisyon bulunamadı.');
+   const target=Number(data.get('target'));
+   if(!Number.isInteger(target)||target<1||target>state.count)throw Error('Hedef masa geçersiz.');
+   await rpc('ob_adisyon_move_ticket',{p_venue_id:state.vid,p_ticket_id:ticket.id,p_new_table:target});
+   notice('Masa taşındı.');state.busy=false;await refresh();await toolAction('move');
+  }else{
+   const item=state.items.find(i=>i.id===data.get('item'));
+   if(!item)throw Error('Ürün bulunamadı.');
+   const group=String(data.get('group')||'').trim(),qty=Number(data.get('quantity'));
+   if(!group||!Number.isInteger(qty)||qty<1||qty>item.quantity)throw Error('Geçersiz kişi veya adet.');
+   const parts=await rpc('ob_adisyon_split_assign',{p_venue_id:state.vid,p_ticket_id:item.ticket_id,p_item_id:item.id,p_group:group,p_quantity:qty});
+   const el=$('#ob-split-results');if(el)el.innerHTML='<h4>Hesap dağılımı</h4>'+(parts||[]).map(x=>'<p>'+esc(x.group)+' · '+esc(x.quantity)+' adet · '+money(x.amount)+'</p>').join('')+'<p class="ob-muted">Tahsilat kaydı değildir.</p>';
+   notice('Paylaştırma kaydedildi.');
+  }
+ }catch(err){notice(err.message||String(err),true)}
+ finally{if(state)state.busy=false;if(btn?.isConnected)btn.disabled=false}
 },true);
 document.addEventListener('submit',async e=>{
  if(e.target.id!=='ob-adisyon-add-form')return;e.preventDefault();e.stopImmediatePropagation();
