@@ -217,8 +217,8 @@ begin
    unit_price,quantity,station,note,created_by)
   values(t_id,p_venue_id,line->>'item_id',nullif(line->>'variant_id',''),
     line->>'name',(line->>'unit_price')::numeric,(line->>'quantity')::int,
-    line->>'station',trim(concat_ws(' | ',nullif(line->>'variant_name',''),
-         nullif(line->>'note',''),nullif(r.customer_note,''))),auth.uid())
+    line->>'station',left(trim(concat_ws(' | ',nullif(line->>'variant_name',''),
+         nullif(line->>'note',''),nullif(r.customer_note,''))),300),auth.uid())
   returning id into it_id;
   insert into public.ob_adisyon_audit(venue_id,ticket_id,item_id,action,actor_id,detail)
   values(p_venue_id,t_id,it_id,'qr_approved',auth.uid(),jsonb_build_object('request_id',p_order_id));
