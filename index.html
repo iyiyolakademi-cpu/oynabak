@@ -6917,13 +6917,14 @@ function normalizeMenu(raw){
     id:String(c?.id||('cat-'+ci)),
     name:String(c?.name||'Kategori').slice(0,80),
     active:c?.active!==false,
+    station:['kitchen','bar'].includes(c?.station)?c.station:'auto',
     subcategories:(Array.isArray(c?.subcategories)?c.subcategories:[]).slice(0,30).map((sub,si)=>({
       id:String(sub?.id||('sub-'+ci+'-'+si)).slice(0,120),
       name:String(sub?.name||'Alt başlık').slice(0,80)
     })),
     items:(Array.isArray(c?.items)?c.items:[]).slice(0,100).map((it,ii)=>({
       id:String(it?.id||('item-'+ii)),subcategory_id:String(it?.subcategory_id||'').slice(0,120),name:String(it?.name||'Ürün').slice(0,120),description:String(it?.description||'').slice(0,300),
-      price:Number(it?.price||0),image_url:String(it?.image_url||'').slice(0,1200),image_data:String(it?.image_data||'').slice(0,900000),active:it?.active!==false,sold_out:Boolean(it?.sold_out),featured:Boolean(it?.featured),variants:(Array.isArray(it?.variants)?it.variants:[]).slice(0,30).map(v=>({id:String(v?.id||menuId('var')),name:String(v?.name||'').slice(0,100),price:Number(v?.price||0)}))
+      price:Number(it?.price||0),image_url:String(it?.image_url||'').slice(0,1200),image_data:String(it?.image_data||'').slice(0,900000),active:it?.active!==false,sold_out:Boolean(it?.sold_out),featured:Boolean(it?.featured),station:['kitchen','bar'].includes(it?.station)?it.station:'auto',variants:(Array.isArray(it?.variants)?it.variants:[]).slice(0,30).map(v=>({id:String(v?.id||menuId('var')),name:String(v?.name||'').slice(0,100),price:Number(v?.price||0)}))
     }))
   }))};
 }
@@ -7161,6 +7162,11 @@ function menuAdminCategoryHtml(c){
   return `<section class="menu-admin-cat" data-menu-cat="${esc(c.id)}">
     <div class="menu-admin-cat-head">
       <label>Kategori adı<input class="menu-cat-name" maxlength="80" value="${esc(c.name||'')}"></label>
+      <label>Hazırlık bölümü<select class="menu-cat-station">
+        <option value="auto" ${!['kitchen','bar'].includes(c.station)?'selected':''}>Otomatik</option>
+        <option value="kitchen" ${c.station==='kitchen'?'selected':''}>Mutfak</option>
+        <option value="bar" ${c.station==='bar'?'selected':''}>Bar</option>
+      </select></label>
       <button type="button" class="danger" data-action="menu-remove-category">Kategoriyi sil</button>
     </div>
     <div class="menu-admin-subcat-panel">
@@ -7193,6 +7199,11 @@ function menuAdminItemHtml(i,subcategories=[]){
     <label>Fiyat (TL)
       <input class="menu-item-price" type="number" min="0" step="0.01" placeholder="0" value="${Number(i.price||0)}">
     </label>
+    <label>Hazırlık yeri<select class="menu-item-station">
+      <option value="auto" ${!['kitchen','bar'].includes(i.station)?'selected':''}>Kategoriden al</option>
+      <option value="kitchen" ${i.station==='kitchen'?'selected':''}>Mutfak</option>
+      <option value="bar" ${i.station==='bar'?'selected':''}>Bar</option>
+    </select></label>
     <button type="button" class="danger" data-action="menu-remove-item">Sil</button>
 
     <label class="desc">Kısa açıklama
@@ -7220,6 +7231,7 @@ function collectMenuForm(){
     return {
       id,
       name:cat.querySelector('.menu-cat-name')?.value.trim()||'Kategori',
+      station:cat.querySelector('.menu-cat-station')?.value||'auto',
       active:previous?.active!==false,
       subcategories:menuEditorSubcategories(cat),
       items:[...cat.querySelectorAll('[data-menu-item]')].map(it=>{
@@ -7230,6 +7242,7 @@ function collectMenuForm(){
           name:it.querySelector('.menu-item-name')?.value.trim()||'Ürün',
           description:it.querySelector('.menu-item-desc')?.value.trim()||'',
           price:Math.max(0,Number(it.querySelector('.menu-item-price')?.value||0)),
+          station:it.querySelector('.menu-item-station')?.value||'auto',
           image_url:original?.image_url||'',
           image_data:original?.image_data||'',
           active:Boolean(it.querySelector('.menu-item-active')?.checked),
@@ -7248,7 +7261,7 @@ function collectMenuForm(){
 }
 async function menuManager(vid){
   const menu=await loadVenueMenu(vid);menuEditorOriginal=menu;const v=(adminData?.venues||[]).find(x=>String(x.id)===String(vid))||me?.venue||{};
-  modal('Dijital Menü',`<form id="menuForm" data-vid="${esc(vid)}"><p class="muted" style="margin-top:0"><b>${esc(v.name||'İşletme')}</b> için dijital menü. Ana kategorileri, alt başlıkları, ürünleri ve fiyatları buradan yönetebilirsin.</p><div id="menuAdminCategories" class="menu-admin">${menu.categories.map(menuAdminCategoryHtml).join('')}</div><div class="row" style="margin-top:14px"><button type="button" class="btn light" data-action="menu-add-category">+ Kategori ekle</button><button class="btn coral" type="submit">Menüyü kaydet</button></div></form>`);
+  modal('Dijital Menü',`<form id="menuForm" data-vid="${esc(vid)}"><p class="muted" style="margin-top:0"><b>${esc(v.name||'İşletme')}</b> için dijital menü. Ana kategorileri, alt başlıkları, ürünleri, fiyatları ve mutfak/bar yönlendirmesini buradan yönetebilirsin.</p><div id="menuAdminCategories" class="menu-admin">${menu.categories.map(menuAdminCategoryHtml).join('')}</div><div class="row" style="margin-top:14px"><button type="button" class="btn light" data-action="menu-add-category">+ Kategori ekle</button><button class="btn coral" type="submit">Menüyü kaydet</button></div></form>`);
 }
 
 
