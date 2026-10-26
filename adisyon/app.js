@@ -23,10 +23,10 @@ async function mount(){
    });
   }else{
     const box=$('.merchant-control-grid'),id=me.venue?.id;
-    if(box&&id&&!box.querySelector('[data-ob-open]')){
+    if(box&&id&&!box.dataset.obBlocked&&!box.querySelector('[data-ob-open]')){
       const b=document.createElement('button');b.type='button';b.className='merchant-control-card';b.dataset.obOpen=String(id);
       b.innerHTML='<span>07</span><b>📋 Adisyon Yönetimi</b><small>Masalar, siparişler, mutfak ve raporlar · ödeme yok</small>';box.appendChild(b);
-      rpc('ob_adisyon_status',{p_venue_id:String(id)}).then(s=>{if(b.isConnected&&!s?.enabled)b.remove()}).catch(()=>b.remove());
+      rpc('ob_adisyon_status',{p_venue_id:String(id)}).then(s=>{if(b.isConnected&&!s?.enabled){box.dataset.obBlocked='1';b.remove()}}).catch(()=>{box.dataset.obBlocked='1';b.remove()});
     }
   }
  }finally{mounting=false}
