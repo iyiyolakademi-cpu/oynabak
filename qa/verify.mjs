@@ -4,7 +4,7 @@ import {Script} from 'node:vm';
 
 const files=[
  'adisyon/app.js','adisyon/customer-orders.js','adisyon/daily-overview.js',
- 'adisyon/simple-console.js','adisyon/simple-admin.js','adisyon/staff-pin.js','games/okey.js','games/okey-touch.js',
+ 'adisyon/simple-console.js','adisyon/simple-admin.js','adisyon/staff-pin.js','games/okey.js','games/okey-touch.js','games/pisti.js',
  'finance/preview.js'
 ];
 for(const file of files){
@@ -74,5 +74,27 @@ assert.match(landscape,/grid-template-columns:repeat\\(15/,'15-tile mobile rack 
 console.log('OK Okey mobile landscape, fullscreen request, room selection and touch drag checks');
 
 console.log('OK Okey pilot assets, academy gate, lobby and API links');
+
+
+const pistiPage=readFileSync('games/pisti.html','utf8');
+const pistiJs=readFileSync('games/pisti.js','utf8');
+const pistiCss=readFileSync('games/pisti.css','utf8');
+assert.match(html,/data-action="pisti-open"/,'Pişti game launch missing');
+assert.match(html,/games\\/pisti\\.html/,'Pişti route missing');
+assert.match(html,/kind:'pisti'/,'Academy-only Pişti card missing');
+assert.match(pistiPage,/id="createForm"/);
+assert.match(pistiPage,/id="joinForm"/);
+assert.match(pistiPage,/id="centerPile"/);
+assert.match(pistiPage,/id="hand"/);
+assert.match(pistiPage,/id="readyButton"/);
+assert.match(pistiJs,/ob_pisti_open/);
+assert.match(pistiJs,/ob_pisti_state/);
+assert.match(pistiJs,/ob_pisti_act/);
+assert.match(pistiJs,/setPointerCapture/,'Touch-to-play must support drag');
+assert.match(pistiJs,/pointerup/);
+assert.match(pistiJs,/p_venue_id:VENUE/,'Venue scope');
+assert.match(pistiCss,/\\.felt/);
+assert.match(pistiCss,/@media\\(max-width:550px\\)/,'Mobile portrait layout');
+console.log('OK Pişti pilot security gate, UI, mobile touch, rounds and RPC links');
 
 console.log('OynaBak static smoke tests passed.');
