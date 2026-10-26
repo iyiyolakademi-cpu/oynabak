@@ -5954,7 +5954,7 @@ function venueForm(v={},merchant=false){
     <form id="venueForm" data-id="${v.id||''}" data-merchant="${merchant}">
       <div class="split">
         <label class="field">İşletme adı<input name="name" required minlength="2" maxlength="100" value="${esc(v.name||'')}"></label>
-        <label class="field">QR noktası<input name="tables" type="number" min="1" max="100" required value="${v.tables||1}"></label>
+        <label class="field">QR noktası<input name="tables" type="number" min="1" max="200" required value="${v.tables||1}"></label>
         ${merchant?'':`<label class="field">İşletme türü<select name="sector">${['Kafe','Spor salonu','Mağaza'].map(s=>`<option ${s===v.sector?'selected':''}>${s}</option>`).join('')}</select></label>`}
       </div>
 
@@ -7820,7 +7820,7 @@ document.addEventListener('submit',async e=>{const f=e.target;if(!['authForm','p
     color:(f.dataset.id ? (getVenue(f.dataset.id)?.color||'#ff705b') : (me?.venue?.color||'#ff705b')),
     review_url:rawReview?normalizeReviewUrl(rawReview):'',
     instagram_url:isFreedVenue({name:d.get('name')})?FREED_INSTAGRAM_URL:(rawInstagram?normalizeInstagramUrl(rawInstagram):''),
-    tables:1
+    tables:Number(d.get('tables'))
   };
 
   const merchant=f.dataset.merchant==='true';
