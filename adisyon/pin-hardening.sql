@@ -24,7 +24,7 @@ begin
    where venue_id=p_venue_id and used_at is null and expires_at>now();
  end if;
  return public.ob_adisyon_status(p_venue_id);
-end $function$
+end $function$;
 
 CREATE OR REPLACE FUNCTION public.ob_staff_pin_toggle(p_venue_id text, p_enabled boolean)
  RETURNS jsonb
@@ -51,4 +51,4 @@ begin
    where venue_id=p_venue_id and used_at is null and expires_at>now();
  end if;
  return jsonb_build_object('venue_id',p_venue_id,'enabled',p_enabled);
-end $function$
+end $function$;
