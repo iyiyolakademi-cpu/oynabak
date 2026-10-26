@@ -196,7 +196,7 @@ function audibleBeep(){
 }
 function updateAlarmButton(){
  if(!root())return;
- root().querySelectorAll('[data-ob-enable-alerts],[data-ob-floor-edit],[data-ob-floor-cancel],[data-ob-floor-auto],[data-ob-floor-confirm]').forEach(btn=>{
+ root().querySelectorAll('[data-ob-enable-alerts]').forEach(btn=>{
   btn.textContent=audioEnabled&&audioCtx?.state==='running'?'🔊 Alarm açık · Sesi dene':audioEnabled?'🔔 Alarm için ekrana dokun':'🔔 Bildirim sesini aç';
   btn.setAttribute('aria-pressed',audioEnabled?'true':'false');
  });
