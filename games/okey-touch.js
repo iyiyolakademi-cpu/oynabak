@@ -55,7 +55,7 @@ function install(options){
    const tile=getTile(point);
    if(tile&&rack.contains(tile)){hover=tile;hover.classList.add('drop-target')}
   }
-  if(gesture?.mode==='tile'&&throwButton&&!throwButton.disabled&&within(throwButton.getBoundingClientRect(),x,y,10)){
+  if(gesture?.mode==='tile'&&throwButton&&options.canThrow(gesture.id)&&within(throwButton.getBoundingClientRect(),x,y,10)){
    throwButton.classList.add('drop-active');
   }
  }
@@ -85,7 +85,7 @@ function install(options){
    e.preventDefault();
    suppressed.set(g.source,Date.now()+650);
    const overRack=within(rack.getBoundingClientRect(),e.clientX,e.clientY,12);
-   const overDiscard=throwButton&&!throwButton.disabled&&within(throwButton.getBoundingClientRect(),e.clientX,e.clientY,13);
+   const overDiscard=throwButton&&g.mode==='tile'&&options.canThrow(g.id)&&within(throwButton.getBoundingClientRect(),e.clientX,e.clientY,13);
    if(g.mode==='tile'&&overDiscard&&options.canThrow(g.id))action='throw';
    else if(overRack){targetIndex=closestIndex(e.clientX,e.clientY);action=g.mode==='tile'?'reorder':'draw'}
   }else if(g.mode==='tile')action='select';
