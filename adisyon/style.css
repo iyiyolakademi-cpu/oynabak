@@ -167,3 +167,27 @@
 /* Alarm controls must stay visible while an incoming order is waiting. */
 #ob-adisyon .ob-head [data-ob-enable-alerts]{min-height:48px}
 #ob-adisyon .ob-loop-alarm{position:sticky;top:0;z-index:8}
+
+
+/* 27 Oct 2026: unified accessible operations design */
+#ob-adisyon .ob-ops-tools{margin-top:15px;border-left:4px solid #e76a32}
+#ob-adisyon .ob-ops-tools .ob-row{justify-content:flex-start}
+#ob-adisyon .ob-report-actions{justify-content:flex-start;margin:18px 0 6px}
+#ob-adisyon #ob-extra-results:empty{display:none}
+#ob-adisyon #ob-extra-results:not(:empty){margin-top:17px;border-top:1px solid #e6eaf1;padding-top:15px}
+#ob-adisyon .ob-btn{min-height:44px;transition:background-color .15s,border-color .15s,box-shadow .15s}
+#ob-adisyon .ob-btn:not(:disabled):hover{border-color:#a7bad2;box-shadow:0 3px 10px #17263c0e}
+#ob-adisyon .ob-btn.primary:not(:disabled):hover{background:#284d74}
+#ob-adisyon .ob-btn:disabled{opacity:.62;cursor:wait}
+#ob-adisyon .ob-stats .ob-card{box-shadow:0 3px 14px #15284008}
+#ob-adisyon .ob-kds-ticket{border-left:4px solid #cbd5e1}
+#ob-adisyon .ob-stage-new .ob-kds-ticket{border-left-color:#e76a32}
+#ob-adisyon .ob-stage-preparing .ob-kds-ticket{border-left-color:#3678b7}
+#ob-adisyon .ob-stage-ready .ob-kds-ticket{border-left-color:#188158}
+#ob-adisyon .ob-kds-ticket.ob-kds-delayed{border-color:#d19b50;border-left-color:#b74820;background:#fffaf1}
+@media(max-width:600px){
+ #ob-adisyon .ob-ops-tools .ob-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+ #ob-adisyon .ob-ops-tools .ob-btn{padding:12px 8px;min-height:49px}
+ #ob-adisyon .ob-report-actions .ob-btn{flex:1}
+ #ob-adisyon .ob-head .ob-btn{min-height:48px}
+}
