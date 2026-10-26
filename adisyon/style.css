@@ -123,3 +123,47 @@
  #ob-adisyon .ob-loop-alarm b{font-size:17px}
  #ob-adisyon .ob-entry:has([data-ob-waiter-done]){align-items:flex-start}
 }
+
+/* Per-business table floor plan: drag, approve, preserve table numbers. */
+#ob-adisyon .ob-floor{background:#fff;border:1px solid #e1e7ef;border-radius:17px;padding:16px}
+#ob-adisyon .ob-floor-header{display:flex;justify-content:space-between;align-items:flex-start;
+ gap:16px;flex-wrap:wrap;margin-bottom:14px}
+#ob-adisyon .ob-floor-header h3{margin:0 0 6px;font-size:19px}
+#ob-adisyon .ob-floor-header .ob-muted{margin:0;max-width:540px}
+#ob-adisyon .ob-floor-actions{display:flex;gap:9px;flex-wrap:wrap}
+#ob-adisyon .ob-floor-actions>.ob-btn{min-height:46px}
+#ob-adisyon .ob-floor-scroll{max-width:100%;overflow-x:auto;overflow-y:hidden;border-radius:15px}
+#ob-adisyon .ob-floor-canvas{--ob-floor-table-size:106px;position:relative;
+ min-width:625px;width:100%;border:2px solid #d9e2ec;border-radius:15px;
+ background-color:#f2f5f9;
+ background-image:linear-gradient(to right,rgba(119,143,173,.11) 1px,transparent 1px),
+ linear-gradient(to bottom,rgba(119,143,173,.11) 1px,transparent 1px);
+ background-size:28px 28px;overflow:hidden;touch-action:pan-y}
+#ob-adisyon .ob-floor-canvas.is-editing{border-style:dashed;border-color:#427dc2}
+#ob-adisyon .ob-floor-entrance{position:absolute;left:18px;bottom:0;z-index:1;
+ background:#dce8f5;color:#38516e;border-radius:10px 10px 0 0;
+ padding:6px 15px;font-size:11px;font-weight:800;pointer-events:none}
+#ob-adisyon .ob-floor-table{position:absolute;z-index:2;width:var(--ob-floor-table-size);
+ height:var(--ob-floor-table-size);min-height:0;border:2px solid #c8d7e6;border-radius:16px;
+ background:#fff;color:#253b55;display:flex;flex-direction:column;align-items:center;
+ justify-content:center;gap:6px;box-shadow:0 3px 12px rgba(22,41,70,.08);
+ cursor:pointer;user-select:none;-webkit-user-select:none;padding:8px;font:inherit}
+#ob-adisyon .ob-floor-table b{font-size:15px;line-height:1.1}
+#ob-adisyon .ob-floor-table small{font-size:11px;line-height:1.2;color:#64788d;
+ text-align:center;overflow-wrap:anywhere}
+#ob-adisyon .ob-floor-table.open{background:#e9f9f0;border-color:#46ab78}
+#ob-adisyon .ob-floor-table.is-draggable{cursor:grab;touch-action:none;
+ border-style:dashed;border-color:#407dc8;background:#f8fcff}
+#ob-adisyon .ob-floor-table.is-moving{cursor:grabbing;z-index:10;
+ border-style:solid;box-shadow:0 8px 30px rgba(23,73,143,.30);transform:scale(1.04)}
+#ob-adisyon .ob-floor-table:focus-visible{outline:3px solid #257fc6;outline-offset:3px}
+@media(max-width:650px){
+ #ob-adisyon .ob-floor{padding:11px}
+ #ob-adisyon .ob-floor-header{gap:11px}
+ #ob-adisyon .ob-floor-actions{width:100%}
+ #ob-adisyon .ob-floor-actions .ob-btn{flex:1;min-height:48px;padding:9px}
+ #ob-adisyon .ob-floor-canvas{min-width:625px}
+}
+/* Alarm controls must stay visible while an incoming order is waiting. */
+#ob-adisyon .ob-head [data-ob-enable-alerts]{min-height:48px}
+#ob-adisyon .ob-loop-alarm{position:sticky;top:0;z-index:8}
