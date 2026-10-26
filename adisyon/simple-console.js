@@ -43,6 +43,8 @@ function syncAlarm(){
   ...(state.requests||[]).map(x=>'r:'+x.id),
   ...(state.items||[]).filter(x=>x.status==='new').map(x=>'i:'+x.id)
  ];
+ const activeKeys=new Set(all);
+ for(const k of silenced)if(!activeKeys.has(k))silenced.delete(k);
  alertKeys=all.filter(k=>!silenced.has(k));
  const has=alertKeys.length>0;
  if(!has){stopAlarm();return}
@@ -139,7 +141,7 @@ async function enroll(){
  }catch(err){device=null;save();throw err}
 }
 function waiting(status){
- base('<section class="ob-simple-intro"><small>OYNABAK · CİHAZ</small><h1>'+(status.revoked?'Cihaz erişimi iptal edildi':status.disabled?'İşletme ekranı kapalı':status.reset?'Cihaz yeniden onaylanmalı':'Yönetici onayı bekleniyor')+'</h1><p>'+(status.revoked||status.disabled?'Yönetici panelinden tekrar etkinleştirilmesi gerekiyor.':'Yönetici oynabak.com panelinden bu cihazın isteğini onaylayınca ekran otomatik açılacak.')+'</p><button type="button" class="ob-simple-secondary" data-simple-reset>Başka işletme / yeni cihaz</button><p>Siparişlere onaysız erişim verilmez.</p></section>');
+ base('<section class="ob-simple-intro"><small>OYNABAK · CİHAZ</small><h1>'+(status.expired?'Cihaz isteğinin süresi doldu':status.revoked?'Cihaz erişimi iptal edildi':status.disabled?'İşletme ekranı kapalı':status.reset?'Cihaz yeniden onaylanmalı':'Yönetici onayı bekleniyor')+'</h1><p>'+(status.expired?'Yeni bir cihaz erişim isteği oluşturmalısın.':status.revoked||status.disabled?'Yönetici panelinden tekrar etkinleştirilmesi gerekiyor.':'Yönetici oynabak.com panelinden bu cihazın isteğini onaylayınca ekran otomatik açılacak.')+'</p><button type="button" class="ob-simple-secondary" data-simple-reset>Başka işletme / yeni cihaz</button><p>Siparişlere onaysız erişim verilmez.</p></section>');
 }
 async function poll(){
  if(!isRoute()||fetching)return;
