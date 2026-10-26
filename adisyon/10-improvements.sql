@@ -248,12 +248,12 @@ begin
     and i.status<>'void' and i.created_at>=now()-make_interval(days=>v_days)
     group by i.name order by qty desc limit 10) x),'[]'::jsonb),
  'hours',coalesce((select jsonb_agg(to_jsonb(x)) from(
-   select extract(hour from i.created_at at time zone 'Europe/Istanbul')::int hour,
+   select extract(hour from i.created_at at time zone 'Europe/Istanbul')::int AS hour_of_day,
     count(*) orders from public.ob_adisyon_items i
     where i.venue_id=p_venue_id and i.created_at>=now()-make_interval(days=>v_days)
     group by 1 order by 1)x),'[]'::jsonb),
  'days',coalesce((select jsonb_agg(to_jsonb(x)) from(
-    select (i.created_at at time zone 'Europe/Istanbul')::date day,
+    select (i.created_at at time zone 'Europe/Istanbul')::date AS local_day,
       sum(i.line_total) filter(where i.status<>'void') total,count(*) items
     from public.ob_adisyon_items i where i.venue_id=p_venue_id
     and i.created_at>=now()-make_interval(days=>v_days)
