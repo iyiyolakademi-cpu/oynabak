@@ -79,5 +79,19 @@ document.addEventListener('click',async e=>{
  }catch(err){notice(err.message)}
  finally{if(b.isConnected)b.disabled=false}
 },true);
+let checking=false;
+setInterval(async()=>{
+ if(!activeRoute()||!device?.unlocked||checking)return;
+ checking=true;
+ try{
+  const status=await rpc('ob_staff_device_status');
+  if(!status?.unlocked||!status?.active){
+   device=status;
+   window.OynaBakAdisyonModule?.close();
+   await show();
+  }
+ }catch(e){console.warn('Personel oturumu kontrolü:',e);window.OynaBakAdisyonModule?.close();device=null;await show()}
+ finally{checking=false}
+},30000);
 window.OynaBakStaffPin=Object.freeze({show,context});
 })();
