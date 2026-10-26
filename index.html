@@ -7463,7 +7463,7 @@ function listGames(){
 
   custom.forEach((g,i)=>{
     const cover=g.image_data
-      ? `<img src="${esc(g.image_data)}" alt="${esc(g.name)} kapak görseli">`
+      ? `<img src="${esc(g.image_data)}" alt="${esc(g.name)} kapak görseli" loading="lazy" decoding="async">`
       : `<svg viewBox="0 0 640 360" aria-hidden="true">
           <defs><linearGradient id="emptyGame${i}" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#151515"/><stop offset=".6" stop-color="#2a2a2a"/><stop offset="1" stop-color="#111"/></linearGradient></defs>
           <rect width="640" height="360" fill="url(#emptyGame${i})"/>
