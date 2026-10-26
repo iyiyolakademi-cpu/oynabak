@@ -6520,16 +6520,7 @@ body{min-height:100dvh}
   }
 
   // Parça HTML ise güvenli bir belge içinde çalıştır.
-  return `<!doctype html><html><head>${injected}</head><body>${src}<link rel="stylesheet" href="adisyon/style.css">
-<script>
-/* Mevcut OynaBak oturumu ve tek kaynak menusu; ikinci bir giris sistemi yok. */
-window.OynaBakAdisyonBridge=Object.freeze({
-  context:()=>({db,me,adminData}),
-  menu:vid=>loadVenueMenu(vid)
-});
-</script>
-<script defer src="adisyon/app.js"></script>
-</body></html>`;
+  return `<!doctype html><html><head>${injected}</head><body>${src}</body></html>`;
 }
 
 function instrumentGameFinish(code){
@@ -8028,4 +8019,13 @@ function close(clear=true){node()?.remove();if(clear)state=null}
 window.OynaBakOwnerFinancePreview=Object.freeze({open,close});
 })();
 </script>
-</body></html>
+link rel="stylesheet" href="adisyon/style.css">
+<script>
+/* Mevcut OynaBak oturumu ve tek kaynak menusu; ikinci bir giris sistemi yok. */
+window.OynaBakAdisyonBridge=Object.freeze({
+  context:()=>({db,me,adminData}),
+  menu:vid=>loadVenueMenu(vid)
+});
+</script>
+<script defer src="adisyon/app.js"></script>
+<</body></html>
