@@ -5539,7 +5539,9 @@ function setupNotice(){return `<div class="notice">${esc(initError||'Bu sitenin 
 function authView(){ $('#app').innerHTML=`<div class="wrap page"><div class="card narrow"><span class="eyebrow">İŞLETMENE HOŞ GELDİN</span><h2>OynaBak hesabın.</h2>${!db?setupNotice():`<form id="authForm"><label class="field">E-posta<input name="email" type="email" autocomplete="email" required maxlength="254"></label><label class="field">Şifre<input name="password" type="password" autocomplete="current-password" required minlength="8" maxlength="128"></label><div class="row"><button class="btn coral" type="submit" name="mode" value="login">Giriş yap</button><button class="btn light" type="submit" name="mode" value="signup">Hesap oluştur</button></div><button type="button" data-action="reset" class="btn small light" style="margin-top:18px">Şifremi unuttum</button></form><p class="muted" style="font-size:13px;margin-top:18px">Hesap oluşturmak paketi etkinleştirmez. İşletme erişimi OynaBak yönetimi tarafından onaylandıktan sonra açılır.</p>`}</div></div>`}
 function recoveryView(valid){if(!valid){$('#app').innerHTML=`<div class="wrap page"><div class="card narrow"><h2>Yeni şifre bağlantısı gerekli.</h2><p>Bağlantının süresi dolmuş, daha önce kullanılmış veya doğrulama bilgileri siteye ulaşmamış olabilir. Yeni bir bağlantı iste ve en son gelen e-postayı aç.</p><form id="recoveryRequestForm"><label class="field">E-posta<input name="email" type="email" required autocomplete="email"></label><button class="btn coral">Yeni bağlantı gönder</button></form><a href="${esc(location.pathname)}#panel">Giriş ekranına dön</a></div></div>`;return}$('#app').innerHTML=`<div class="wrap page"><form id="passwordForm" class="card narrow"><h2>Yeni şifreni belirle.</h2><label class="field">Yeni şifre<input name="password" type="password" minlength="8" maxlength="128" required autocomplete="new-password"></label><label class="field">Yeni şifreyi tekrar yaz<input name="confirm_password" type="password" minlength="8" maxlength="128" required autocomplete="new-password"></label><button class="btn coral">Şifreyi güncelle</button></form></div>`}
 async function panel(seq){if(!db){authView();return}const {data:{session},error}=await db.auth.getSession();if(seq!==routeSeq)return;if(recoveryMode||recoveryFailure){recoveryView(Boolean(session)&&!error&&!recoveryFailure);return}if(error)throw error;if(!session){authView();return}me=await rpc('ob_me');if(seq!==routeSeq)return;
- if(me.role==='admin'){adminData=await rpc('ob_admin_data');if(seq!==routeSeq)return;adminGameMedia=await fetchGameMedia((adminData.games||[]).map(g=>g.id));(adminData.games||[]).forEach(g=>g.image_data=adminGameMedia[String(g.id)]?.image_data||'');if(seq!==routeSeq)return;drawAdmin();hydrateVenueCodes();obShowOwnerFinancePreview()}else{if(me?.venue?.id)await loadVenueFeatures(me.venue.id);drawMerchant(session.user.email);hydrateVenueCodes()}}
+ if(me.role==='admin'){adminData=await rpc('ob_admin_data');if(seq!==routeSeq)return;adminGameMedia=await fetchGameMedia((adminData.games||[]).map(g=>g.id));(adminData.games||[]).forEach(g=>g.image_data=adminGameMedia[String(g.id)]?.image_data||'');if(seq!==routeSeq)return;drawAdmin();hydrateVenueCodes();obShowOwnerFinancePreview()}else if(me.role==='staff'){
+  $('#app').innerHTML='<div class="wrap page"><div class="card"><h2>Personel çalışma alanınız açılıyor…</h2><p>İşletme yetkileriniz yükleniyor.</p></div></div>';
+ }else{if(me?.venue?.id)await loadVenueFeatures(me.venue.id);drawMerchant(session.user.email);hydrateVenueCodes()}}
 function panelTop(title){return `<div class="row" style="justify-content:space-between"><div><span class="eyebrow">OYNABAK PANEL</span><h2>${esc(title)}</h2></div><button data-action="logout" class="btn small light">Çıkış yap</button></div>`}
 async function obShowOwnerFinancePreview(){
  try{
@@ -7618,7 +7620,7 @@ async function route(){
   }catch(_){}
 
   document.body.classList.remove('customer-mode','games-mode','game-open','freed-gallery-mode');
-  const hash=location.hash.slice(1);$('#app').innerHTML='<div class="wrap page"><p class="muted">Yükleniyor…</p></div>';try{if(hash==='siparis-ekrani')await window.OynaBakSimpleConsole?.show();else if(hash==='personel')await window.OynaBakStaffPin?.show();else if(recoveryMode||recoveryFailure||hash==='panel'||new URL(location.href).searchParams.has('recovery'))await panel(seq);else if(hash==='freed-kesfet')freedDiscoverPage();else if(hash==='demo')qrOnlyPage();else if(hash==='blog')blogListPage();else if(hash.startsWith('blog-'))blogPostPage(hash.replace(/^blog-/,''));else if(hash==='play'){if(new URL(location.href).searchParams.has('isletme'))await customer(false,seq);else businessCodeEntry()}else if(!hash&&new URL(location.href).searchParams.has('isletme'))await customer(false,seq);else if(['privacy','kvkk','terms','contact'].includes(hash))legalPage(hash);else{home();if(['features','referanslar','faq','pricing'].includes(hash))requestAnimationFrame(()=>document.getElementById(hash)?.scrollIntoView({behavior:'smooth'}))}}catch(e){if(seq===routeSeq)$('#app').innerHTML=`<div class="wrap page"><div class="notice">${esc(e.message)}</div><button class="btn light" data-action="retry">Tekrar dene</button> <a href="${esc(location.pathname)}" class="btn light">Ana sayfa</a></div>`}}
+  const hash=location.hash.slice(1);$('#app').innerHTML='<div class="wrap page"><p class="muted">Yükleniyor…</p></div>';try{if(hash==='siparis-ekrani'||hash==='personel'){location.hash='panel';return}else if(recoveryMode||recoveryFailure||hash==='panel'||new URL(location.href).searchParams.has('recovery'))await panel(seq);else if(hash==='freed-kesfet')freedDiscoverPage();else if(hash==='demo')qrOnlyPage();else if(hash==='blog')blogListPage();else if(hash.startsWith('blog-'))blogPostPage(hash.replace(/^blog-/,''));else if(hash==='play'){if(new URL(location.href).searchParams.has('isletme'))await customer(false,seq);else businessCodeEntry()}else if(!hash&&new URL(location.href).searchParams.has('isletme'))await customer(false,seq);else if(['privacy','kvkk','terms','contact'].includes(hash))legalPage(hash);else{home();if(['features','referanslar','faq','pricing'].includes(hash))requestAnimationFrame(()=>document.getElementById(hash)?.scrollIntoView({behavior:'smooth'}))}}catch(e){if(seq===routeSeq)$('#app').innerHTML=`<div class="wrap page"><div class="notice">${esc(e.message)}</div><button class="btn light" data-action="retry">Tekrar dene</button> <a href="${esc(location.pathname)}" class="btn light">Ana sayfa</a></div>`}}
 function hasQrGameAccess(){
   try{
     if(!venue||venue.demo||!document.body.classList.contains('customer-mode'))return false;
@@ -8047,16 +8049,13 @@ window.OynaBakAdisyonBridge=Object.freeze({
 window.OynaBakCustomerBridge=Object.freeze({context:()=>({db,venue})});
 </script>
 <script defer src="adisyon/customer-orders.js"></script>
-<link rel="stylesheet" href="adisyon/staff-pin.css">
-<script>window.OynaBakStaffPinConfig=Object.freeze({url:SUPABASE_URL,key:SUPABASE_PUBLISHABLE_KEY});</script>
-<script defer src="adisyon/staff-pin.js"></script>
 
-<link rel="stylesheet" href="adisyon/simple-console.css">
-<link rel="stylesheet" href="adisyon/simple-admin.css">
-<script>
-window.OynaBakSimpleConfig=Object.freeze({url:SUPABASE_URL,key:SUPABASE_PUBLISHABLE_KEY});
-window.OynaBakSimpleAdminBridge=()=>({db,me,adminData});
-</script>
-<script defer src="adisyon/simple-console.js"></script>
-<script defer src="adisyon/simple-admin.js"></script>
+
+
+
+
+
+
+
+
 </body></html>
