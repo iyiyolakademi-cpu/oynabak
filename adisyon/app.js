@@ -431,7 +431,7 @@ async function closeTicket(id){
 }
 
 document.addEventListener('click',async e=>{
- const b=e.target.closest?.('[data-ob-alarm-mute],[data-ob-waiter-done],[data-ob-open],[data-ob-toggle],[data-ob-close],[data-ob-tab],[data-ob-table],[data-ob-back],[data-ob-product],[data-ob-dismiss],[data-ob-void],[data-ob-status],[data-ob-close-ticket],[data-ob-request-approve],[data-ob-request-reject],[data-ob-tool],[data-ob-security-toggle],[data-ob-code-rotate],[data-ob-staff-save],[data-ob-station],[data-ob-enable-alerts],[data-ob-report-days],[data-ob-floor-edit],[data-ob-floor-auto],[data-ob-floor-cancel],[data-ob-floor-confirm]');
+ const b=e.target.closest?.('[data-ob-alarm-mute],[data-ob-waiter-done],[data-ob-open],[data-ob-toggle],[data-ob-close],[data-ob-tab],[data-ob-table],[data-ob-back],[data-ob-product],[data-ob-dismiss],[data-ob-void],[data-ob-status],[data-ob-close-ticket],[data-ob-request-approve],[data-ob-request-reject],[data-ob-tool],[data-ob-security-toggle],[data-ob-code-rotate],[data-ob-staff-save],[data-ob-station],[data-ob-enable-alerts],[data-ob-report-days],[data-ob-floor-edit],[data-ob-floor-toggle-shape],[data-ob-floor-auto],[data-ob-floor-cancel],[data-ob-floor-confirm]');
  if(!b||b.disabled)return;e.preventDefault();e.stopImmediatePropagation();
  if(b.hasAttribute('data-ob-close')){if(state?.floorEditing&&!confirm('Kaydedilmemiş masa düzeni var. Kaydetmeden çıkılsın mı?'))return;close();return}
  if(b.hasAttribute('data-ob-dismiss')){$('.ob-product-form',root())?.remove();return}
@@ -449,6 +449,10 @@ document.addEventListener('click',async e=>{
    else if(b.hasAttribute('data-ob-floor-edit')){
     state.floorDraft=normalizeFloor(state.floorSaved,state.count);
     state.floorEditing=true;render();
+   }
+   else if(b.hasAttribute('data-ob-floor-toggle-shape')){
+    const pos=state.floorDraft.find(p=>p.table===Number(state.floorSelected));
+    if(pos){pos.shape=pos.shape==='round'?'square':'round';render()}
    }
    else if(b.hasAttribute('data-ob-floor-cancel')){
     state.floorDraft=normalizeFloor(state.floorSaved,state.count);
@@ -509,6 +513,7 @@ document.addEventListener('submit',async e=>{
  if(!state||state.busy)return;state.busy=true;
  try{await addItem(e.target)}catch(err){notice(err.message||String(err),true)}finally{if(state)state.busy=false}
 },true);
+document.addEventListener('change',e=>{if(e.target.matches?.('[data-ob-floor-select]')&&state?.floorEditing)state.floorSelected=Number(e.target.value)},true);
 document.addEventListener('input',e=>{
  if(e.target.id!=='ob-adisyon-search'||!state)return;
  const pos=e.target.selectionStart;state.filter=e.target.value;render();
@@ -520,6 +525,7 @@ document.addEventListener('pointerdown',e=>{
  if(!btn||!state?.floorEditing||!root()?.contains(btn)||floorDrag)return;
  if(e.pointerType==='mouse'&&e.button!==0)return;
  const canvas=btn.closest('[data-ob-floor-canvas]');if(!canvas)return;
+ state.floorSelected=Number(btn.dataset.obFloorDrag);
  e.preventDefault();
  const r=btn.getBoundingClientRect();
  floorDrag={pointerId:e.pointerId,el:btn,canvas,
