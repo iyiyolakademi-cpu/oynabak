@@ -110,6 +110,30 @@ for(const count of [1,3,10,35,50,100,200]){
   check(html,term,'Missing floor action '+term+' for '+count+' tables');
  }
 }
+/* The previous 5-column saved arrangement needs extra vertical canvas space.
+   Widen the viewport instead of silently rewriting saved table coordinates. */
+const oldCount=35,oldColumns=5,oldRows=Math.ceil(oldCount/oldColumns);
+const oldPositions=Array.from({length:oldCount},(_,i)=>({
+ table:i+1,shape:'square',
+ x:oldColumns===1?50:4+92*(i%oldColumns)/(oldColumns-1),
+ y:oldRows===1?38:6+88*Math.floor(i/oldColumns)/(oldRows-1)
+}));
+const unchanged=JSON.stringify(oldPositions);
+const legacyDims=geometry.dimensions(oldCount,oldPositions);
+assert.ok(legacyDims.height>geometry.dimensions(oldCount).height,'Legacy plan must gain vertical space');
+assert.equal(JSON.stringify(oldPositions),unchanged,'Previously saved coordinates must not be rewritten');
+for(let i=0;i<oldCount;i++)for(let j=i+1;j<oldCount;j++){
+ const a=oldPositions[i],b=oldPositions[j],tile=112;
+ const dx=Math.abs((legacyDims.width-tile)*(a.x-b.x)/100);
+ const dy=Math.abs((legacyDims.height-tile)*(a.y-b.y)/100);
+ assert.ok(dx>=tile||dy>=tile,'Legacy plan overlap: '+a.table+'/'+b.table);
+}
+const legacyRender=studio.render({state:{
+ count:oldCount,floorDraft:oldPositions,floorEditing:false,floorZoom:1,
+ floorExpanded:false,floorSelected:1,canManage:true,floorAvailable:true,
+ tickets:[],items:[],requests:[],calls:[]
+},money:()=>'',total:()=>0,floorStyle:p=>'left:'+p.x+'%;top:'+p.y+'%;'});
+check(legacyRender,'height:'+legacyDims.height+'px','Legacy viewport height was not kept');
 assert.ok(geometry.clampZoom(.12)<.5&&geometry.clampZoom(2)===1.6);
 for(const term of ['state.floorZoom','state.floorExpanded','focusFloorTable()',
  'changeFloorZoom(','state.floorScroll','ob_adisyon_floor_save',
