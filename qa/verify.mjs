@@ -140,6 +140,13 @@ for(const term of ['state.floorZoom','state.floorExpanded','focusFloorTable()',
  "['overview','tables'].includes(snapshot.tab)"]){
  check(adisyon,term,'Floor plan integration regression: '+term);
 }
+assert.equal(geometry.collisions(geometry.positions(35),35).length,0,
+ 'Normal 35-table plan cannot be saved');
+const overlapping=geometry.positions(10);
+overlapping[1]={...overlapping[1],x:overlapping[0].x,y:overlapping[0].y};
+assert.ok(geometry.collisions(overlapping,10).some(pair=>pair.includes(1)&&pair.includes(2)),
+ 'Overlapping dragged table must be rejected');
+check(adisyon,'OynaBakFloorGeometry.collisions','Overlap save validation missing');
 console.log('Floor studio tests passed: 1, 3, 10, 35, 50, 100 and 200 tables.');
 
 console.log('All code and UI smoke checks passed. Inline scripts:',scripts);
