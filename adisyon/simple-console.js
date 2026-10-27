@@ -7,7 +7,7 @@ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const money=n=>new Intl.NumberFormat('tr-TR',{style:'currency',currency:'TRY'}).format(Number(n)||0);
 const $=s=>document.querySelector(s), isRoute=()=>location.hash==='#siparis-ekrani';
 const key='oynabak-simple-device-v1';
-let device=null,state=null,tab='orders',ready=false,fetching=false,alarmTimer=null,audioCtx=null,soundEnabled=false;
+let device=null,state=null,tab='tables',ready=false,fetching=false,alarmTimer=null,audioCtx=null,soundEnabled=false,stale=false;
 let silenced=new Set(),alertKeys=[],lastRevision='',lastRender=0;
 try{device=JSON.parse(localStorage.getItem(key)||'null')}catch(_){}
 function save(){try{if(device)localStorage.setItem(key,JSON.stringify(device));else localStorage.removeItem(key)}catch(e){console.warn('Cihaz hafızası:',e)}}
@@ -17,7 +17,7 @@ function base(html){
  $('#app').innerHTML='<main class="ob-simple"><div class="ob-simple-shell">'+html+'</div></main>';
 }
 function banner(){
- return '<header class="ob-simple-head"><div><small>OYNABAK · HIZLI İŞLETME EKRANI</small><h1>'+esc(state?.name||'Sipariş yönetimi')+'</h1><p>Tek ekran · Kod yok · Çalışan girişi yok</p></div><div class="ob-simple-head-actions"><button type="button" data-simple-audio class="ob-simple-secondary">'+(soundEnabled?'🔊 Ses açık':'🔔 Sesi etkinleştir')+'</button><span class="ob-simple-connected">'+(state?.ok?'● Bağlı':'◌ Bağlanıyor')+'</span></div></header>';
+ return '<header class="ob-simple-head"><div><small>OYNABAK · HIZLI İŞLETME EKRANI</small><h1>'+esc(state?.name||'Sipariş yönetimi')+'</h1><p>Tek ekran · Kod yok · Çalışan girişi yok</p></div><div class="ob-simple-head-actions"><button type="button" data-simple-audio class="ob-simple-secondary">'+(soundEnabled?'🔊 Ses açık':'🔔 Sesi etkinleştir')+'</button><span class="ob-simple-connected" role="status">'+(stale||!navigator.onLine?'⚠ Bağlantı kontrol ediliyor':state?.ok?'● Bağlı':'◌ Bağlanıyor')+'</span></div></header>';
 }
 function notice(text){const el=$('#ob-simple-notice');if(el){el.textContent=text;el.hidden=false} else console.warn(text)}
 function hexSecret(){const bytes=new Uint8Array(32);crypto.getRandomValues(bytes);return Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('')}
@@ -25,17 +25,9 @@ function uuid(){return crypto.randomUUID()}
 function stopAlarm(){if(alarmTimer!==null){clearInterval(alarmTimer);alarmTimer=null}}
 function beep(){
  if(!audioCtx||audioCtx.state!=='running')return;
- try{
-  const now=audioCtx.currentTime;
-  for(let j=0;j<3;j++){
-   const o=audioCtx.createOscillator(),g=audioCtx.createGain();
-   o.type='square';o.frequency.value=j===1?760:1040;
-   const start=now+j*.26;
-   g.gain.setValueAtTime(0,start);g.gain.linearRampToValueAtTime(.14,start+.025);
-   g.gain.exponentialRampToValueAtTime(.001,start+.19);
-   o.connect(g);g.connect(audioCtx.destination);o.start(start);o.stop(start+.21);
-  }
- }catch(e){console.warn('Sipariş alarmı:',e)}
+ // Exactly the same shared OynaBak POS signal as the garson çağrısı.
+ if(typeof window.OynaBakPlayWaiterTone==='function')window.OynaBakPlayWaiterTone(audioCtx);
+ else console.warn('Ortak garson çağrısı sesi yüklenmedi.');
 }
 function syncAlarm(){
  if(!state?.ok){alertKeys=[];stopAlarm();return}
@@ -48,7 +40,8 @@ function syncAlarm(){
  alertKeys=all.filter(k=>!silenced.has(k));
  const has=alertKeys.length>0;
  if(!has){stopAlarm();return}
- if(!alarmTimer){if(soundEnabled)beep();alarmTimer=setInterval(()=>{if(soundEnabled&&isRoute())beep()},1800)}
+ if(!soundEnabled||audioCtx?.state!=='running'){stopAlarm();return}
+ if(!alarmTimer){beep();alarmTimer=setInterval(()=>{if(soundEnabled&&isRoute())beep()},1800)}
 }
 function mute(){
  for(const k of alertKeys)silenced.add(k);
@@ -124,6 +117,7 @@ function render(){
  '<div class="ob-simple-stats"><div><strong>'+pending+'</strong><span>Yeni QR sipariş</span></div><div><strong>'+newItems+'</strong><span>Hazırlanacak ürün</span></div><div><strong>'+open+'</strong><span>Açık masa</span></div></div>'+
  (alarm?'<div class="ob-simple-alarm" role="alert"><div>🔔 <strong>'+alertKeys.length+' yeni işlem bekliyor</strong><small>Alarm, susturulana kadar tekrarlanır.</small></div><button type="button" data-simple-mute>🔕 Sustur</button></div>':'')+
  tabs()+(tab==='orders'?requestList():tab==='tables'?tables():kitchen())+
+ (stale||!navigator.onLine?'<div class="ob-simple-stale" role="alert">⚠ Bağlantı kesildi. Son görüntülenen veriler güncel olmayabilir. Yeni siparişleri internet döndüğünde kontrol edin.</div>':'')+
  '<p class="ob-simple-footer">Sipariş toplamları ödeme veya tahsilat kaydı değildir. Cihaz erişimini yönetici panelinden iptal edebilirsiniz.</p><div id="ob-simple-notice" role="status" hidden></div>');
 }
 async function firstTime(){
@@ -157,8 +151,8 @@ async function poll(){
     items:(d.items||[]).map(x=>[x.id,x.status,x.quantity,x.line_total]),
     venue:d.venue_id
   });
-  const changed=revision!==lastRevision;
-  lastRevision=revision;
+  const changed=revision!==lastRevision||stale;
+  stale=false;lastRevision=revision;
   state=d;syncAlarm();
   // Do not reset input/scroll on every network poll.
   const focused=document.activeElement;
@@ -166,7 +160,12 @@ async function poll(){
   if(!editing&&(changed||Date.now()-lastRender>30000)){
     render();lastRender=Date.now();
   }
- }catch(err){if(!state?.ok)base('<section class="ob-simple-intro"><h1>Bağlantı sorunu</h1><p>'+esc(err.message)+'</p><button type="button" data-simple-retry>Yeniden dene</button></section>');else notice('Bağlantı kesildi. Siparişler otomatik yeniden kontrol ediliyor.')}
+ }catch(err){
+  stale=true;
+  if(!state?.ok)base('<section class="ob-simple-intro"><h1>Bağlantı sorunu</h1><p>'+esc(err.message)+'</p><button type="button" data-simple-retry>Yeniden dene</button></section>');
+  else {const badge=$('.ob-simple-connected');if(badge)badge.textContent='⚠ Bağlantı kontrol ediliyor';
+   notice('Bağlantı kesildi. Mevcut veriler güncel olmayabilir. Otomatik yeniden bağlanılıyor.')}
+ }
  finally{fetching=false}
 }
 async function action(fn,args,message){
@@ -217,11 +216,16 @@ document.addEventListener('submit',async e=>{
 },true);
 async function show(){
  if(!isRoute())return;
- ready=false;state=null;tab='orders';lastRevision='';alertKeys=[];stopAlarm();
+ ready=false;state=null;tab='tables';stale=false;lastRevision='';alertKeys=[];stopAlarm();
  if(device)await poll();else await firstTime();
 }
 window.addEventListener('hashchange',()=>{if(isRoute())setTimeout(show,0);else{stopAlarm();state=null}});
-document.addEventListener('visibilitychange',()=>{if(isRoute()&&document.visibilityState==='visible')poll()});
+document.addEventListener('visibilitychange',()=>{if(isRoute()&&document.visibilityState==='visible'){
+  if(soundEnabled&&audioCtx?.state!=='running')audioCtx?.resume().catch(()=>{});
+  poll();
+ }});
+window.addEventListener('online',()=>{if(isRoute())poll()});
+window.addEventListener('offline',()=>{if(!isRoute())return;stale=true;const badge=$('.ob-simple-connected');if(badge)badge.textContent='⚠ Çevrimdışı';stopAlarm()});
 setInterval(()=>{if(isRoute())poll()},4000);
 window.OynaBakSimpleConsole=Object.freeze({show});
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{if(isRoute())show()},{once:true});
