@@ -161,3 +161,40 @@ for(const [file,needle] of [
  ['games/2026-10-27-okey-single-discard-fix.sql','min(d.ord)']
 ])check(read(file),needle,'Final security migration regression: '+file+' / '+needle);
 console.log('Sales launch regression checks passed.');
+
+
+/* 27 Oct 2026 — Phone-first operations acceptance and secure mobile tiles. */
+const mobileCode=read('adisyon/mobile-tables.js'),mobileStyles=read('adisyon/mobile-operations.css');
+const mobileWindow={};
+new Script(mobileCode,{filename:'adisyon/mobile-tables.js'}).runInNewContext({window:mobileWindow});
+assert.ok(mobileWindow.OynaBakMobileTables?.render,'Mobile table UI missing');
+check(main,'adisyon/mobile-tables.js','Mobile table script not loaded');
+check(main,'adisyon/mobile-operations.css','Mobile operations CSS not loaded');
+assert.ok(main.indexOf('adisyon/mobile-tables.js')<main.indexOf('adisyon/app.js'),
+ 'Mobile tiles script must load before the adisyon app');
+for(const term of ["const defaultTab=phone?'tables'","mobileTableView:'grid'",
+ 'data-ob-mobile-view="grid"','data-ob-mobile-view="plan"',
+ "data-ob-mobile-view]","window.OynaBakMobileTables?.render"]){
+ check(adisyon,term,'Mobile phone-first integration regression: '+term);
+}
+for(const term of ['@media(max-width:700px)','position:fixed!important',
+ '.ob-mobile-table-grid','.ob-mobile-table--call','.ob-mobile-table--order',
+ 'env(safe-area-inset-bottom)']){
+ check(mobileStyles,term,'Mobile layout regression: '+term);
+}
+for(const count of [1,3,10,35,100,200]){
+ const state={count,tickets:[],items:[],calls:[],requests:[],lastError:''};
+ const html=mobileWindow.OynaBakMobileTables.render({state,total:()=>0,money:n=>String(n)+' TL'});
+ assert.equal((html.match(/data-ob-table="/g)||[]).length,count,'Table tiles count: '+count);
+ assert.ok(html.includes('data-ob-table="'+count+'"'),'Missing last mobile table: '+count);
+}
+const sampleHtml=mobileWindow.OynaBakMobileTables.render({
+ state:{count:4,lastError:'<unsafe>',tickets:[{id:'t1',table_no:1,status:'open'}],
+  items:[{ticket_id:'t1',status:'ready'}],calls:[{table_no:2}],requests:[{table_no:3}]},
+ total:()=>57,money:n=>String(n)+' TL'
+});
+for(const term of ['ob-mobile-table--ready','ob-mobile-table--call',
+ 'ob-mobile-table--order','ob-mobile-table--empty','57 TL','&lt;unsafe&gt;']){
+ check(sampleHtml,term,'Mobile table status/privacy regression: '+term);
+}
+console.log('Mobile table-first UI smoke checks passed (1–200 tables, status, safe HTML).');
