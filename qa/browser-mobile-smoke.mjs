@@ -5,7 +5,7 @@ const origin='http://127.0.0.1:8765/';
 const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
 try{
  for(const [width,height,count,expectedColumns] of [
-  [320,720,35,3],[390,844,100,3],[600,900,200,4]
+  [320,720,3,2],[320,720,35,2],[390,844,100,2],[600,900,200,3]
  ]){
   const page=await browser.newPage({viewport:{width,height},deviceScaleFactor:1,
    isMobile:true,hasTouch:true});
@@ -47,8 +47,40 @@ try{
    assert.ok(info.contentWidth<=info.rootWidth+3,'Horizontal overflow on mobile');
    assert.ok(info.tileBounds[0]>=-1&&info.tileBounds[1]<=width+1,'First tile clips');
    assert.ok(info.navBottom<=height+2&&info.navBottom>=height-30,'Mobile tabs not at bottom');
-   assert.ok(info.statuses.every(Boolean),'Missing one of 4 priority states');
-   console.log('Mobile check passed:',width+'x'+height,count,'tables');
+   if(count>=4)assert.ok(info.statuses.every(Boolean),'Missing one of 4 priority states');
+   assert.ok(await page.locator('.ob-mobile-table-search').isVisible(),'Phone table search invisible');
+   assert.equal(await page.locator('.ob-mobile-filter').count(),4,'Phone filters missing');
+   const search=page.locator('#ob-mobile-table-search');
+   await search.fill('1');
+   await page.evaluate(()=>{
+    const root=document.querySelector('.ob-mobile-tables'),q=root.querySelector('input');
+    window.OynaBakMobileTables.applyFilters(root,q.value,'all');
+   });
+   const visible=await page.locator('.ob-mobile-table:not([hidden])').count();
+   const expected=Array.from({length:count},(_,i)=>String(i+1)).filter(x=>x.includes('1')).length;
+   assert.equal(visible,expected,'Mobile table search filtering mismatch');
+   await search.fill('999');
+   await page.evaluate(()=>{
+    const root=document.querySelector('.ob-mobile-tables'),q=root.querySelector('input');
+    window.OynaBakMobileTables.applyFilters(root,q.value,'all');
+   });
+   assert.equal(await page.locator('.ob-mobile-table:not([hidden])').count(),0,
+    'Mobile table search no-results mismatch');
+   assert.equal(await page.locator('[data-ob-mobile-empty]').isVisible(),true);
+   await search.fill('');
+   await page.evaluate(()=>{
+    const root=document.querySelector('.ob-mobile-tables');
+    window.OynaBakMobileTables.applyFilters(root,'','urgent');
+   });
+   assert.equal(await page.locator('.ob-mobile-table:not([hidden])').count(),2,
+    'Urgent only must show waiter call and QR order tables');
+   await page.evaluate(()=>{
+    const root=document.querySelector('.ob-mobile-tables');
+    window.OynaBakMobileTables.applyFilters(root,'','occupied');
+   });
+   assert.equal(await page.locator('.ob-mobile-table:not([hidden])').count(),count>=4?2:1,
+    'Occupied filter mismatch');
+   console.log('Mobile check passed:',width+'x'+height,count,'tables with search and filters');
   }finally{await page.close()}
  }
  // Desktop remains a full, zoomable physical floor map.
