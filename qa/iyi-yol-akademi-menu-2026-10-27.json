@@ -81,7 +81,7 @@
           "active": true,
           "sold_out": false,
           "featured": true,
-          "station": "bar",
+          "station": "kitchen",
           "variants": []
         },
         {
@@ -95,7 +95,7 @@
           "active": true,
           "sold_out": false,
           "featured": false,
-          "station": "bar",
+          "station": "kitchen",
           "variants": []
         }
       ]
