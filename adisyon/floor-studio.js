@@ -5,7 +5,7 @@
 const g=()=>window.OynaBakFloorGeometry;
 function render({state,active,total,money,floorStyle}){
  const positions=state.floorDraft.length===state.count?state.floorDraft:g().positions(state.count);
- const dimensions=g().dimensions(state.count),zoom=g().clampZoom(state.floorZoom);
+ const dimensions=g().dimensions(state.count,positions),zoom=g().clampZoom(state.floorZoom);
  const editing=state.floorEditing,expanded=state.floorExpanded;
  const width=Math.round(dimensions.width*zoom),height=Math.round(dimensions.height*zoom),tile=Math.round(112*zoom);
  let html='<section class="ob-floor'+(expanded?' is-expanded':'')+'" aria-label="İşletme masa planı"><header class="ob-floor-header"><div><h3>İşletme masa düzeni</h3><p class="ob-muted">'+
