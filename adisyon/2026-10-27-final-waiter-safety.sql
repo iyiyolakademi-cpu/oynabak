@@ -8,10 +8,10 @@ LANGUAGE plpgsql SECURITY DEFINER SET search_path=''
 AS $fn$
 DECLARE
   v_id uuid;
-  v_venue text := pg_catalog.btrim(pg_catalog.coalesce(p_venue_id,''));
-  v_raw_table text := pg_catalog.regexp_replace(pg_catalog.coalesce(p_table_no,''),'[^0-9]','','g');
+  v_venue text := pg_catalog.btrim(coalesce(p_venue_id,''));
+  v_raw_table text := pg_catalog.regexp_replace(coalesce(p_table_no,''),'[^0-9]','','g');
   v_table text;
-  v_type text := pg_catalog.lower(pg_catalog.btrim(pg_catalog.coalesce(p_request_type,'')));
+  v_type text := pg_catalog.lower(pg_catalog.btrim(coalesce(p_request_type,'')));
 BEGIN
   IF v_venue='' THEN RAISE EXCEPTION 'İşletme bulunamadı.'; END IF;
   IF v_raw_table !~ '^[0-9]{1,3}$' OR v_raw_table::integer<1 THEN
@@ -25,7 +25,7 @@ BEGIN
     SELECT 1 FROM oynabak_private.venues v
     JOIN public.ob_venue_features f ON f.venue_id=v.id::text
     WHERE v.id::text=v_venue AND v.active AND v.licensed AND f.waiter
-    AND v_table::integer<=pg_catalog.coalesce(
+    AND v_table::integer<=coalesce(
       (SELECT s.table_count FROM public.ob_adisyon_settings s
        WHERE s.venue_id=v.id::text AND s.enabled),v.tables,0)
   ) THEN RAISE EXCEPTION 'Bu işletmede veya masada garson çağrısı etkin değil'; END IF;
@@ -60,7 +60,7 @@ BEGIN
  IF NOT public.ob_adisyon_permission(p_venue_id,'review') THEN
   RAISE EXCEPTION 'Garson yetkisi gerekli';
  END IF;
- RETURN pg_catalog.coalesce((SELECT pg_catalog.jsonb_agg(pg_catalog.to_jsonb(x) ORDER BY x.created_at)
+ RETURN coalesce((SELECT pg_catalog.jsonb_agg(pg_catalog.to_jsonb(x) ORDER BY x.created_at)
  FROM (
    SELECT w.id,w.venue_id,w.table_no,w.request_type,w.created_at
    FROM public.waiter_calls w
