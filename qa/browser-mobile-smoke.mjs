@@ -72,8 +72,8 @@ try{
     const root=document.querySelector('.ob-mobile-tables');
     window.OynaBakMobileTables.applyFilters(root,'','urgent');
    });
-   assert.equal(await page.locator('.ob-mobile-table:not([hidden])').count(),2,
-    'Urgent only must show waiter call and QR order tables');
+   assert.equal(await page.locator('.ob-mobile-table:not([hidden])').count(),3,
+    'Urgent must include waiter call, QR order and ready-to-serve tables');
    await page.evaluate(()=>{
     const root=document.querySelector('.ob-mobile-tables');
     window.OynaBakMobileTables.applyFilters(root,'','occupied');
