@@ -113,3 +113,7 @@
  .ob-simple-tabs button{font-size:11px}
 }
 @media(prefers-reduced-motion:reduce){.ob-simple-alarm{animation:none}}
+
+/* iPhone audio is gesture-unlocked, not automatically allowed by Safari. */
+.ob-simple-ios-hint{margin:12px 0;padding:12px 15px;border:1px solid #efc993;border-radius:12px;background:#fff7e7;color:#81501d;font:700 12px/1.55 system-ui,sans-serif}
+.ob-simple-ios-hint b{color:#633700}
