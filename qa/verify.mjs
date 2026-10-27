@@ -47,4 +47,28 @@ for(const [source,needle] of [[main,'data-action="pisti-open"'],[main,'games/pis
  [pisti,'p_venue_id:VENUE'],[css,'.felt'],[css,'@media(max-width:550px)']]){
  check(source,needle,'Pişti regression: '+needle);
 }
+
+/* Live control center regressions: loads before the operations module and reuses
+   existing permission-controlled server-side actions, not client-side mutations. */
+const liveControl=read('adisyon/live-control.js');
+const liveCss=read('adisyon/live-control.css');
+new Script(liveControl,{filename:'adisyon/live-control.js'});
+check(main,'adisyon/live-control.js','Live control center script missing');
+check(main,'adisyon/live-control.css','Live control center style missing');
+assert.ok(main.indexOf('adisyon/live-control.js')<main.indexOf('adisyon/app.js'),'Live control center script must load first');
+for(const [source,needle] of [
+ [adisyon,"tab('overview','◉ Canlı Kontrol')"],
+ [adisyon,'window.OynaBakLiveControl?.render'],
+ [adisyon,"['overview','tables'].includes(snapshot.tab)"],
+ [adisyon,'data-ob-refresh'],
+ [adisyon,'ob_ops_waiter_done'],
+ [adisyon,'ob_customer_order_decide'],
+ [adisyon,'ob_adisyon_item_status'],
+ [liveControl,'data-ob-request-approve'],
+ [liveControl,'data-ob-waiter-done'],
+ [liveControl,'data-ob-status'],
+ [liveControl,'floorBoard()'],
+ [liveCss,'@media(max-width:470px)']
+])check(source,needle,'Live controls regression: '+needle);
+
 console.log('All code and UI smoke checks passed. Inline scripts:',scripts);
