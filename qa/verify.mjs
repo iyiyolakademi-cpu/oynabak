@@ -57,7 +57,7 @@ check(main,'adisyon/live-control.js','Live control center script missing');
 check(main,'adisyon/live-control.css','Live control center style missing');
 assert.ok(main.indexOf('adisyon/live-control.js')<main.indexOf('adisyon/app.js'),'Live control center script must load first');
 for(const [source,needle] of [
- [adisyon,"tab('overview','◉ Canlı Kontrol')"],
+ [adisyon,"tab('overview',phone?'◉ Kontrol':'◉ Canlı Kontrol')"],
  [adisyon,'window.OynaBakLiveControl?.render'],
  [adisyon,"['overview','tables'].includes(snapshot.tab)"],
  [adisyon,'data-ob-refresh'],
@@ -318,3 +318,20 @@ assert.ok(!desktopEnvironment.window.OynaBakPOSAudio.isApple,'Desktop should ret
 assert.ok(desktopEnvironment.window.OynaBakPOSAudio.play({state:'running'}));
 assert.equal(desktopEnvironment.played,1,'Desktop POS sound regression');
 console.log('iOS Safari native order alarm, media unlock, repeat and desktop fallback regression passed.');
+
+/* Mobile table mode regression: explicit opt-in plan, 2-column phone cards. */
+for(const token of ["mobileTableView:'grid'","mobileTableFilter:'all'","mobileTableSearch:''",
+ "[data-ob-mobile-filter]","data-ob-mobile-view=\\"grid\\"","data-ob-mobile-view=\\"plan\\"",
+ "window.OynaBakMobileTables?.applyFilters","state.mobileTableView='grid'"]){
+ check(adisyon,token,'Phone-first table mode regression: '+token);
+}
+const mobileTableCode=read('adisyon/mobile-tables.js');
+for(const token of ['data-ob-mobile-table-card','ob-mobile-table-filters','ob-mobile-table-search',
+ 'Dikkat isteyen','data-ob-mobile-empty','ob-mobile-table-summary']){
+ check(mobileTableCode,token,'Missing mobile table controls: '+token);
+}
+for(const token of ['grid-template-columns:repeat(2,minmax(0,1fr))!important',
+ '.ob-mobile-table-search','.ob-mobile-filter.active','.ob-mobile-table[hidden]',
+ '.ob-mobile-table--ready','.ob-mobile-table--call']){
+ check(mobileStyles,token,'Phone card layout regression: '+token);
+}
