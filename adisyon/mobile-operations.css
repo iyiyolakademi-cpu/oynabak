@@ -91,3 +91,15 @@
  #ob-adisyon .ob-mobile-table-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
 }
 @media(prefers-reduced-motion:reduce){#ob-adisyon .ob-mobile-table:active{transform:none}}
+
+@media(max-width:700px){
+ #ob-adisyon .ob-mobile-loading{padding:17px 12px;border:1px solid #dce5f1;
+  background:#fff;border-radius:17px;margin-top:10px}
+ #ob-adisyon .ob-mobile-loading h3{font-size:20px;margin:0 0 16px;color:#1d3c5c}
+ #ob-adisyon .ob-mobile-loading-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+ #ob-adisyon .ob-mobile-loading-grid span{display:block;min-height:102px;border-radius:13px;
+  background:linear-gradient(100deg,#edf2f7 15%,#f8fafc 50%,#edf2f7 85%);background-size:200% 100%;
+  animation:ob-mobile-loading-pulse 1.6s ease-in-out infinite}
+}
+@keyframes ob-mobile-loading-pulse{to{background-position-x:-200%}}
+@media(prefers-reduced-motion:reduce){#ob-adisyon .ob-mobile-loading-grid span{animation:none}}
