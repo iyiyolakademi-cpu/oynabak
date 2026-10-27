@@ -529,6 +529,7 @@ document.addEventListener('pointerdown',e=>{
  if(e.pointerType==='mouse'&&e.button!==0)return;
  const canvas=btn.closest('[data-ob-floor-canvas]');if(!canvas)return;
  state.floorSelected=Number(btn.dataset.obFloorDrag);
+ const selector=$('[data-ob-floor-select]',root());if(selector)selector.value=String(state.floorSelected);
  e.preventDefault();
  const r=btn.getBoundingClientRect();
  floorDrag={pointerId:e.pointerId,el:btn,canvas,
