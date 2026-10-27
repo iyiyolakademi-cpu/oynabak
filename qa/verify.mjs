@@ -143,3 +143,21 @@ for(const term of ['state.floorZoom','state.floorExpanded','focusFloorTable()',
 console.log('Floor studio tests passed: 1, 3, 10, 35, 50, 100 and 200 tables.');
 
 console.log('All code and UI smoke checks passed. Inline scripts:',scripts);
+
+/* 27 Oct 2026: final public sales release guards. */
+const webHtml=read('index.html');
+const customerOrderCode=read('adisyon/customer-orders.js');
+for(const needle of [
+ 'const LEGAL_VERSION=\'27.10.2026\'',
+ 'QR sipariş ve adisyon modüllerini kapsar',
+ 'Adisyon, mutfak/bar ve ön muhasebe temel 4.000 TL paketine dahil değildir',
+ 'Garson çağrısı, sipariş ve adisyon pakete dahil mi?'
+])check(webHtml,needle,'Sales/legal claim regression: '+needle);
+check(customerOrderCode,'ob-order-privacy-note','QR order privacy notice missing');
+for(const [file,needle] of [
+ ['adisyon/2026-10-27-final-waiter-safety.sql','pg_advisory_xact_lock'],
+ ['adisyon/2026-10-27-final-waiter-safety.sql','LIMIT 500'],
+ ['adisyon/2026-10-27-final-telemetry-safety.sql','venue.active AND venue.licensed'],
+ ['games/2026-10-27-okey-single-discard-fix.sql','min(d.ord)']
+])check(read(file),needle,'Final security migration regression: '+file+' / '+needle);
+console.log('Sales launch regression checks passed.');
