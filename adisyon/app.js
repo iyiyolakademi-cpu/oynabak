@@ -176,6 +176,12 @@ function focusFloorTable(){
 }
 async function saveFloor(){
  if(!state?.floorEditing||!state.canManage||!state.floorAvailable)return;
+ const collisions=window.OynaBakFloorGeometry.collisions(state.floorDraft,state.count);
+ if(collisions.length){
+  const [a,b]=collisions[0];
+  notice('Masa '+a+' ve Masa '+b+' birbiriyle çakışıyor. Kaydetmeden önce masaları ayırın.',true);
+  return;
+ }
  if(!confirm(state.count+' masanın bu yeni yerleşimini işletme için kaydedip onaylıyor musunuz?'))return;
  const currentState=state;
  const positions=state.floorDraft.map(p=>({table:p.table,x:p.x,y:p.y,shape:p.shape==='round'?'round':'square'}));
