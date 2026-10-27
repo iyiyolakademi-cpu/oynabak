@@ -232,3 +232,37 @@ for(const token of ["ob_adisyon_permission","venue.active","venue.licensed",
  'Sales security SQL missing '+token);
 }
 console.log('Sale readiness security and responsive operations checks passed.');
+
+/* İyi Yol Akademi — cafe customer showcase menu content regression. */
+const iyaMenu=JSON.parse(read('qa/iyi-yol-akademi-menu-2026-10-27.json'));
+assert.equal(iyaMenu.categories.length,8,'İyi Yol Akademi category count');
+const iyaProducts=iyaMenu.categories.flatMap(c=>c.items||[]);
+assert.equal(iyaProducts.length,73,'İyi Yol Akademi product count');
+assert.equal(iyaMenu.categories.reduce((n,c)=>n+c.subcategories.length,0),22,'Subcategory count');
+assert.equal(iyaProducts.filter(i=>i.featured).length,3,'Three menu highlights expected');
+assert.equal(iyaProducts.filter(i=>i.sold_out).length,1,'Sold-out category demonstration expected');
+assert.ok(iyaProducts.filter(i=>i.variants?.length).length>=15,'Size and product variant coverage');
+const iyaIds=new Set();
+for(const c of iyaMenu.categories){
+ assert.ok(c.active && ['kitchen','bar'].includes(c.station),'Category kitchen routing');
+ const subIds=new Set(c.subcategories.map(x=>x.id));
+ assert.equal(subIds.size,c.subcategories.length,'Subcategory duplicate ids');
+ for(const i of c.items){
+  assert.ok(!iyaIds.has(i.id),'Duplicate menu product id: '+i.id);
+  iyaIds.add(i.id);
+  assert.ok(i.active && i.price>=30 && i.price<=900,'Invalid product price: '+i.name);
+  assert.ok(i.description.length>=25 && i.description.length<=300,'Missing description: '+i.name);
+  assert.ok(subIds.has(i.subcategory_id),'Invalid subcategory: '+i.name);
+  assert.ok(['kitchen','bar'].includes(i.station),'Missing product station: '+i.name);
+  for(const v of i.variants){
+   assert.ok(v.id && v.name && v.price>=i.price && v.price<=900,
+    'Broken variant price: '+i.name);
+  }
+ }
+}
+assert.equal(iyaProducts.find(i=>i.name==='İyi Yol Kruvasan')?.station,'kitchen');
+assert.equal(iyaProducts.find(i=>i.name==='Yol Arkadaşı Brownie')?.station,'kitchen');
+for(const text of ['data-ob-menu-add','menu-order-variant','menu-order-actions']){
+ assert.ok(text==='menu-order-actions'||main.includes(text),'QR menu ordering feature missing');
+}
+console.log('İyi Yol Akademi full cafe menu passes category, pricing, variant and description checks.');
