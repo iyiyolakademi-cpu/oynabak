@@ -1,0 +1,53 @@
+/* OynaBak live control center: contained inside the existing authenticated operations shell. */
+#ob-adisyon .ob-control-hero{display:flex;justify-content:space-between;align-items:center;gap:22px;flex-wrap:wrap;padding:24px 26px;border-radius:20px;background:linear-gradient(120deg,#10243e,#234666);color:#fff;box-shadow:0 10px 32px #0c274522;margin-bottom:15px}
+#ob-adisyon .ob-control-hero h3{color:#fff;font-size:clamp(20px,2.6vw,29px);font-weight:850;letter-spacing:-.7px;line-height:1.2;margin:8px 0}
+#ob-adisyon .ob-control-hero p{margin:0;color:#b9cede;font-size:13px;line-height:1.5}
+#ob-adisyon .ob-control-eyebrow{font-size:10px;letter-spacing:.14em;color:#7ee0c6;font-weight:850}
+#ob-adisyon .ob-control-updated{display:grid;gap:5px;justify-items:start;min-width:142px;font-size:11px;color:#cadbea}
+#ob-adisyon .ob-control-updated b{font-size:20px;color:#fff;font-variant-numeric:tabular-nums}
+#ob-adisyon .ob-control-updated .ob-btn{margin-top:4px;background:#fff;color:#14324e;min-height:38px}
+#ob-adisyon .ob-control-warning{background:#fff2d8;border:1px solid #e7b75c;border-radius:12px;padding:12px 14px;margin:10px 0;color:#7c4b11;font-weight:700;font-size:12px}
+#ob-adisyon .ob-control-metrics{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin-bottom:15px}
+#ob-adisyon .ob-control-metric{min-width:0;text-align:left;display:flex;flex-direction:column;gap:5px;padding:15px 12px;min-height:114px;background:#fff;border:1px solid #e2e8f1;border-top:3px solid #90a1ba;border-radius:14px;color:#183048;cursor:pointer;box-shadow:0 2px 10px #1b355609;font:inherit}
+#ob-adisyon .ob-control-metric span{font-size:11px;font-weight:700;color:#5c6e83;line-height:1.35}
+#ob-adisyon .ob-control-metric strong{font-size:clamp(20px,2.1vw,28px);font-weight:850;line-height:1.15;overflow-wrap:anywhere}
+#ob-adisyon .ob-control-metric small{font-size:10px;color:#6b7d91;margin-top:auto}
+#ob-adisyon .ob-control-metric:hover{box-shadow:0 6px 20px #15324d16;transform:translateY(-1px)}
+#ob-adisyon .ob-control-urgent{border-top-color:#d75858}
+#ob-adisyon .ob-control-warm{border-top-color:#e7a340}
+#ob-adisyon .ob-control-blue{border-top-color:#397dbb}
+#ob-adisyon .ob-control-ready{border-top-color:#31a47b}
+#ob-adisyon .ob-control-occupied{border-top-color:#213f68}
+#ob-adisyon .ob-control-columns{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start;margin-bottom:14px}
+#ob-adisyon .ob-control-columns>.ob-card{min-width:0;padding:17px 18px}
+#ob-adisyon .ob-control-card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:15px}
+#ob-adisyon .ob-control-card-head small{font-size:10px;font-weight:850;letter-spacing:.10em;color:#8797a9}
+#ob-adisyon .ob-control-card-head h3{font-size:18px;margin:3px 0}
+#ob-adisyon .ob-control-card-head .ob-btn{font-size:12px;min-height:38px;padding:8px 11px}
+#ob-adisyon .ob-control-task{display:flex;gap:10px;align-items:center;padding:13px 0;border-top:1px solid #edf1f5;min-width:0;flex-wrap:wrap}
+#ob-adisyon .ob-control-task:first-of-type{border-top:0}
+#ob-adisyon .ob-control-task-icon{flex:0 0 33px;width:33px;height:33px;border-radius:10px;background:#f4f7fa;display:grid;place-items:center;font-size:17px}
+#ob-adisyon .ob-control-task-detail{flex:1 1 130px;min-width:0;display:grid;gap:5px}
+#ob-adisyon .ob-control-task-detail b{font-size:13px;color:#1a324b;overflow-wrap:anywhere}
+#ob-adisyon .ob-control-task-detail small{font-size:11px;color:#6f7f90;line-height:1.4;overflow-wrap:anywhere}
+#ob-adisyon .ob-control-task>.ob-btn{font-size:11px;padding:9px 10px;min-height:40px;flex-shrink:0}
+#ob-adisyon .ob-control-task-buttons{display:flex;gap:5px;flex-wrap:wrap}
+#ob-adisyon .ob-control-task-buttons .ob-btn{font-size:11px;padding:8px 10px;min-height:40px}
+#ob-adisyon .ob-control-clear{border-radius:12px;background:#eff9f5;color:#177855;font-weight:750;padding:16px;font-size:12px}
+#ob-adisyon .ob-control-status{font-size:10px;font-weight:800;padding:7px 9px;border-radius:8px;background:#fcebd9;color:#9a5712}
+#ob-adisyon .ob-control-status.ob-is-preparing{background:#e2effe;color:#28679f}
+#ob-adisyon .ob-control-status.ob-is-ready{background:#def7e8;color:#14794d}
+#ob-adisyon .ob-control-floor{margin:16px 0}
+#ob-adisyon .ob-control-floor .ob-floor{border:1px solid #dce5ee;box-shadow:0 5px 18px #162c4610}
+#ob-adisyon .ob-control-legend{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:#62748c}
+#ob-adisyon .ob-control-legend span:nth-child(1){color:#8a9bb0}
+#ob-adisyon .ob-control-legend span:nth-child(2){color:#159565}
+#ob-adisyon .ob-control-legend span:nth-child(3){color:#cb6540}
+#ob-adisyon .ob-control-caption{color:#536981;font-size:12px;line-height:1.5}
+#ob-adisyon .ob-floor-table.has-call{background:#fff0ec;border-color:#d85a4e}
+#ob-adisyon .ob-floor-table.has-request{background:#fff5e0;border-color:#e7a33c}
+#ob-adisyon .ob-floor-table.has-ready{background:#e5f3ff;border-color:#5a96c5}
+#ob-adisyon .ob-floor-table.is-draggable{background:#f8fcff;border-color:#407dc8}
+@media(max-width:1100px){#ob-adisyon .ob-control-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:760px){#ob-adisyon .ob-control-columns{grid-template-columns:1fr}#ob-adisyon .ob-control-hero{padding:20px 16px;gap:12px}#ob-adisyon .ob-control-updated{display:flex;align-items:center;flex-wrap:wrap;gap:8px}#ob-adisyon .ob-control-updated b{font-size:17px}#ob-adisyon .ob-control-metric{min-height:104px}}
+@media(max-width:470px){#ob-adisyon .ob-control-metrics{gap:7px;grid-template-columns:repeat(2,minmax(0,1fr))}#ob-adisyon .ob-control-metric{min-height:100px;padding:12px 10px}#ob-adisyon .ob-control-columns>.ob-card{padding:12px}#ob-adisyon .ob-control-task>.ob-btn{flex:1 1 95px}#ob-adisyon .ob-control-task-buttons{flex-basis:100%;padding-left:42px}}
