@@ -10,3 +10,6 @@
 .ob-qr-order [data-ob-submit]:not(:disabled):active{transform:scale(.99)}
 .ob-qr-order input{border:1px solid #ccc;border-radius:10px;min-height:44px;padding:10px;box-sizing:border-box}
 @media(max-width:540px){.ob-qr-order{padding:16px;margin:22px 0 70px}.ob-qr-order .ob-qr-line select{flex:1 1 130px}.ob-qr-cart-jump{left:12px;right:12px;width:calc(100% - 24px);box-sizing:border-box;text-align:center}}
+
+/* Explain data minimisation clearly at the QR ordering point. */
+#ob-qr-order .ob-order-privacy-note{font-size:12px;line-height:1.45;color:#556b7b;background:#f0f4f9;border:1px solid #dce6ef;border-radius:10px;padding:10px 12px;margin:10px 0 12px}
