@@ -5,6 +5,7 @@ on:
     paths:
       - 'adisyon/**'
       - 'qa/browser-mobile-smoke.mjs'
+      - 'qa/browser-menu-order.mjs'
       - 'index.html'
       - '.github/workflows/mobile-browser.yml'
   workflow_dispatch:
@@ -33,3 +34,5 @@ jobs:
           exit 1
       - name: Test mobile and desktop floor rendering
         run: node qa/browser-mobile-smoke.mjs
+      - name: Test QR menu inline ordering and sheet checkout
+        run: node qa/browser-menu-order.mjs
