@@ -56,7 +56,10 @@ async function open(id){
  if(!v||String(v.id)!==String(id))throw Error('Bu işletme için mevcut OynaBak hesabınızın yetkisi yok.');
  close();
  const el=document.createElement('section');el.id='ob-adisyon';el.setAttribute('aria-label','OynaBak Sipariş Merkezi');
- el.innerHTML='<div class="ob-shell"><div class="ob-head"><div><div class="ob-muted">OYNABAK · TEK İŞLETME HESABI</div><h2>'+esc(v.name)+'</h2><div class="ob-muted">Sipariş · Mutfak / Bar · Masalar · Tek OynaBak girişi · Ödeme yok</div></div><div class="ob-row"><button class="ob-btn" type="button" data-ob-enable-alerts aria-pressed="false">🔔 Bildirim sesini aç</button><button class="ob-btn" data-ob-close>✕ Panele dön</button></div></div><div id="ob-adisyon-body">Yükleniyor…</div></div>';
+ el.innerHTML='<div class="ob-shell"><div class="ob-head"><div><div class="ob-muted">OYNABAK · TEK İŞLETME HESABI</div><h2>'+esc(v.name)+'</h2><div class="ob-muted">Sipariş · Mutfak / Bar · Masalar · Tek OynaBak girişi · Ödeme yok</div></div><div class="ob-row"><button class="ob-btn" type="button" data-ob-enable-alerts aria-pressed="false">🔔 Bildirim sesini aç</button><button class="ob-btn" data-ob-close>✕ Panele dön</button></div></div><div id="ob-adisyon-body">'+
+ (typeof window.matchMedia==='function'&&window.matchMedia('(max-width:700px)').matches?
+ '<section class="ob-mobile-loading" role="status" aria-live="polite"><h3>Masalar hazırlanıyor…</h3><div class="ob-mobile-loading-grid">'+Array.from({length:6},()=>'<span aria-hidden="true"></span>').join('')+'</div></section>':
+ 'Yükleniyor…')+'</div></div>';
  document.body.appendChild(el);document.body.style.overflow='hidden';
  try{
   const s=await rpc('ob_adisyon_status',{p_venue_id:String(id)});
