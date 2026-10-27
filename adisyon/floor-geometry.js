@@ -3,7 +3,7 @@
 'use strict';
 function dimensions(count){
  const n=Math.max(1,Math.min(200,Math.trunc(Number(count)||1)));
- const columns=Math.min(16,Math.max(1,Math.ceil(Math.sqrt(n*1.7))));
+ const columns=Math.min(n,16,Math.max(1,Math.ceil(Math.sqrt(n*1.7))));
  const rows=Math.ceil(n/columns);
  return {columns,rows,width:Math.max(1000,columns*133+88),height:Math.max(640,rows*132+72),count:n};
 }
@@ -19,6 +19,6 @@ function positions(count){
  }
  return out;
 }
-function clampZoom(value){return Math.max(0.5,Math.min(1.6,Math.round(Number(value)*10)/10||1));}
+function clampZoom(value){return Math.max(0.1,Math.min(1.6,Math.round(Number(value)*100)/100||1));}
 window.OynaBakFloorGeometry=Object.freeze({dimensions,positions,clampZoom});
 })();
