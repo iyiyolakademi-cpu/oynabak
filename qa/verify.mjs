@@ -71,4 +71,51 @@ for(const [source,needle] of [
  [liveCss,'@media(max-width:470px)']
 ])check(source,needle,'Live controls regression: '+needle);
 
+
+/* Scalable floor plan regressions for 1–200 tables.
+   The same 0–100 coordinates continue working with the SQL floor-plan RPC. */
+const floorFiles=['adisyon/floor-geometry.js','adisyon/floor-studio.js'];
+const floorWindow={};
+for(const file of floorFiles){
+ const content=read(file);
+ new Script(content,{filename:file}).runInNewContext({window:floorWindow});
+ check(main,file,'Floor plan module missing: '+file);
+}
+check(main,'adisyon/floor-studio.css','Expanded floor stylesheet missing');
+assert.ok(main.indexOf('adisyon/floor-geometry.js')<main.indexOf('adisyon/floor-studio.js'));
+assert.ok(main.indexOf('adisyon/floor-studio.js')<main.indexOf('adisyon/app.js'));
+const geometry=floorWindow.OynaBakFloorGeometry,studio=floorWindow.OynaBakFloorStudio;
+assert.ok(geometry&&studio,'Floor studio did not initialize');
+for(const count of [1,3,10,35,50,100,200]){
+ const dims=geometry.dimensions(count),positions=geometry.positions(count);
+ assert.equal(positions.length,count);
+ assert.equal(new Set(positions.map(p=>p.table)).size,count);
+ assert.equal(dims.rows,Math.ceil(count/dims.columns));
+ assert.ok(dims.columns<=16&&dims.rows>=1);
+ for(const p of positions)assert.ok(p.x>=0&&p.x<=100&&p.y>=0&&p.y<=100);
+ for(let i=0;i<count;i++)for(let j=i+1;j<count;j++){
+  const a=positions[i],b=positions[j],tile=112;
+  const xgap=Math.abs((dims.width-tile)*(a.x-b.x)/100);
+  const ygap=Math.abs((dims.height-tile)*(a.y-b.y)/100);
+  assert.ok(xgap>=tile-1||ygap>=tile-1,'Overlapping tables '+count+': '+a.table+'/'+b.table);
+ }
+ const state={count,floorDraft:positions,floorEditing:true,floorZoom:1,
+  floorExpanded:true,floorSelected:count,canManage:true,floorAvailable:true,
+  tickets:[],items:[],requests:[],calls:[]};
+ const html=studio.render({state,money:()=>'',total:()=>0,
+  floorStyle:p=>'left:'+p.x+'%;top:'+p.y+'%;',active:()=>null});
+ assert.equal((html.match(/class="ob-floor-table/g)||[]).length,count);
+ for(const term of ['data-ob-floor-viewport','data-ob-floor-expand','data-ob-floor-zoom',
+  'data-ob-floor-jump','data-ob-floor-confirm','data-ob-floor-drag="'+count+'"']){
+  check(html,term,'Missing floor action '+term+' for '+count+' tables');
+ }
+}
+assert.ok(geometry.clampZoom(.12)<.5&&geometry.clampZoom(2)===1.6);
+for(const term of ['state.floorZoom','state.floorExpanded','focusFloorTable()',
+ 'changeFloorZoom(','state.floorScroll','ob_adisyon_floor_save',
+ "['overview','tables'].includes(snapshot.tab)"]){
+ check(adisyon,term,'Floor plan integration regression: '+term);
+}
+console.log('Floor studio tests passed: 1, 3, 10, 35, 50, 100 and 200 tables.');
+
 console.log('All code and UI smoke checks passed. Inline scripts:',scripts);
