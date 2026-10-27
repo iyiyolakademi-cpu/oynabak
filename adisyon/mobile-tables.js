@@ -25,7 +25,7 @@ function data({state,total,money}){
   const label=hasCall?'Garson çağrısı':hasOrder?'Onay bekliyor':hasReady?'Servise hazır':hasNew?'Hazırlanacak':ticket?'Dolu':'Boş';
   const quantity=ticket?items.filter(i=>i.ticket_id===ticket.id&&i.status!=='void').reduce((sum,i)=>sum+(Number(i.quantity)||0),0):0;
   return {n,ticket,hasCall,hasOrder,hasReady,hasNew,variant,label,quantity,
-    price:ticket?money(total(ticket.id)):'',urgent:hasCall||hasOrder};
+    price:ticket?money(total(ticket.id)):'',urgent:hasCall||hasOrder||hasReady};
  });
  return {count,tables,opened:opened.size,empty:count-opened.size,requests:requests.length,
   calls:calls.length,due:money(due)};
