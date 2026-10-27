@@ -73,7 +73,7 @@ async function open(id){
   const phone=typeof window.matchMedia==='function'&&window.matchMedia('(max-width:700px)').matches;
   const defaultTab=phone?'tables':(['overview','requests','kitchen','tables','reports'].includes(savedScreen)?savedScreen:'overview');
   const savedStation=(()=>{try{return localStorage.getItem('ob-ops-station-'+id)}catch{return null}})();
-  state={vid:String(id),count:Number(s.table_count)||1,tab:defaultTab,table:0,filter:'',tickets:[],items:[],requests:[],calls:[],products:[],busy:false,permission:{},staffRole,kitchenFilter:['all','kitchen','bar'].includes(savedStation)?savedStation:'all',realtime:false,canManage:Boolean(s.can_manage),floorEditing:false,floorSaved:[],floorDraft:[],floorVersion:0,floorAvailable:true,floorSelected:1,floorZoom:1,floorExpanded:false,floorScroll:null,mobileTableView:'grid',lastSyncAt:0,lastError:''};
+  state={vid:String(id),count:Number(s.table_count)||1,tab:defaultTab,table:0,filter:'',tickets:[],items:[],requests:[],calls:[],products:[],busy:false,permission:{},staffRole,kitchenFilter:['all','kitchen','bar'].includes(savedStation)?savedStation:'all',realtime:false,canManage:Boolean(s.can_manage),floorEditing:false,floorSaved:[],floorDraft:[],floorVersion:0,floorAvailable:true,floorSelected:1,floorZoom:1,floorExpanded:false,floorScroll:null,mobileTableView:'grid',mobileTableFilter:'all',mobileTableSearch:'',lastSyncAt:0,lastError:''};
   const actions=['add','review','close','move','split','reports','status'];
   const allowed=await Promise.all(actions.map(action=>rpc('ob_adisyon_permission',{p_venue_id:String(id),p_action:action,p_station:action==='status'&&staffRole==='bar'?'bar':action==='status'?'kitchen':null})));
   if(!state||state.vid!==String(id))return;
@@ -293,13 +293,15 @@ function render(){
  if(window.OynaBakPOSAudio?.isApple&&!window.OynaBakPOSAudio.status().htmlAudioReady)
    html+='<div class="ob-control-warning ob-ios-sound-tip" role="status">🔇 iPhone sipariş zilini açmak için üstteki <b>Bildirim sesini aç</b> düğmesine dokunun. Ses testini duyduktan sonra alarm hazırdır. Ekran kilidinde Safari sesi durdurabilir.</div>';
  if(state.lastError)html+='<div class="ob-control-warning ob-sync-error" role="alert">⚠ Son güncelleme başarısız: '+esc(state.lastError)+'. Yeniden bağlanıldığında güncellenecek. <button type="button" class="ob-btn" data-ob-refresh>↻ Yenile</button></div>';
- html+='<div class="ob-tabs">'+(!stationOnly?tab('overview','◉ Canlı Kontrol'):'')+(state.permission.review?tab('requests','🛎️ Siparişler ('+(state.requests.length+state.calls.length)+')'):'')+tab('kitchen','♨️ Mutfak / Bar')+(!stationOnly?tab('tables','▦ Masalar'):'')+(state.permission.reports?tab('reports','▤ Raporlar'):'')+'</div>';
+ html+='<div class="ob-tabs">'+(!stationOnly?tab('overview',phone?'◉ Kontrol':'◉ Canlı Kontrol'):'')+(state.permission.review?tab('requests',phone?'🔔 Sipariş ('+(state.requests.length+state.calls.length)+')':'🛎️ Siparişler ('+(state.requests.length+state.calls.length)+')'):'')+tab('kitchen',phone?'♨ Mutfak':'♨️ Mutfak / Bar')+(!stationOnly?tab('tables','▦ Masalar'):'')+(state.permission.reports?tab('reports',phone?'▤ Rapor':'▤ Raporlar'):'')+'</div>';
  if(state.tab==='overview'&&!stationOnly){
   html+=window.OynaBakLiveControl?.render({state,opened,kitchenItems,esc,money,when,floorBoard,total})||'<section class="ob-card">Kontrol merkezi yüklenemedi; sayfayı yenileyin.</section>';
  }else if(state.tab==='tables'){
    if(!state.table){
-     if(mobileTables)html+='<nav class="ob-mobile-view-switch" aria-label="Masa görünümü"><button type="button" class="ob-btn '+(state.mobileTableView==='grid'?'active':'')+'" data-ob-mobile-view="grid" aria-pressed="'+(state.mobileTableView==='grid')+'">▦ Masa listesi</button><button type="button" class="ob-btn '+(state.mobileTableView==='plan'?'active':'')+'" data-ob-mobile-view="plan" aria-pressed="'+(state.mobileTableView==='plan')+'">▤ Mekân planı</button></nav>';
-     html+=mobileTables&&state.mobileTableView==='grid'?(window.OynaBakMobileTables?.render({state,total,money})||floorBoard()):floorBoard();
+     if(mobileTables)html+='<nav class="ob-mobile-view-switch" aria-label="Masa görünümü"><button type="button" class="ob-btn '+(state.mobileTableView==='grid'?'active':'')+'" data-ob-mobile-view="grid" aria-pressed="'+(state.mobileTableView==='grid')+'">▦ Kartlar</button><button type="button" class="ob-btn '+(state.mobileTableView==='plan'?'active':'')+'" data-ob-mobile-view="plan" aria-pressed="'+(state.mobileTableView==='plan')+'">▤ Mekân planı</button></nav>';
+     html+=mobileTables?(state.mobileTableView==='grid'?
+   (window.OynaBakMobileTables?.render({state,total,money})||'<section class="ob-card" role="alert">Masa kartları yüklenemedi. Sayfayı yenileyin.</section>'):
+   floorBoard()):floorBoard();
      html+='<'+(mobileTables?'details':'section')+' class="ob-card ob-ops-tools'+(mobileTables?' ob-mobile-extra':'')+'">'+(mobileTables?'<summary>⚙ Masa araçları</summary>':'<h3>Masa araçları</h3>')+'<div class="ob-row">'+
        (state.permission.move?'<button class="ob-btn" data-ob-tool="move">Masa taşı</button>':'')+
        (state.permission.split?'<button class="ob-btn" data-ob-tool="split">Hesabı bölüştür</button>':'')+
@@ -349,9 +351,14 @@ function render(){
   html+='<div class="ob-card"><h3>Son 200 adisyon</h3><p class="ob-muted">Rakamlar tahsil edilmiş ciro değil, sipariş/adisyon tutarıdır.</p><div class="ob-stats"><div class="ob-card"><span class="ob-muted">Kapanan adisyon</span><strong class="metric">'+closed.length+'</strong></div><div class="ob-card"><span class="ob-muted">Kapalı hesap toplamı</span><strong class="metric">'+money(closed.reduce((n,t)=>n+total(t.id),0))+'</strong></div><div class="ob-card"><span class="ob-muted">Açık adisyon</span><strong class="metric">'+opened.length+'</strong></div></div>';
   html+=state.tickets.length?state.tickets.map(t=>'<div class="ob-entry"><span>Masa '+t.table_no+' · '+when(t.opened_at)+' · '+(t.status==='open'?'Açık':'Kapalı')+'</span><b>'+money(total(t.id))+'</b></div>').join('') :'<div class="ob-empty">Henüz adisyon oluşturulmadı.</div>';html+='<div class="ob-row ob-report-actions"><button class="ob-btn" type="button" data-ob-report-days="1">Bugün</button><button class="ob-btn" type="button" data-ob-report-days="7">7 gün</button><button class="ob-btn primary" type="button" data-ob-report-days="30">30 gün</button></div><div id="ob-extra-results"></div></div>';
  }
+ const oldTableGrid=$('.ob-mobile-table-grid',body()),oldTableScroll=oldTableGrid?.scrollTop||0;
  const oldViewport=$('[data-ob-floor-viewport]',body());
  if(oldViewport){const oldCanvas=oldViewport.querySelector('[data-ob-floor-canvas]');if(oldCanvas)state.floorScroll={x:(oldViewport.scrollLeft+oldViewport.clientWidth/2)/Math.max(1,oldCanvas.offsetWidth),y:(oldViewport.scrollTop+oldViewport.clientHeight/2)/Math.max(1,oldCanvas.offsetHeight)};}
  body().innerHTML=html;
+ if(phone&&state.tab==='tables'&&!state.table&&state.mobileTableView==='grid'){
+  window.OynaBakMobileTables?.applyFilters($('.ob-mobile-tables',body()),state.mobileTableSearch,state.mobileTableFilter);
+  const grid=$('.ob-mobile-table-grid',body());if(grid)grid.scrollTop=oldTableScroll;
+ }
  updateAlarmButton();
  const newViewport=$('[data-ob-floor-viewport]',body()),newCanvas=newViewport?.querySelector('[data-ob-floor-canvas]');
  if(newViewport&&newCanvas&&state.floorScroll){newViewport.scrollLeft=state.floorScroll.x*newCanvas.offsetWidth-newViewport.clientWidth/2;newViewport.scrollTop=state.floorScroll.y*newCanvas.offsetHeight-newViewport.clientHeight/2;}
@@ -477,7 +484,7 @@ async function closeTicket(id){
 }
 
 document.addEventListener('click',async e=>{
- const b=e.target.closest?.('[data-ob-alarm-mute],[data-ob-waiter-done],[data-ob-open],[data-ob-toggle],[data-ob-close],[data-ob-tab],[data-ob-table],[data-ob-back],[data-ob-product],[data-ob-dismiss],[data-ob-void],[data-ob-status],[data-ob-close-ticket],[data-ob-request-approve],[data-ob-request-reject],[data-ob-tool],[data-ob-security-toggle],[data-ob-code-rotate],[data-ob-staff-save],[data-ob-station],[data-ob-enable-alerts],[data-ob-report-days],[data-ob-floor-edit],[data-ob-floor-toggle-shape],[data-ob-floor-auto],[data-ob-floor-cancel],[data-ob-floor-confirm],[data-ob-refresh],[data-ob-floor-zoom],[data-ob-floor-expand],[data-ob-floor-jump],[data-ob-mobile-view]');
+ const b=e.target.closest?.('[data-ob-alarm-mute],[data-ob-waiter-done],[data-ob-open],[data-ob-toggle],[data-ob-close],[data-ob-tab],[data-ob-table],[data-ob-back],[data-ob-product],[data-ob-dismiss],[data-ob-void],[data-ob-status],[data-ob-close-ticket],[data-ob-request-approve],[data-ob-request-reject],[data-ob-tool],[data-ob-security-toggle],[data-ob-code-rotate],[data-ob-staff-save],[data-ob-station],[data-ob-enable-alerts],[data-ob-report-days],[data-ob-floor-edit],[data-ob-floor-toggle-shape],[data-ob-floor-auto],[data-ob-floor-cancel],[data-ob-floor-confirm],[data-ob-refresh],[data-ob-floor-zoom],[data-ob-floor-expand],[data-ob-floor-jump],[data-ob-mobile-view],[data-ob-mobile-filter]');
  if(!b||b.disabled)return;e.preventDefault();e.stopImmediatePropagation();
  if(b.hasAttribute('data-ob-close')){if(state?.floorEditing&&!confirm('Kaydedilmemiş masa düzeni var. Kaydetmeden çıkılsın mı?'))return;close();return}
  if(b.hasAttribute('data-ob-dismiss')){$('.ob-product-form',root())?.remove();return}
@@ -493,10 +500,18 @@ document.addEventListener('click',async e=>{
    }
    else if(b.hasAttribute('data-ob-refresh')){if(refreshRunning)notice('Güncelleme zaten sürüyor.');else{await refresh();notice('Kontrol merkezi yenilendi.')}}
     else if(b.dataset.obWaiterDone){await rpc('ob_ops_waiter_done',{p_venue_id:state.vid,p_call_id:b.dataset.obWaiterDone});await refresh();notice('Garson çağrısı tamamlandı.')}
+   else if(b.hasAttribute('data-ob-mobile-filter')){
+    state.mobileTableFilter=b.dataset.obMobileFilter;
+    window.OynaBakMobileTables?.applyFilters($('.ob-mobile-tables',body()),state.mobileTableSearch,state.mobileTableFilter);
+   }
    else if(b.dataset.obMobileView){
     if(state.floorEditing&&b.dataset.obMobileView==='grid'){
      if(!confirm('Kaydedilmemiş masa düzeninden çıkılsın mı?'))return;
      state.floorDraft=normalizeFloor(state.floorSaved,state.count);state.floorEditing=false;
+    }
+    if(b.dataset.obMobileView==='plan'&&state.mobileTableView!=='plan'){
+     const g=window.OynaBakFloorGeometry,dim=g?.dimensions(state.count,state.floorDraft);
+     if(dim?.width)state.floorZoom=g.clampZoom(Math.min(1,Math.max(260,window.innerWidth-44)/dim.width));
     }
     state.mobileTableView=b.dataset.obMobileView;render();
    }
@@ -525,9 +540,9 @@ document.addEventListener('click',async e=>{
    else if(b.dataset.obSecurityToggle){await rpc('ob_adisyon_table_code_action',{p_venue_id:state.vid,p_table_no:1,p_action:b.dataset.obSecurityToggle});await toolAction('codes')}
    else if(b.dataset.obCodeRotate){await rpc('ob_adisyon_table_code_action',{p_venue_id:state.vid,p_table_no:Number(b.dataset.obCodeRotate),p_action:'rotate'});await toolAction('codes')}
    else if(b.hasAttribute('data-ob-staff-save')){await rpc('ob_adisyon_staff_assign',{p_venue_id:state.vid,p_email:$('#ob-staff-email').value,p_role:$('#ob-staff-role').value});await toolAction('staff')}
-   else if(b.dataset.obTab){state.floorExpanded=false;state.tab=b.dataset.obTab;try{localStorage.setItem('ob-ops-screen-'+state.vid,state.tab)}catch{}state.table=0;render()}
+   else if(b.dataset.obTab){state.floorExpanded=false;state.tab=b.dataset.obTab;if(state.tab==='tables'&&!state.floorEditing)state.mobileTableView='grid';try{localStorage.setItem('ob-ops-screen-'+state.vid,state.tab)}catch{}state.table=0;render()}
    else if(b.dataset.obTable){state.floorExpanded=false;state.tab='tables';state.table=Number(b.dataset.obTable);state.filter='';render()}
-   else if(b.hasAttribute('data-ob-back')){state.table=0;render()}
+   else if(b.hasAttribute('data-ob-back')){state.table=0;state.mobileTableView='grid';render()}
    else if(b.hasAttribute('data-ob-product'))productForm(Number(b.dataset.obProduct));
    else if(b.dataset.obVoid)await status(b.dataset.obVoid,'void');
    else if(b.dataset.obStatus)await status(b.dataset.obStatus,b.dataset.obNext);
@@ -572,6 +587,11 @@ document.addEventListener('submit',async e=>{
 },true);
 document.addEventListener('change',e=>{if(e.target.matches?.('[data-ob-floor-select]')&&state)state.floorSelected=Number(e.target.value)},true);
 document.addEventListener('input',e=>{
+ if(e.target.id==='ob-mobile-table-search'&&state){
+  state.mobileTableSearch=e.target.value.slice(0,25);
+  window.OynaBakMobileTables?.applyFilters($('.ob-mobile-tables',body()),state.mobileTableSearch,state.mobileTableFilter);
+  return;
+ }
  if(e.target.id!=='ob-adisyon-search'||!state)return;
  const pos=e.target.selectionStart;state.filter=e.target.value;render();
  const field=$('#ob-adisyon-search');field?.focus();try{field?.setSelectionRange(pos,pos)}catch(_){}
