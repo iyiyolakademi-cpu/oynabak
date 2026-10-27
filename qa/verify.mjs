@@ -272,7 +272,7 @@ console.log('İyi Yol Akademi full cafe menu passes category, pricing, variant a
 check(main,'<script src="adisyon/ios-audio.js"></script>','iOS POS audio loader missing');
 check(main,'window.OynaBakPOSAudio.enable(waiterAudioCtx)','Waiter alarm missing iPhone unlock');
 check(main,'window.OynaBakPOSAudio.play(waiterAudioCtx)','Waiter alarm missing iPhone playback');
-check(adisyon,'window.OynaBakPOSAudio.enable(audioCtx)','Operations alarms missing iPhone unlock');
+check(adisyon,'posAudio.enable(audioCtx)','Operations alarms missing iPhone unlock');
 check(adisyon,'window.OynaBakPOSAudio.play(audioCtx)','Operations alarms missing iPhone playback');
 check(simple,'window.OynaBakPOSAudio.enable(audioCtx)','Quick console iPhone unlock missing');
 check(simple,'window.OynaBakPOSAudio.play(audioCtx)','Quick console iPhone alarm missing');
