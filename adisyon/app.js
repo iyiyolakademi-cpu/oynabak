@@ -68,7 +68,7 @@ async function open(id){
   const savedScreen=(()=>{try{return localStorage.getItem('ob-ops-screen-'+id)}catch{return null}})();
   const defaultTab=['overview','requests','kitchen','tables','reports'].includes(savedScreen)?savedScreen:'overview';
   const savedStation=(()=>{try{return localStorage.getItem('ob-ops-station-'+id)}catch{return null}})();
-  state={vid:String(id),count:Number(s.table_count)||1,tab:defaultTab,table:0,filter:'',tickets:[],items:[],requests:[],calls:[],products:[],busy:false,permission:{},staffRole,kitchenFilter:['all','kitchen','bar'].includes(savedStation)?savedStation:'all',realtime:false,canManage:Boolean(s.can_manage),floorEditing:false,floorSaved:[],floorDraft:[],floorVersion:0,floorAvailable:true,floorSelected:1,lastSyncAt:0,lastError:''};
+  state={vid:String(id),count:Number(s.table_count)||1,tab:defaultTab,table:0,filter:'',tickets:[],items:[],requests:[],calls:[],products:[],busy:false,permission:{},staffRole,kitchenFilter:['all','kitchen','bar'].includes(savedStation)?savedStation:'all',realtime:false,canManage:Boolean(s.can_manage),floorEditing:false,floorSaved:[],floorDraft:[],floorVersion:0,floorAvailable:true,floorSelected:1,floorZoom:1,floorExpanded:false,floorScroll:null,lastSyncAt:0,lastError:''};
   const actions=['add','review','close','move','split','reports','status'];
   const allowed=await Promise.all(actions.map(action=>rpc('ob_adisyon_permission',{p_venue_id:String(id),p_action:action,p_station:action==='status'&&staffRole==='bar'?'bar':action==='status'?'kitchen':null})));
   if(!state||state.vid!==String(id))return;
@@ -122,15 +122,7 @@ const items=id=>state.items.filter(i=>i.ticket_id===id);
 const total=id=>items(id).filter(i=>i.status!=='void').reduce((n,i)=>n+Number(i.line_total||0),0);
 const tab=(key,label)=>'<button class="ob-btn '+(state.tab===key?'active':'')+'" data-ob-tab="'+key+'" aria-pressed="'+(state.tab===key?'true':'false')+'">'+label+'</button>';
 
-function defaultFloor(count){
- const cols=Math.min(5,count),rows=Math.ceil(count/cols),arr=[];
- for(let i=0;i<count;i++){
-  const col=i%cols,row=Math.floor(i/cols);
-  arr.push({table:i+1,shape:'square',x:cols===1?45:Math.round(4+92*col/(cols-1)),
-   y:rows===1?38:Math.round(6+88*row/(rows-1))});
- }
- return arr;
-}
+function defaultFloor(count){return window.OynaBakFloorGeometry.positions(count)}
 function normalizeFloor(stored,count){
  const defaults=defaultFloor(count),saved=Array.isArray(stored)?stored:[];
  return defaults.map(item=>{
@@ -151,33 +143,31 @@ function floorStyle(position){
  return 'left:'+position.x+'%;top:'+position.y+'%;'+
    'transform:translate(-'+position.x+'%,-'+position.y+'%)';
 }
-function floorBoard(){
- const positions=state.floorDraft.length===state.count?state.floorDraft:normalizeFloor(state.floorSaved,state.count);
- const count=state.count,rows=Math.ceil(count/5),height=Math.max(425,rows*115+85);
- let html='<section class="ob-floor"><header class="ob-floor-header"><div><h3>İşletme masa düzeni</h3><p class="ob-muted">'+(state.floorEditing?'Masalara dokunup sürükleyin. Kaydetmeden çıkarsanız düzen değişmez.':'Masaların yerleşimi bu işletmeye özeldir. Masaya basarak adisyonu açın.')+'</p></div><div class="ob-floor-actions">';
- if(state.canManage&&state.floorAvailable){
-   html+=state.floorEditing?'<button type="button" class="ob-btn" data-ob-floor-auto>Otomatik diz</button><button type="button" class="ob-btn" data-ob-floor-cancel>Vazgeç</button><button type="button" class="ob-btn primary" data-ob-floor-confirm>✓ Kaydet ve onayla</button>':
-    '<button type="button" class="ob-btn primary" data-ob-floor-edit>✥ Masaları düzenle</button>';
- }else if(!state.floorAvailable)html+='<span class="ob-muted">Plan düzeni yüklenemedi; yeniden açıp deneyin.</span>';
- html+='</div></header>';
- if(state.floorEditing){
-  const selected=Number(state.floorSelected)||1;
-  html+='<div class="ob-floor-edit-controls"><label>Masa seç <select data-ob-floor-select>'+
-    positions.map(p=>'<option value="'+p.table+'"'+(p.table===selected?' selected':'')+'>Masa '+p.table+'</option>').join('')+
-    '</select></label><button type="button" class="ob-btn" data-ob-floor-toggle-shape>Seçilen masanın şeklini değiştir</button></div>';
- }
- html+='<div class="ob-floor-scroll"><div class="ob-floor-canvas '+(state.floorEditing?'is-editing':'')+'" data-ob-floor-canvas style="height:'+height+'px">';
- html+='<div class="ob-floor-entrance">🚪 GİRİŞ</div>';
- for(const pos of positions){
-  const t=active(pos.table),hasCall=state.calls.some(c=>Number(c.table_no)===pos.table),hasRequest=state.requests.some(r=>Number(r.table_no)===pos.table),hasReady=!!t&&state.items.some(i=>i.ticket_id===t.id&&i.status==='ready'),c=t?'open':'';
-  html+='<button type="button" class="ob-floor-table '+c+(pos.shape==='round'?' is-round':'')+(state.floorEditing?' is-draggable':'')+(hasCall?' has-call':hasRequest?' has-request':hasReady?' has-ready':'')+
-   '" style="'+floorStyle(pos)+'"'+(state.floorEditing?' data-ob-floor-drag="'+pos.table+'"':
-   ' data-ob-table="'+pos.table+'"')+
-   ' aria-label="Masa '+pos.table+(state.floorEditing?' sürükleyerek yerini değiştir':' adisyonunu aç')+'">'+
-   '<b>Masa '+pos.table+'</b><small>'+(hasCall?'🔔 Garson çağrısı':hasRequest?'⏳ QR onayı':hasReady?'✓ Servis hazır':t?money(total(t.id)):'Boş')+'</small></button>';
- }
- html+='</div></div>'+(state.floorEditing?'<p class="ob-muted">Telefon ve tablette sürükleyin. Klavyede ok tuşlarıyla da ince ayar yapabilirsiniz.</p>':'')+'</section>';
- return html;
+function floorBoard(){return window.OynaBakFloorStudio.render({state,active,total,money,floorStyle});}
+function changeFloorZoom(action){
+ if(!state)return;
+ const g=window.OynaBakFloorGeometry;let zoom=state.floorZoom;
+ if(action==='fit'){
+  const v=$('[data-ob-floor-viewport]',body()),d=g.dimensions(state.count);
+  if(!v)return;
+  zoom=Math.min(1.6,(v.clientWidth-20)/d.width,(v.clientHeight-20)/d.height);
+ }else if(action==='reset')zoom=1;
+ else if(action==='plus')zoom+=.1;
+ else if(action==='minus')zoom-=.1;
+ else return;
+ state.floorZoom=g.clampZoom(zoom);render();
+}
+function focusFloorTable(){
+ if(!state)return;
+ const v=$('[data-ob-floor-viewport]',body()),n=Number(state.floorSelected);
+ const btn=v?.querySelector('[data-ob-floor-drag="'+n+'"],[data-ob-table="'+n+'"]');
+ if(!v||!btn)return;
+ const p=v.getBoundingClientRect(),r=btn.getBoundingClientRect();
+ const left=v.scrollLeft+r.left-p.left-(v.clientWidth-r.width)/2;
+ const top=v.scrollTop+r.top-p.top-(v.clientHeight-r.height)/2;
+ if(typeof v.scrollTo==='function')v.scrollTo({left,top,behavior:'smooth'});
+ else{v.scrollLeft=left;v.scrollTop=top}
+ if(state.floorEditing)btn.focus({preventScroll:true});
 }
 async function saveFloor(){
  if(!state?.floorEditing||!state.canManage||!state.floorAvailable)return;
@@ -319,7 +309,11 @@ function render(){
   html+='<div class="ob-card"><h3>Son 200 adisyon</h3><p class="ob-muted">Rakamlar tahsil edilmiş ciro değil, sipariş/adisyon tutarıdır.</p><div class="ob-stats"><div class="ob-card"><span class="ob-muted">Kapanan adisyon</span><strong class="metric">'+closed.length+'</strong></div><div class="ob-card"><span class="ob-muted">Kapalı hesap toplamı</span><strong class="metric">'+money(closed.reduce((n,t)=>n+total(t.id),0))+'</strong></div><div class="ob-card"><span class="ob-muted">Açık adisyon</span><strong class="metric">'+opened.length+'</strong></div></div>';
   html+=state.tickets.length?state.tickets.map(t=>'<div class="ob-entry"><span>Masa '+t.table_no+' · '+when(t.opened_at)+' · '+(t.status==='open'?'Açık':'Kapalı')+'</span><b>'+money(total(t.id))+'</b></div>').join('') :'<div class="ob-empty">Henüz adisyon oluşturulmadı.</div>';html+='<div class="ob-row ob-report-actions"><button class="ob-btn" type="button" data-ob-report-days="1">Bugün</button><button class="ob-btn" type="button" data-ob-report-days="7">7 gün</button><button class="ob-btn primary" type="button" data-ob-report-days="30">30 gün</button></div><div id="ob-extra-results"></div></div>';
  }
+ const oldViewport=$('[data-ob-floor-viewport]',body());
+ if(oldViewport){const oldCanvas=oldViewport.querySelector('[data-ob-floor-canvas]');if(oldCanvas)state.floorScroll={x:(oldViewport.scrollLeft+oldViewport.clientWidth/2)/Math.max(1,oldCanvas.offsetWidth),y:(oldViewport.scrollTop+oldViewport.clientHeight/2)/Math.max(1,oldCanvas.offsetHeight)};}
  body().innerHTML=html;
+ const newViewport=$('[data-ob-floor-viewport]',body()),newCanvas=newViewport?.querySelector('[data-ob-floor-canvas]');
+ if(newViewport&&newCanvas&&state.floorScroll){newViewport.scrollLeft=state.floorScroll.x*newCanvas.offsetWidth-newViewport.clientWidth/2;newViewport.scrollTop=state.floorScroll.y*newCanvas.offsetHeight-newViewport.clientHeight/2;}
 }
 async function refresh(silent=false){
  if(!state||state.busy||refreshRunning)return;refreshRunning=true;
@@ -436,7 +430,7 @@ async function closeTicket(id){
 }
 
 document.addEventListener('click',async e=>{
- const b=e.target.closest?.('[data-ob-alarm-mute],[data-ob-waiter-done],[data-ob-open],[data-ob-toggle],[data-ob-close],[data-ob-tab],[data-ob-table],[data-ob-back],[data-ob-product],[data-ob-dismiss],[data-ob-void],[data-ob-status],[data-ob-close-ticket],[data-ob-request-approve],[data-ob-request-reject],[data-ob-tool],[data-ob-security-toggle],[data-ob-code-rotate],[data-ob-staff-save],[data-ob-station],[data-ob-enable-alerts],[data-ob-report-days],[data-ob-floor-edit],[data-ob-floor-toggle-shape],[data-ob-floor-auto],[data-ob-floor-cancel],[data-ob-floor-confirm],[data-ob-refresh]');
+ const b=e.target.closest?.('[data-ob-alarm-mute],[data-ob-waiter-done],[data-ob-open],[data-ob-toggle],[data-ob-close],[data-ob-tab],[data-ob-table],[data-ob-back],[data-ob-product],[data-ob-dismiss],[data-ob-void],[data-ob-status],[data-ob-close-ticket],[data-ob-request-approve],[data-ob-request-reject],[data-ob-tool],[data-ob-security-toggle],[data-ob-code-rotate],[data-ob-staff-save],[data-ob-station],[data-ob-enable-alerts],[data-ob-report-days],[data-ob-floor-edit],[data-ob-floor-toggle-shape],[data-ob-floor-auto],[data-ob-floor-cancel],[data-ob-floor-confirm],[data-ob-refresh],[data-ob-floor-zoom],[data-ob-floor-expand],[data-ob-floor-jump]');
  if(!b||b.disabled)return;e.preventDefault();e.stopImmediatePropagation();
  if(b.hasAttribute('data-ob-close')){if(state?.floorEditing&&!confirm('Kaydedilmemiş masa düzeni var. Kaydetmeden çıkılsın mı?'))return;close();return}
  if(b.hasAttribute('data-ob-dismiss')){$('.ob-product-form',root())?.remove();return}
@@ -452,6 +446,9 @@ document.addEventListener('click',async e=>{
    }
    else if(b.hasAttribute('data-ob-refresh')){if(refreshRunning)notice('Güncelleme zaten sürüyor.');else{await refresh();notice('Kontrol merkezi yenilendi.')}}
     else if(b.dataset.obWaiterDone){await rpc('ob_ops_waiter_done',{p_venue_id:state.vid,p_call_id:b.dataset.obWaiterDone});await refresh();notice('Garson çağrısı tamamlandı.')}
+   else if(b.dataset.obFloorZoom)changeFloorZoom(b.dataset.obFloorZoom);
+   else if(b.hasAttribute('data-ob-floor-expand')){state.floorExpanded=!state.floorExpanded;render()}
+   else if(b.hasAttribute('data-ob-floor-jump'))focusFloorTable();
    else if(b.hasAttribute('data-ob-floor-edit')){
     state.floorDraft=normalizeFloor(state.floorSaved,state.count);
     state.floorEditing=true;render();
@@ -474,8 +471,8 @@ document.addEventListener('click',async e=>{
    else if(b.dataset.obSecurityToggle){await rpc('ob_adisyon_table_code_action',{p_venue_id:state.vid,p_table_no:1,p_action:b.dataset.obSecurityToggle});await toolAction('codes')}
    else if(b.dataset.obCodeRotate){await rpc('ob_adisyon_table_code_action',{p_venue_id:state.vid,p_table_no:Number(b.dataset.obCodeRotate),p_action:'rotate'});await toolAction('codes')}
    else if(b.hasAttribute('data-ob-staff-save')){await rpc('ob_adisyon_staff_assign',{p_venue_id:state.vid,p_email:$('#ob-staff-email').value,p_role:$('#ob-staff-role').value});await toolAction('staff')}
-   else if(b.dataset.obTab){state.tab=b.dataset.obTab;try{localStorage.setItem('ob-ops-screen-'+state.vid,state.tab)}catch{}state.table=0;render()}
-   else if(b.dataset.obTable){state.table=Number(b.dataset.obTable);state.filter='';render()}
+   else if(b.dataset.obTab){state.floorExpanded=false;state.tab=b.dataset.obTab;try{localStorage.setItem('ob-ops-screen-'+state.vid,state.tab)}catch{}state.table=0;render()}
+   else if(b.dataset.obTable){state.floorExpanded=false;state.tab='tables';state.table=Number(b.dataset.obTable);state.filter='';render()}
    else if(b.hasAttribute('data-ob-back')){state.table=0;render()}
    else if(b.hasAttribute('data-ob-product'))productForm(Number(b.dataset.obProduct));
    else if(b.dataset.obVoid)await status(b.dataset.obVoid,'void');
@@ -519,7 +516,7 @@ document.addEventListener('submit',async e=>{
  if(!state||state.busy)return;state.busy=true;
  try{await addItem(e.target)}catch(err){notice(err.message||String(err),true)}finally{if(state)state.busy=false}
 },true);
-document.addEventListener('change',e=>{if(e.target.matches?.('[data-ob-floor-select]')&&state?.floorEditing)state.floorSelected=Number(e.target.value)},true);
+document.addEventListener('change',e=>{if(e.target.matches?.('[data-ob-floor-select]')&&state)state.floorSelected=Number(e.target.value)},true);
 document.addEventListener('input',e=>{
  if(e.target.id!=='ob-adisyon-search'||!state)return;
  const pos=e.target.selectionStart;state.filter=e.target.value;render();
@@ -573,7 +570,7 @@ document.addEventListener('keydown',e=>{
  btn.style.cssText=floorStyle(state.floorDraft.find(p=>p.table===num));
 },true);
 
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&root()&&!$('.ob-product-form',root())){if(state?.floorEditing&&!confirm('Masa düzenini kaydetmeden çıkmak istiyor musun?'))return;close()}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&root()&&!$('.ob-product-form',root())){if(state?.floorExpanded){e.preventDefault();state.floorExpanded=false;render();return}if(state?.floorEditing&&!confirm('Masa düzenini kaydetmeden çıkmak istiyor musun?'))return;close()}});
 function updateConnectionBadge(){
  const indicator=$('#ob-live-status');
  if(!indicator)return;
