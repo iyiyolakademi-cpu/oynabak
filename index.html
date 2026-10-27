@@ -6940,20 +6940,35 @@ function menuId(prefix='m'){try{return prefix+'-'+crypto.randomUUID()}catch{retu
 function formatPrice(v){const n=Number(v||0);return new Intl.NumberFormat('tr-TR',{minimumFractionDigits:Number.isInteger(n)?0:2,maximumFractionDigits:2}).format(n)+' TL'}
 function isCafeSector(sector){const x=String(sector||'').toLocaleLowerCase('tr-TR');return x.includes('kafe')||x.includes('cafe')||x.includes('café')}
 async function loadVenueMenu(vid){try{return normalizeMenu(await rpc('ob_menu',{vid:String(vid)}))}catch(e){console.warn('Menü alınamadı:',e.message);return normalizeMenu({})}}
-function menuPublicRowsHtml(items){return items.map(i=>`
-              <article class="menu-row ${i.sold_out?'is-sold':''}">
-                <div class="menu-row-copy">
-                  <div class="menu-row-title">
-                    <h4>${esc(i.name)}</h4>
-                    ${i.featured?'<span class="menu-rec">Önerilen</span>':''}
-                    ${i.sold_out?'<span class="menu-sold">Tükendi</span>':''}
-                  </div>
-                  ${i.description?`<p>${esc(i.description)}</p>`:''}
-                  ${(i.variants||[]).length?`<div class="menu-variants">${i.variants.map(v=>`<div class="menu-variant-line"><span>${esc(v.name)}</span><span>${esc(formatPrice(v.price))}</span></div>`).join('')}</div>`:''}
-                </div>
-                <div class="menu-row-dots" aria-hidden="true"></div>
-                <div class="menu-price">${esc(formatPrice(i.price))}</div>
-              </article>`).join('')}
+function menuPublicRowsHtml(items){return items.map(i=>{
+  const variants=Array.isArray(i.variants)?i.variants.filter(v=>v.name):[];
+  const base=Number(i.price)||0;
+  const starting=variants.length&&base<=0?Math.min(...variants.map(v=>Number(v.price)||0)):base;
+  return `
+    <article class="menu-row ${i.sold_out?'is-sold':''}">
+      <div class="menu-row-copy">
+        <div class="menu-row-title">
+          <h4>${esc(i.name)}</h4>
+          ${i.featured?'<span class="menu-rec">Önerilen</span>':''}
+          ${i.sold_out?'<span class="menu-sold">Tükendi</span>':''}
+        </div>
+        ${i.description?`<p>${esc(i.description)}</p>`:''}
+        ${variants.length?`<div class="menu-variants">${variants.map(v=>`<div class="menu-variant-line"><span>${esc(v.name)}</span><span>${esc(formatPrice(v.price))}</span></div>`).join('')}</div>`:''}
+      </div>
+      <div class="menu-row-dots" aria-hidden="true"></div>
+      <div class="menu-row-actions">
+        <div class="menu-price">${esc(formatPrice(starting))}${variants.length&&base<=0?'<small>itibaren</small>':''}</div>
+        ${!i.sold_out?`<div class="menu-order-controls" hidden>
+          ${variants.length?`<select class="menu-order-variant" data-ob-menu-variant="${esc(i.id)}" aria-label="${esc(i.name)} seçenekleri">
+            <option value="" ${base<=0?'disabled selected':''}>${base>0?'Standart · '+esc(formatPrice(base)):'Seçenek seçin'}</option>
+            ${variants.map(v=>`<option value="${esc(v.id)}">${esc(v.name)} · ${esc(formatPrice(v.price))}</option>`).join('')}
+          </select>`:''}
+          <button type="button" class="menu-order-add" data-ob-menu-add="${esc(i.id)}" aria-label="${esc(i.name)} siparişe ekle">+ Ekle</button>
+          <span class="menu-order-quantity" data-ob-menu-qty="${esc(i.id)}" hidden></span>
+        </div>`:''}
+      </div>
+    </article>`;
+}).join('')}
 function menuPublicGroupedItemsHtml(c){
   const items=(c.items||[]).filter(i=>i.active);
   const subs=(c.subcategories||[]).filter(sub=>sub.name.trim());
