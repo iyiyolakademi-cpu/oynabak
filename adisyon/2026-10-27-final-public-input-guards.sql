@@ -85,12 +85,12 @@ BEGIN
             WHERE u.gid IS NULL OR pg_catalog.length(u.gid)<1
             OR pg_catalog.length(u.gid)>160)
  THEN RETURN '{}'::jsonb; END IF;
- SELECT pg_catalog.coalesce(
+ SELECT coalesce(
   pg_catalog.jsonb_object_agg(m.game_id,
    pg_catalog.jsonb_build_object('image_data',m.image_data)),'{}'::jsonb)
  INTO result
  FROM public.ob_game_media m
  WHERE m.game_id=ANY(gids);
- RETURN pg_catalog.coalesce(result,'{}'::jsonb);
+ RETURN coalesce(result,'{}'::jsonb);
 END;
 $function$;
