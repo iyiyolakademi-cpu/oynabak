@@ -262,7 +262,7 @@ for(const c of iyaMenu.categories){
 }
 assert.equal(iyaProducts.find(i=>i.name==='İyi Yol Kruvasan')?.station,'kitchen');
 assert.equal(iyaProducts.find(i=>i.name==='Yol Arkadaşı Brownie')?.station,'kitchen');
-for(const text of ['data-ob-menu-add','menu-order-variant','menu-order-actions']){
- assert.ok(text==='menu-order-actions'||main.includes(text),'QR menu ordering feature missing');
+for(const token of ['data-ob-menu-add','menu-order-variant','menu-order-controls']){
+ assert.ok(main.includes(token),'QR product controls missing: '+token);
 }
 console.log('İyi Yol Akademi full cafe menu passes category, pricing, variant and description checks.');
