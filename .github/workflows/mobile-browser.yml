@@ -1,0 +1,35 @@
+name: OynaBak mobile browser acceptance
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'adisyon/**'
+      - 'qa/browser-mobile-smoke.mjs'
+      - 'index.html'
+      - '.github/workflows/mobile-browser.yml'
+  workflow_dispatch:
+jobs:
+  chromium:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned Playwright Chromium
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Start local OynaBak static server
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 > /tmp/oynabak-browser-http.log 2>&1 &
+          for i in $(seq 1 25); do
+            if curl -fsS http://127.0.0.1:8765/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          exit 1
+      - name: Test mobile and desktop floor rendering
+        run: node qa/browser-mobile-smoke.mjs
