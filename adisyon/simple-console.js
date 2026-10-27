@@ -17,7 +17,7 @@ function base(html){
  $('#app').innerHTML='<main class="ob-simple"><div class="ob-simple-shell">'+html+'</div></main>';
 }
 function banner(){
- return '<header class="ob-simple-head"><div><small>OYNABAK · HIZLI İŞLETME EKRANI</small><h1>'+esc(state?.name||'Sipariş yönetimi')+'</h1><p>Tek ekran · Kod yok · Çalışan girişi yok</p></div><div class="ob-simple-head-actions"><button type="button" data-simple-audio class="ob-simple-secondary">'+(soundEnabled&&(window.OynaBakPOSAudio?.isApple?window.OynaBakPOSAudio.ready(audioCtx):audioCtx?.state==='running')?'🔊 Ses açık · Dene':'🔔 Sesi etkinleştir')+'</button><span class="ob-simple-connected" role="status">'+(stale||!navigator.onLine?'⚠ Bağlantı kontrol ediliyor':state?.ok?'● Bağlı':'◌ Bağlanıyor')+'</span></div></header>';
+ return '<header class="ob-simple-head"><div><small>OYNABAK · HIZLI İŞLETME EKRANI</small><h1>'+esc(state?.name||'Sipariş yönetimi')+'</h1><p>Tek ekran · Kod yok · Çalışan girişi yok</p></div><div class="ob-simple-head-actions"><button type="button" data-simple-audio class="ob-simple-secondary">'+(soundEnabled&&(window.OynaBakPOSAudio?.isApple?window.OynaBakPOSAudio.status().htmlAudioReady:audioCtx?.state==='running')?'🔊 Ses açık · Dene':'🔔 Sesi etkinleştir')+'</button><span class="ob-simple-connected" role="status">'+(stale||!navigator.onLine?'⚠ Bağlantı kontrol ediliyor':state?.ok?'● Bağlı':'◌ Bağlanıyor')+'</span></div></header>';
 }
 function notice(text){const el=$('#ob-simple-notice');if(el){el.textContent=text;el.hidden=false} else console.warn(text)}
 function hexSecret(){const bytes=new Uint8Array(32);crypto.getRandomValues(bytes);return Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('')}
@@ -128,9 +128,10 @@ function render(){
  const alarm=alertKeys.length>0;
  base(banner()+
  '<div class="ob-simple-stats"><div><strong>'+pending+'</strong><span>Yeni QR sipariş</span></div><div><strong>'+newItems+'</strong><span>Hazırlanacak ürün</span></div><div><strong>'+open+'</strong><span>Açık masa</span></div></div>'+
- (alarm?'<div class="ob-simple-alarm" role="alert"><div>🔔 <strong>'+alertKeys.length+' yeni işlem bekliyor</strong><small>'+(soundEnabled&&(window.OynaBakPOSAudio?.isApple?window.OynaBakPOSAudio.ready(audioCtx):audioCtx?.state==='running')?'Alarm, susturulana kadar tekrarlanır.':'Ses henüz açık değil · Üstteki Sesi etkinleştir düğmesine dokun.')+'</small></div><button type="button" data-simple-mute>🔕 Sustur</button></div>':'')+
+ (alarm?'<div class="ob-simple-alarm" role="alert"><div>🔔 <strong>'+alertKeys.length+' yeni işlem bekliyor</strong><small>'+(soundEnabled&&(window.OynaBakPOSAudio?.isApple?window.OynaBakPOSAudio.status().htmlAudioReady:audioCtx?.state==='running')?'Alarm, susturulana kadar tekrarlanır.':'Ses henüz açık değil · Üstteki Sesi etkinleştir düğmesine dokun.')+'</small></div><button type="button" data-simple-mute>🔕 Sustur</button></div>':'')+
  tabs()+(tab==='orders'?requestList():tab==='tables'?tables():kitchen())+
- (stale||!navigator.onLine?'<div class="ob-simple-stale" role="alert">⚠ Bağlantı kesildi. Son görüntülenen veriler güncel olmayabilir. Yeni siparişleri internet döndüğünde kontrol edin.</div>':'')+
+ (window.OynaBakPOSAudio?.isApple&&!window.OynaBakPOSAudio.status().htmlAudioReady?'<div class="ob-simple-ios-hint" role="status">🔇 iPhone bildirim sesi kapalı. Üstteki <b>Sesi etkinleştir</b> düğmesine dokunup zil testini dinleyin.</div>':'')+
+  (stale||!navigator.onLine?'<div class="ob-simple-stale" role="alert">⚠ Bağlantı kesildi. Son görüntülenen veriler güncel olmayabilir. Yeni siparişleri internet döndüğünde kontrol edin.</div>':'')+
  '<p class="ob-simple-footer">Sipariş toplamları ödeme veya tahsilat kaydı değildir. Cihaz erişimini yönetici panelinden iptal edebilirsiniz.</p><div id="ob-simple-notice" role="status" hidden></div>');
 }
 async function firstTime(){
