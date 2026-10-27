@@ -3,7 +3,7 @@ import {readFileSync, existsSync} from 'node:fs';
 import {Script} from 'node:vm';
 
 const codeFiles=[
- 'adisyon/app.js','adisyon/customer-orders.js','adisyon/daily-overview.js',
+ 'adisyon/app.js','adisyon/customer-orders.js','adisyon/daily-overview.js','adisyon/ios-audio.js',
  'adisyon/simple-console.js','adisyon/simple-admin.js','adisyon/staff-pin.js',
  'games/okey.js','games/okey-touch.js','games/pisti.js',
  'finance/preview.js'
@@ -266,3 +266,55 @@ for(const token of ['data-ob-menu-add','menu-order-variant','menu-order-controls
  assert.ok(main.includes(token),'QR product controls missing: '+token);
 }
 console.log('İyi Yol Akademi full cafe menu passes category, pricing, variant and description checks.');
+
+
+/* iPhone order alarm: ensure HTMLAudio fallback is user-unlocked and repeated. */
+check(main,'<script src="adisyon/ios-audio.js"></script>','iOS POS audio loader missing');
+check(main,'window.OynaBakPOSAudio.enable(waiterAudioCtx)','Waiter alarm missing iPhone unlock');
+check(main,'window.OynaBakPOSAudio.play(waiterAudioCtx)','Waiter alarm missing iPhone playback');
+check(adisyon,'window.OynaBakPOSAudio.enable(audioCtx)','Operations alarms missing iPhone unlock');
+check(adisyon,'window.OynaBakPOSAudio.play(audioCtx)','Operations alarms missing iPhone playback');
+check(simple,'window.OynaBakPOSAudio.enable(audioCtx)','Quick console iPhone unlock missing');
+check(simple,'window.OynaBakPOSAudio.play(audioCtx)','Quick console iPhone alarm missing');
+const nativeAudioCode=read('adisyon/ios-audio.js');
+check(nativeAudioCode,"navigator.audioSession.type='playback'",'iOS playback audio session category missing');
+check(nativeAudioCode,'window.OynaBakPOSAudio=Object.freeze','Shared POS audio API missing');
+const {runInNewContext}=await import('node:vm');
+const iosFake={plays:0,resumes:0,appends:0};
+class FakeMedia {
+ constructor(){this.paused=true;this.currentTime=0;this.volume=1;this.muted=false}
+ setAttribute(){}
+ play(){iosFake.plays++;this.paused=false;return Promise.resolve()}
+ pause(){this.paused=true}
+}
+const iosEnvironment={
+ window:{},navigator:{userAgent:'iPhone',platform:'iPhone',maxTouchPoints:5,audioSession:{type:'ambient'}},
+ Audio:FakeMedia,
+ document:{body:{appendChild(){iosFake.appends++}},addEventListener(){}},
+ URL:{createObjectURL:()=> 'blob:fake-wav'},Blob,console,setTimeout,
+};
+runInNewContext(nativeAudioCode,iosEnvironment,{filename:'adisyon/ios-audio.js'});
+const fakeContext={state:'suspended',resume(){
+ iosFake.resumes++;this.state='running';return Promise.resolve()
+}};
+const iosDriver=iosEnvironment.window.OynaBakPOSAudio;
+assert.ok(iosDriver.isApple,'iOS UA must activate native sound fallback');
+const iosEnabled=await iosDriver.enable(fakeContext);
+assert.ok(iosEnabled.ok && iosEnabled.channel==='html5','iOS initial user touch failed to unlock HTML audio');
+assert.equal(iosEnvironment.navigator.audioSession.type,'playback','iOS audio session not configured for audible playback');
+assert.equal(iosFake.plays,1,'Single initial iOS sound test');
+assert.equal(iosFake.appends,1,'One persistent iOS sound player expected');
+iosDriver.play(fakeContext);
+iosDriver.play(fakeContext);
+assert.equal(iosFake.plays,3,'iOS sound should repeat on new orders');
+assert.ok(iosDriver.ready(fakeContext),'Unlocked iOS alert must stay enabled');
+const desktopEnvironment={
+ window:{OynaBakPlayWaiterTone:()=>{desktopEnvironment.played=(desktopEnvironment.played||0)+1;return true}},
+ navigator:{userAgent:'Mozilla/5.0 Windows Chrome',platform:'Win32',maxTouchPoints:0},
+ document:{addEventListener(){}},console,setTimeout
+};
+runInNewContext(nativeAudioCode,desktopEnvironment,{filename:'desktop-pos-audio.js'});
+assert.ok(!desktopEnvironment.window.OynaBakPOSAudio.isApple,'Desktop should retain WebAudio path');
+assert.ok(desktopEnvironment.window.OynaBakPOSAudio.play({state:'running'}));
+assert.equal(desktopEnvironment.played,1,'Desktop POS sound regression');
+console.log('iOS Safari native order alarm, media unlock, repeat and desktop fallback regression passed.');
