@@ -196,7 +196,12 @@ async function saveFloor(){
 
 function stopAlarm(){if(alarmTimer){clearInterval(alarmTimer);alarmTimer=null}}
 function audibleBeep(){
- if(!audioEnabled||!audioCtx||audioCtx.state!=='running')return;
+ if(!audioEnabled)return;
+ if(window.OynaBakPOSAudio?.isApple){
+  window.OynaBakPOSAudio.play(audioCtx);
+  return;
+ }
+ if(!audioCtx||audioCtx.state!=='running')return;
  if(typeof window.OynaBakPlayWaiterTone==='function'){
   window.OynaBakPlayWaiterTone(audioCtx); // EXACT same POS sound as Garson Çağırma
  }
@@ -204,30 +209,45 @@ function audibleBeep(){
 function updateAlarmButton(){
  if(!root())return;
  root().querySelectorAll('[data-ob-enable-alerts]').forEach(btn=>{
-  btn.textContent=audioEnabled&&audioCtx?.state==='running'?'🔊 Alarm açık · Sesi dene':audioEnabled?'🔔 Alarm için ekrana dokun':'🔔 Bildirim sesini aç';
-  btn.setAttribute('aria-pressed',audioEnabled?'true':'false');
+  const ready=window.OynaBakPOSAudio?.isApple?window.OynaBakPOSAudio.ready(audioCtx):audioCtx?.state==='running';
+  btn.textContent=audioEnabled&&ready?'🔊 Alarm açık · Sesi dene':audioEnabled?'🔔 Ses için dokun':'🔔 Bildirim sesini aç';
+  btn.setAttribute('aria-pressed',audioEnabled&&ready?'true':'false');
  });
 }
 async function enableAlarm(){
  const AC=window.AudioContext||window.webkitAudioContext;
- if(!AC)throw Error('Bu tarayıcı sesli bildirimleri desteklemiyor');
- if(!audioCtx)audioCtx=new AC();
- // AudioContext.resume MUST be initiated from this genuine user interaction.
- await audioCtx.resume();
- if(audioCtx.state!=='running')throw Error('Tarayıcı sesi engelliyor. Ekrana dokunup yeniden deneyin');
+ const posAudio=window.OynaBakPOSAudio;
+ if(!AC&&!posAudio?.isApple)throw Error('Bu tarayıcı sesli bildirimleri desteklemiyor');
+ if(!audioCtx&&AC)audioCtx=new AC();
+ if(posAudio?.isApple){
+  // Audio.play() starts in the click gesture, even if iOS resumes slowly.
+  const result=await posAudio.enable(audioCtx);
+  if(!result.ok)throw Error('iPhone sesi engellendi. Ekrana tekrar dokunun, medya sesini ve sessiz modu kontrol edin.');
+ }else{
+  await audioCtx.resume();
+  if(audioCtx.state!=='running')throw Error('Tarayıcı sesi engelliyor. Ekrana dokunup yeniden deneyin');
+ }
  audioEnabled=true;
  try{localStorage.setItem('ob-ops-alarm-'+state.vid,'1')}catch(_){}
  updateAlarmButton();
  stopAlarm();
  syncAlarm();
- if(!state.alarmCount)audibleBeep(); // audible test even without a new order
- notice('Garson çağırmadaki POS alarmı açıldı. Yeni bildirimler susturulana kadar tekrar edecek.');
+ if(!state.alarmCount&&!posAudio?.isApple)audibleBeep();
+ notice(posAudio?.isApple?'iPhone POS ses testi başlatıldı. Duyulmuyorsa medya sesi ve sessiz modu kontrol et.':'Garson çağırmadaki POS alarmı açıldı. Yeni bildirimler susturulana kadar tekrar edecek.');
 }
 function unlockAlarmFromGesture(){
- if(!state||!audioEnabled||!audioCtx||audioCtx.state==='running')return;
+ if(!state||!audioEnabled)return;
+ if(window.OynaBakPOSAudio?.isApple){
+  window.OynaBakPOSAudio.unlockOnGesture(audioCtx);
+  updateAlarmButton();
+  if(state?.alarmCount)syncAlarm();
+  return;
+ }
+ if(!audioCtx||audioCtx.state==='running')return;
  audioCtx.resume().then(()=>{updateAlarmButton();if(state?.alarmCount)syncAlarm()}).catch(()=>{});
 }
 document.addEventListener('pointerdown',unlockAlarmFromGesture,{passive:true});
+document.addEventListener('touchstart',unlockAlarmFromGesture,{passive:true});
 document.addEventListener('keydown',unlockAlarmFromGesture);
 function activeAlarmKeys(){
  if(!state)return[];
@@ -250,7 +270,7 @@ function syncAlarm(){
  state.alarmCount=keys.filter(k=>!alarmAcknowledged.has(k)).length;
  if(!state.alarmCount){stopAlarm();return}
  // A visual alert stays active even when mobile autoplay blocks the sound.
- if(!audioEnabled||!audioCtx||audioCtx.state!=='running'){stopAlarm();return}
+ if(!audioEnabled||(window.OynaBakPOSAudio?.isApple?!window.OynaBakPOSAudio.ready(audioCtx):!audioCtx||audioCtx.state!=='running')){stopAlarm();return}
  if(!alarmTimer){audibleBeep();alarmTimer=setInterval(audibleBeep,1800)}
 }
 function muteAlarm(){activeAlarmKeys().forEach(k=>alarmAcknowledged.add(k));stopAlarm();syncAlarm();render()}
@@ -269,7 +289,7 @@ function render(){
  }else if(state.tab!=='overview'&&!mobileTables){
  html+='<div class="ob-stats"><div class="ob-card"><span class="ob-muted">Açık masa</span><strong class="metric">'+opened.length+'</strong></div><div class="ob-card"><span class="ob-muted">QR onayı bekleyen</span><strong class="metric">'+state.requests.length+'</strong></div><div class="ob-card"><span class="ob-muted">Adisyon toplamı (tahsilat değil)</span><strong class="metric">'+money(opened.reduce((v,t)=>v+total(t.id),0))+'</strong></div></div>';
  }
- if((state.alarmCount||0)>0)html+='<div class="ob-loop-alarm" role="alert"><div>🔔 <b>'+state.alarmCount+' yeni işlem bekliyor</b><small>'+(audioEnabled&&audioCtx?.state==='running'?'Alarm susturulana kadar tekrar eder.':'Ses için üstteki Bildirim sesini aç düğmesine dokun. Ekran kilitliyken tarayıcı sesi durdurabilir.')+'</small></div><button type="button" class="ob-btn" data-ob-alarm-mute>🔕 Sustur</button></div>';
+ if((state.alarmCount||0)>0)html+='<div class="ob-loop-alarm" role="alert"><div>🔔 <b>'+state.alarmCount+' yeni işlem bekliyor</b><small>'+(audioEnabled&&(window.OynaBakPOSAudio?.isApple?window.OynaBakPOSAudio.ready(audioCtx):audioCtx?.state==='running')?'Alarm susturulana kadar tekrar eder. iPhone ekranı kilitliyken Safari alarmı durdurabilir.':'🔇 Ses etkin değil. Üstteki Bildirim sesini aç düğmesine dokun ve zil testini dinle.')+'</small></div><button type="button" class="ob-btn" data-ob-alarm-mute>🔕 Sustur</button></div>';
  if(state.lastError)html+='<div class="ob-control-warning ob-sync-error" role="alert">⚠ Son güncelleme başarısız: '+esc(state.lastError)+'. Yeniden bağlanıldığında güncellenecek. <button type="button" class="ob-btn" data-ob-refresh>↻ Yenile</button></div>';
  html+='<div class="ob-tabs">'+(!stationOnly?tab('overview','◉ Canlı Kontrol'):'')+(state.permission.review?tab('requests','🛎️ Siparişler ('+(state.requests.length+state.calls.length)+')'):'')+tab('kitchen','♨️ Mutfak / Bar')+(!stationOnly?tab('tables','▦ Masalar'):'')+(state.permission.reports?tab('reports','▤ Raporlar'):'')+'</div>';
  if(state.tab==='overview'&&!stationOnly){
