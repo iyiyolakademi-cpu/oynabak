@@ -197,4 +197,6 @@ for(const term of ['ob-mobile-table--ready','ob-mobile-table--call',
  'ob-mobile-table--order','ob-mobile-table--empty','57 TL','&lt;unsafe&gt;']){
  check(sampleHtml,term,'Mobile table status/privacy regression: '+term);
 }
+check(adisyon,'Masalar hazırlanıyor…','Mobile loading state missing');
+check(mobileStyles,'.ob-mobile-loading-grid','Mobile loading styles missing');
 console.log('Mobile table-first UI smoke checks passed (1–200 tables, status, safe HTML).');
