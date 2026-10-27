@@ -99,7 +99,7 @@ try{
    assert.equal(payload.p_items[1].variant_id,'small');
    assert.equal(payload.p_table_no,1);
    assert.ok(payload.p_request_key,'Idempotency key required');
-   await page.locator('[data-ob-cart-close]').click();
+   await page.locator('#ob-qr-order [data-ob-cart-close]').click();
    assert.equal(await page.locator('#ob-qr-order').isVisible(),false);
    console.log('QR inline ordering acceptance passed:',width+'x'+height);
   }finally{await page.close()}
