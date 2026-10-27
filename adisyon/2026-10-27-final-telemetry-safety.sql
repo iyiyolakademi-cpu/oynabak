@@ -5,9 +5,9 @@ CREATE OR REPLACE FUNCTION public.ob_event_v3(
 )
 RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path=''
 AS $fn$
-DECLARE v text:=pg_catalog.btrim(pg_catalog.coalesce(vid,''));
-  ev text:=pg_catalog.btrim(pg_catalog.coalesce(et,''));
-  key_ text:=pg_catalog.btrim(pg_catalog.coalesce(k,''));
+DECLARE v text:=pg_catalog.btrim(coalesce(vid,''));
+  ev text:=pg_catalog.btrim(coalesce(et,''));
+  key_ text:=pg_catalog.btrim(coalesce(k,''));
 BEGIN
  IF v='' OR pg_catalog.length(v)>120 OR key_='' OR pg_catalog.length(key_)>180
  OR ev NOT IN ('qr_open','games_open','review_click','game_open','game_finish','menu_open','menu_category')
@@ -22,9 +22,9 @@ BEGIN
      WHERE venue_id=v AND created_at>pg_catalog.now()-interval '1 minute')>=400
  THEN RETURN false; END IF;
  INSERT INTO public.ob_events(venue_id,event_type,table_no,event_key,game_key,score)
- VALUES(v,ev,pg_catalog.greatest(0,pg_catalog.least(pg_catalog.coalesce(t,0),1000)),key_,
-   pg_catalog.nullif(pg_catalog.left(pg_catalog.coalesce(g,''),140),''),
-   CASE WHEN s IS NULL THEN NULL ELSE pg_catalog.greatest(0,pg_catalog.least(s,100)) END)
+ VALUES(v,ev,greatest(0,least(coalesce(t,0),1000)),key_,
+   nullif(pg_catalog.left(coalesce(g,''),140),''),
+   CASE WHEN s IS NULL THEN NULL ELSE greatest(0,least(s,100)) END)
  ON CONFLICT(venue_id,event_type,event_key) DO NOTHING;
  RETURN true;
 END $fn$;
