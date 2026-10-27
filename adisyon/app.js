@@ -148,7 +148,7 @@ function changeFloorZoom(action){
  if(!state)return;
  const g=window.OynaBakFloorGeometry;let zoom=state.floorZoom;
  if(action==='fit'){
-  const v=$('[data-ob-floor-viewport]',body()),d=g.dimensions(state.count);
+  const v=$('[data-ob-floor-viewport]',body()),d=g.dimensions(state.count,state.floorDraft);
   if(!v)return;
   zoom=Math.min(1.6,(v.clientWidth-20)/d.width,(v.clientHeight-20)/d.height);
  }else if(action==='reset')zoom=1;
