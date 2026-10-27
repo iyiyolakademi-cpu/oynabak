@@ -321,7 +321,7 @@ console.log('iOS Safari native order alarm, media unlock, repeat and desktop fal
 
 /* Mobile table mode regression: explicit opt-in plan, 2-column phone cards. */
 for(const token of ["mobileTableView:'grid'","mobileTableFilter:'all'","mobileTableSearch:''",
- "[data-ob-mobile-filter]","data-ob-mobile-view=\\"grid\\"","data-ob-mobile-view=\\"plan\\"",
+ "[data-ob-mobile-filter]",'data-ob-mobile-view="grid"','data-ob-mobile-view="plan"',
  "window.OynaBakMobileTables?.applyFilters","state.mobileTableView='grid'"]){
  check(adisyon,token,'Phone-first table mode regression: '+token);
 }
