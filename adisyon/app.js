@@ -209,7 +209,7 @@ function audibleBeep(){
 function updateAlarmButton(){
  if(!root())return;
  root().querySelectorAll('[data-ob-enable-alerts]').forEach(btn=>{
-  const ready=window.OynaBakPOSAudio?.isApple?window.OynaBakPOSAudio.ready(audioCtx):audioCtx?.state==='running';
+  const ready=window.OynaBakPOSAudio?.isApple?window.OynaBakPOSAudio.status().htmlAudioReady:audioCtx?.state==='running';
   btn.textContent=audioEnabled&&ready?'🔊 Alarm açık · Sesi dene':audioEnabled?'🔔 Ses için dokun':'🔔 Bildirim sesini aç';
   btn.setAttribute('aria-pressed',audioEnabled&&ready?'true':'false');
  });
@@ -290,6 +290,8 @@ function render(){
  html+='<div class="ob-stats"><div class="ob-card"><span class="ob-muted">Açık masa</span><strong class="metric">'+opened.length+'</strong></div><div class="ob-card"><span class="ob-muted">QR onayı bekleyen</span><strong class="metric">'+state.requests.length+'</strong></div><div class="ob-card"><span class="ob-muted">Adisyon toplamı (tahsilat değil)</span><strong class="metric">'+money(opened.reduce((v,t)=>v+total(t.id),0))+'</strong></div></div>';
  }
  if((state.alarmCount||0)>0)html+='<div class="ob-loop-alarm" role="alert"><div>🔔 <b>'+state.alarmCount+' yeni işlem bekliyor</b><small>'+(audioEnabled&&(window.OynaBakPOSAudio?.isApple?window.OynaBakPOSAudio.ready(audioCtx):audioCtx?.state==='running')?'Alarm susturulana kadar tekrar eder. iPhone ekranı kilitliyken Safari alarmı durdurabilir.':'🔇 Ses etkin değil. Üstteki Bildirim sesini aç düğmesine dokun ve zil testini dinle.')+'</small></div><button type="button" class="ob-btn" data-ob-alarm-mute>🔕 Sustur</button></div>';
+ if(window.OynaBakPOSAudio?.isApple&&!window.OynaBakPOSAudio.status().htmlAudioReady)
+   html+='<div class="ob-control-warning ob-ios-sound-tip" role="status">🔇 iPhone sipariş zilini açmak için üstteki <b>Bildirim sesini aç</b> düğmesine dokunun. Ses testini duyduktan sonra alarm hazırdır. Ekran kilidinde Safari sesi durdurabilir.</div>';
  if(state.lastError)html+='<div class="ob-control-warning ob-sync-error" role="alert">⚠ Son güncelleme başarısız: '+esc(state.lastError)+'. Yeniden bağlanıldığında güncellenecek. <button type="button" class="ob-btn" data-ob-refresh>↻ Yenile</button></div>';
  html+='<div class="ob-tabs">'+(!stationOnly?tab('overview','◉ Canlı Kontrol'):'')+(state.permission.review?tab('requests','🛎️ Siparişler ('+(state.requests.length+state.calls.length)+')'):'')+tab('kitchen','♨️ Mutfak / Bar')+(!stationOnly?tab('tables','▦ Masalar'):'')+(state.permission.reports?tab('reports','▤ Raporlar'):'')+'</div>';
  if(state.tab==='overview'&&!stationOnly){
