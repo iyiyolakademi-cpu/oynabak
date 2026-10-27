@@ -1,0 +1,1313 @@
+{
+  "categories": [
+    {
+      "id": "iya26-c1-imza-seckisi",
+      "name": "İmza Seçkisi",
+      "active": true,
+      "station": "bar",
+      "subcategories": [
+        {
+          "id": "iya26-c1-imza-seckisi-s1",
+          "name": "İmza İçecekler"
+        },
+        {
+          "id": "iya26-c1-imza-seckisi-s2",
+          "name": "İmza Lezzetler"
+        }
+      ],
+      "items": [
+        {
+          "id": "iya26-c1-imza-seckisi-i01-iyi-yol-latte",
+          "subcategory_id": "iya26-c1-imza-seckisi-s1",
+          "name": "İyi Yol Latte",
+          "description": "Çift shot espresso, vanilya dokunuşu, sıcak süt ve hafif karamel aroması.",
+          "price": 245,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": true,
+          "station": "bar",
+          "variants": [
+            {
+              "id": "iya26-c1-imza-seckisi-i1-v1",
+              "name": "Büyük Boy",
+              "price": 270
+            }
+          ]
+        },
+        {
+          "id": "iya26-c1-imza-seckisi-i02-balli-tarcin-latte",
+          "subcategory_id": "iya26-c1-imza-seckisi-s1",
+          "name": "Ballı Tarçın Latte",
+          "description": "Espresso, süt, çiçek balı ve üzerinde ince tarçın dokunuşu.",
+          "price": 255,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "bar",
+          "variants": [
+            {
+              "id": "iya26-c1-imza-seckisi-i2-v1",
+              "name": "Büyük Boy",
+              "price": 280
+            }
+          ]
+        },
+        {
+          "id": "iya26-c1-imza-seckisi-i03-portakalli-cold-brew",
+          "subcategory_id": "iya26-c1-imza-seckisi-s1",
+          "name": "Portakallı Cold Brew",
+          "description": "Uzun süre soğuk demlenen kahve, portakal notaları ve bol buz.",
+          "price": 255,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": true,
+          "station": "bar",
+          "variants": []
+        },
+        {
+          "id": "iya26-c1-imza-seckisi-i04-iyi-yol-kruvasan",
+          "subcategory_id": "iya26-c1-imza-seckisi-s2",
+          "name": "İyi Yol Kruvasan",
+          "description": "Tereyağlı kruvasan içinde hindi füme, cheddar, labne ve taze roka.",
+          "price": 325,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": true,
+          "station": "bar",
+          "variants": []
+        },
+        {
+          "id": "iya26-c1-imza-seckisi-i05-yol-arkadasi-brownie",
+          "subcategory_id": "iya26-c1-imza-seckisi-s2",
+          "name": "Yol Arkadaşı Brownie",
+          "description": "Yoğun bitter çikolatalı brownie, vanilyalı dondurma ile servis edilir.",
+          "price": 245,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "bar",
+          "variants": []
+        }
+      ]
+    },
+    {
+      "id": "iya26-c2-sicak-kahveler",
+      "name": "Sıcak Kahveler",
+      "active": true,
+      "station": "bar",
+      "subcategories": [
+        {
+          "id": "iya26-c2-sicak-kahveler-s1",
+          "name": "Espresso Bazlı"
+        },
+        {
+          "id": "iya26-c2-sicak-kahveler-s2",
+          "name": "Demleme Kahveler"
+        },
+        {
+          "id": "iya26-c2-sicak-kahveler-s3",
+          "name": "Türk Kahveleri"
+        }
+      ],
+      "items": [
+        {
+          "id": "iya26-c2-sicak-kahveler-i01-espresso",
+          "subcategory_id": "iya26-c2-sicak-kahveler-s1",
+          "name": "Espresso",
+          "description": "Yoğun aromalı taze çekilmiş kahveden hazırlanan tek shot espresso.",
+          "price": 125,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "bar",
+          "variants": [
+            {
+              "id": "iya26-c2-sicak-kahveler-i1-v1",
+              "name": "Double",
+              "price": 155
+            }
+          ]
+        },
+        {
+          "id": "iya26-c2-sicak-kahveler-i02-americano",
+          "subcategory_id": "iya26-c2-sicak-kahveler-s1",
+          "name": "Americano",
+          "description": "Çift shot espresso ile sıcak suyun dengeli ve sade buluşması.",
+          "price": 175,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "bar",
+          "variants": [
+            {
+              "id": "iya26-c2-sicak-kahveler-i2-v1",
+              "name": "Büyük Boy",
+              "price": 195
+            }
+          ]
+        },
+        {
+          "id": "iya26-c2-sicak-kahveler-i03-caffe-latte",
+          "subcategory_id": "iya26-c2-sicak-kahveler-s1",
+          "name": "Caffè Latte",
+          "description": "Espresso, buharda ısıtılmış süt ve üzerinde ince mikro köpük.",
+          "price": 205,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "bar",
+          "variants": [
+            {
+              "id": "iya26-c2-sicak-kahveler-i3-v1",
+              "name": "Büyük Boy",
+              "price": 230
+            }
+          ]
+        },
+        {
+          "id": "iya26-c2-sicak-kahveler-i04-cappuccino",
+          "subcategory_id": "iya26-c2-sicak-kahveler-s1",
+          "name": "Cappuccino",
+          "description": "Espresso, sıcak süt ve yoğun, kadifemsi süt köpüğü.",
+          "price": 205,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "bar",
+          "variants": [
+            {
+              "id": "iya26-c2-sicak-kahveler-i4-v1",
+              "name": "Büyük Boy",
+              "price": 230
+            }
+          ]
+        },
+        {
+          "id": "iya26-c2-sicak-kahveler-i05-flat-white",
+          "subcategory_id": "iya26-c2-sicak-kahveler-s1",
+          "name": "Flat White",
+          "description": "Çift shot espresso ve yoğun lezzetli, ince dokulu süt.",
+          "price": 215,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "bar",
+          "variants": []
+        },
+        {
+          "id": "iya26-c2-sicak-kahveler-i06-cortado",
+          "subcategory_id": "iya26-c2-sicak-kahveler-s1",
+          "name": "Cortado",
+          "description": "Espressoyu yumuşatan az miktarda sıcak süt ile dengeli içim.",
+          "price": 190,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "bar",
+          "variants": []
+        },
+        {
+          "id": "iya26-c2-sicak-kahveler-i07-mocha",
+          "subcategory_id": "iya26-c2-sicak-kahveler-s1",
+          "name": "Mocha",
+          "description": "Espresso, sıcak süt ve bitter çikolata sosuyla hazırlanan kahve.",
+          "price": 235,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "bar",
+          "variants": [
+            {
+              "id": "iya26-c2-sicak-kahveler-i7-v1",
+              "name": "Büyük Boy",
+              "price": 260
+            }
+          ]
+        },
+        {
+          "id": "iya26-c2-sicak-kahveler-i08-white-chocolate-mocha",
+          "subcategory_id": "iya26-c2-sicak-kahveler-s1",
+          "name": "White Chocolate Mocha",
+          "description": "Espresso, süt ve beyaz çikolatanın tatlı uyumu.",
+          "price": 245,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "bar",
+          "variants": [
+            {
+              "id": "iya26-c2-sicak-kahveler-i8-v1",
+              "name": "Büyük Boy",
+              "price": 270
+            }
+          ]
+        },
+        {
+          "id": "iya26-c2-sicak-kahveler-i09-caramel-macchiato",
+          "subcategory_id": "iya26-c2-sicak-kahveler-s1",
+          "name": "Caramel Macchiato",
+          "description": "Vanilya aromalı süt, espresso ve karamel sosu.",
+          "price": 245,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "bar",
+          "variants": [
+            {
+              "id": "iya26-c2-sicak-kahveler-i9-v1",
+              "name": "Büyük Boy",
+              "price": 270
+            }
+          ]
+        },
+        {
+          "id": "iya26-c2-sicak-kahveler-i10-filtre-kahve",
+          "subcategory_id": "iya26-c2-sicak-kahveler-s2",
+          "name": "Filtre Kahve",
+          "description": "Günlük taze öğütülen çekirdeklerle demlenmiş dengeli filtre kahve.",
+          "price": 165,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "bar",
+          "variants": [
+            {
+              "id": "iya26-c2-sicak-kahveler-i10-v1",
+              "name": "Büyük Boy",
+              "price": 185
+            }
+          ]
+        },
+        {
+          "id": "iya26-c2-sicak-kahveler-i11-v60-demleme",
+          "subcategory_id": "iya26-c2-sicak-kahveler-s2",
+          "name": "V60 Demleme",
+          "description": "Öğütüm ve demleme süresi özenle ayarlanmış filtre kahve deneyimi.",
+          "price": 225,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "bar",
+          "variants": []
+        },
+        {
+          "id": "iya26-c2-sicak-kahveler-i12-turk-kahvesi",
+          "subcategory_id": "iya26-c2-sicak-kahveler-s3",
+          "name": "Türk Kahvesi",
+          "description": "İnce öğütülmüş Türk kahvesi; geleneksel cezvede pişirilir.",
+          "price": 130,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "bar",
+          "variants": [
+            {
+              "id": "iya26-c2-sicak-kahveler-i12-v1",
+              "name": "Duble",
+              "price": 165
+            }
+          ]
+        },
+        {
+          "id": "iya26-c2-sicak-kahveler-i13-dibek-kahvesi",
+          "subcategory_id": "iya26-c2-sicak-kahveler-s3",
+          "name": "Dibek Kahvesi",
+          "description": "Kendine özgü yumuşak dokulu, aromatik dibek kahvesi.",
+          "price": 145,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "bar",
+          "variants": []
+        }
+      ]
+    },
+    {
+      "id": "iya26-c3-soguk-kahveler",
+      "name": "Soğuk Kahveler",
+      "active": true,
+      "station": "bar",
+      "subcategories": [
+        {
+          "id": "iya26-c3-soguk-kahveler-s1",
+          "name": "Buzlu Klasikler"
+        },
+        {
+          "id": "iya26-c3-soguk-kahveler-s2",
+          "name": "Özel Soğuk Kahveler"
+        }
+      ],
+      "items": [
+        {
+          "id": "iya26-c3-soguk-kahveler-i01-iced-americano",
+          "subcategory_id": "iya26-c3-soguk-kahveler-s1",
+          "name": "Iced Americano",
+          "description": "Çift shot espresso, soğuk su ve bol buzla ferah bir kahve.",
+          "price": 190,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "bar",
+          "variants": [
+            {
+              "id": "iya26-c3-soguk-kahveler-i1-v1",
+              "name": "Büyük Boy",
+              "price": 215
+            }
+          ]
+        },
+        {
+          "id": "iya26-c3-soguk-kahveler-i02-iced-latte",
+          "subcategory_id": "iya26-c3-soguk-kahveler-s1",
+          "name": "Iced Latte",
+          "description": "Espresso, soğuk süt ve buzla hazırlanan yumuşak içimli klasik.",
+          "price": 225,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "bar",
+          "variants": [
+            {
+              "id": "iya26-c3-soguk-kahveler-i2-v1",
+              "name": "Büyük Boy",
+              "price": 250
+            }
+          ]
+        },
+        {
+          "id": "iya26-c3-soguk-kahveler-i03-iced-mocha",
+          "subcategory_id": "iya26-c3-soguk-kahveler-s1",
+          "name": "Iced Mocha",
+          "description": "Espresso, süt, çikolata sosu ve buzun yoğun lezzeti.",
+          "price": 255,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "bar",
+          "variants": [
+            {
+              "id": "iya26-c3-soguk-kahveler-i3-v1",
+              "name": "Büyük Boy",
+              "price": 280
+            }
+          ]
+        },
+        {
+          "id": "iya26-c3-soguk-kahveler-i04-iced-white-mocha",
+          "subcategory_id": "iya26-c3-soguk-kahveler-s1",
+          "name": "Iced White Mocha",
+          "description": "Beyaz çikolata, espresso, soğuk süt ve bol buz.",
+          "price": 265,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "bar",
+          "variants": [
+            {
+              "id": "iya26-c3-soguk-kahveler-i4-v1",
+              "name": "Büyük Boy",
+              "price": 290
+            }
+          ]
+        },
+        {
+          "id": "iya26-c3-soguk-kahveler-i05-cold-brew",
+          "subcategory_id": "iya26-c3-soguk-kahveler-s2",
+          "name": "Cold Brew",
+          "description": "Soğuk suyla uzun süre demlenen, düşük asiditeli aromatik kahve.",
+          "price": 225,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "bar",
+          "variants": []
+        },
+        {
+          "id": "iya26-c3-soguk-kahveler-i06-iced-caramel-macchiato",
+          "subcategory_id": "iya26-c3-soguk-kahveler-s2",
+          "name": "Iced Caramel Macchiato",
+          "description": "Vanilyalı soğuk süt, espresso ve karamel sosu.",
+          "price": 265,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "bar",
+          "variants": [
+            {
+              "id": "iya26-c3-soguk-kahveler-i6-v1",
+              "name": "Büyük Boy",
+              "price": 290
+            }
+          ]
+        },
+        {
+          "id": "iya26-c3-soguk-kahveler-i07-iced-spanish-latte",
+          "subcategory_id": "iya26-c3-soguk-kahveler-s2",
+          "name": "Iced Spanish Latte",
+          "description": "Espresso, soğuk süt ve yoğunlaştırılmış sütün tatlı dengesi.",
+          "price": 275,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "bar",
+          "variants": []
+        },
+        {
+          "id": "iya26-c3-soguk-kahveler-i08-findikli-frappe",
+          "subcategory_id": "iya26-c3-soguk-kahveler-s2",
+          "name": "Fındıklı Frappé",
+          "description": "Kahve, süt, fındık aroması ve kırılmış buzla hazırlanan karışım.",
+          "price": 265,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "bar",
+          "variants": []
+        }
+      ]
+    },
+    {
+      "id": "iya26-c4-cay-sicak-icecekler",
+      "name": "Çay & Sıcak İçecekler",
+      "active": true,
+      "station": "bar",
+      "subcategories": [
+        {
+          "id": "iya26-c4-cay-sicak-icecekler-s1",
+          "name": "Demleme Çaylar"
+        },
+        {
+          "id": "iya26-c4-cay-sicak-icecekler-s2",
+          "name": "Özel Sıcaklar"
+        }
+      ],
+      "items": [
+        {
+          "id": "iya26-c4-cay-sicak-icecekler-i01-demleme-cay",
+          "subcategory_id": "iya26-c4-cay-sicak-icecekler-s1",
+          "name": "Demleme Çay",
+          "description": "Taze demlenmiş, ince belli bardakta geleneksel siyah çay.",
+          "price": 55,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "bar",
+          "variants": [
+            {
+              "id": "iya26-c4-cay-sicak-icecekler-i1-v1",
+              "name": "Büyük Bardak",
+              "price": 75
+            }
+          ]
+        },
+        {
+          "id": "iya26-c4-cay-sicak-icecekler-i02-yesil-cay",
+          "subcategory_id": "iya26-c4-cay-sicak-icecekler-s1",
+          "name": "Yeşil Çay",
+          "description": "Hafif içimli yeşil çay yapraklarıyla hazırlanan sıcak çay.",
+          "price": 135,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "bar",
+          "variants": []
+        },
+        {
+          "id": "iya26-c4-cay-sicak-icecekler-i03-papatya-cayi",
+          "subcategory_id": "iya26-c4-cay-sicak-icecekler-s1",
+          "name": "Papatya Çayı",
+          "description": "Papatya çiçeklerinden demlenen yumuşak aromalı bitki çayı.",
+          "price": 135,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "bar",
+          "variants": []
+        },
+        {
+          "id": "iya26-c4-cay-sicak-icecekler-i04-kis-cayi",
+          "subcategory_id": "iya26-c4-cay-sicak-icecekler-s1",
+          "name": "Kış Çayı",
+          "description": "Ihlamur, tarçın ve meyve notalarıyla hazırlanan sıcak karışım.",
+          "price": 150,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "bar",
+          "variants": []
+        },
+        {
+          "id": "iya26-c4-cay-sicak-icecekler-i05-chai-tea-latte",
+          "subcategory_id": "iya26-c4-cay-sicak-icecekler-s2",
+          "name": "Chai Tea Latte",
+          "description": "Baharatlı siyah çay karışımı ve sıcak süt.",
+          "price": 225,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "bar",
+          "variants": [
+            {
+              "id": "iya26-c4-cay-sicak-icecekler-i5-v1",
+              "name": "Büyük Boy",
+              "price": 245
+            }
+          ]
+        },
+        {
+          "id": "iya26-c4-cay-sicak-icecekler-i06-matcha-latte",
+          "subcategory_id": "iya26-c4-cay-sicak-icecekler-s2",
+          "name": "Matcha Latte",
+          "description": "Öğütülmüş yeşil çay ve sıcak sütle hazırlanan matcha.",
+          "price": 265,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "bar",
+          "variants": []
+        },
+        {
+          "id": "iya26-c4-cay-sicak-icecekler-i07-sicak-cikolata",
+          "subcategory_id": "iya26-c4-cay-sicak-icecekler-s2",
+          "name": "Sıcak Çikolata",
+          "description": "Yoğun kakao ve sıcak sütle hazırlanan kremamsı içecek.",
+          "price": 205,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "bar",
+          "variants": []
+        },
+        {
+          "id": "iya26-c4-cay-sicak-icecekler-i08-salep",
+          "subcategory_id": "iya26-c4-cay-sicak-icecekler-s2",
+          "name": "Salep",
+          "description": "Tarçınla servis edilen, kıvamlı geleneksel sütlü sıcak içecek.",
+          "price": 210,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "bar",
+          "variants": []
+        }
+      ]
+    },
+    {
+      "id": "iya26-c5-serinletenler",
+      "name": "Serinletenler",
+      "active": true,
+      "station": "bar",
+      "subcategories": [
+        {
+          "id": "iya26-c5-serinletenler-s1",
+          "name": "Limonatalar"
+        },
+        {
+          "id": "iya26-c5-serinletenler-s2",
+          "name": "Ferah İçecekler"
+        },
+        {
+          "id": "iya26-c5-serinletenler-s3",
+          "name": "Milkshake & Smoothie"
+        }
+      ],
+      "items": [
+        {
+          "id": "iya26-c5-serinletenler-i01-ev-yapimi-limonata",
+          "subcategory_id": "iya26-c5-serinletenler-s1",
+          "name": "Ev Yapımı Limonata",
+          "description": "Taze limon suyu, hafif şeker ve nane yaprakları.",
+          "price": 165,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "bar",
+          "variants": []
+        },
+        {
+          "id": "iya26-c5-serinletenler-i02-cilekli-limonata",
+          "subcategory_id": "iya26-c5-serinletenler-s1",
+          "name": "Çilekli Limonata",
+          "description": "Limonata, çilek püresi ve buzla hazırlanan yaz lezzeti.",
+          "price": 185,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "bar",
+          "variants": []
+        },
+        {
+          "id": "iya26-c5-serinletenler-i03-cool-lime",
+          "subcategory_id": "iya26-c5-serinletenler-s2",
+          "name": "Cool Lime",
+          "description": "Misket limonu, nane ve kırık buzla ferahlatıcı içecek.",
+          "price": 195,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "bar",
+          "variants": []
+        },
+        {
+          "id": "iya26-c5-serinletenler-i04-hibiskus-berry",
+          "subcategory_id": "iya26-c5-serinletenler-s2",
+          "name": "Hibiskus Berry",
+          "description": "Hibiskus demlemesi, orman meyveleri ve buz.",
+          "price": 205,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "bar",
+          "variants": []
+        },
+        {
+          "id": "iya26-c5-serinletenler-i05-churchill",
+          "subcategory_id": "iya26-c5-serinletenler-s2",
+          "name": "Churchill",
+          "description": "Soda, limon suyu ve az tuzla hazırlanan ferah karışım.",
+          "price": 135,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "bar",
+          "variants": []
+        },
+        {
+          "id": "iya26-c5-serinletenler-i06-cikolatali-milkshake",
+          "subcategory_id": "iya26-c5-serinletenler-s3",
+          "name": "Çikolatalı Milkshake",
+          "description": "Süt, çikolata ve dondurmanın yoğun, buz gibi uyumu.",
+          "price": 230,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "bar",
+          "variants": []
+        },
+        {
+          "id": "iya26-c5-serinletenler-i07-cilekli-milkshake",
+          "subcategory_id": "iya26-c5-serinletenler-s3",
+          "name": "Çilekli Milkshake",
+          "description": "Süt, çilek püresi ve vanilyalı dondurmanın yumuşak birleşimi.",
+          "price": 230,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "bar",
+          "variants": []
+        },
+        {
+          "id": "iya26-c5-serinletenler-i08-mango-smoothie",
+          "subcategory_id": "iya26-c5-serinletenler-s3",
+          "name": "Mango Smoothie",
+          "description": "Mango, yoğurt ve buzla hazırlanan meyveli içecek.",
+          "price": 240,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "bar",
+          "variants": []
+        },
+        {
+          "id": "iya26-c5-serinletenler-i09-su",
+          "subcategory_id": "iya26-c5-serinletenler-s2",
+          "name": "Su",
+          "description": "Şişe içme suyu, 330 ml.",
+          "price": 35,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "bar",
+          "variants": []
+        },
+        {
+          "id": "iya26-c5-serinletenler-i10-sade-soda",
+          "subcategory_id": "iya26-c5-serinletenler-s2",
+          "name": "Sade Soda",
+          "description": "Doğal mineralli maden suyu, 200 ml.",
+          "price": 70,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "bar",
+          "variants": []
+        },
+        {
+          "id": "iya26-c5-serinletenler-i11-kola",
+          "subcategory_id": "iya26-c5-serinletenler-s2",
+          "name": "Kola",
+          "description": "Soğuk gazlı içecek, 330 ml.",
+          "price": 105,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "bar",
+          "variants": []
+        }
+      ]
+    },
+    {
+      "id": "iya26-c6-kahvalti",
+      "name": "Kahvaltı",
+      "active": true,
+      "station": "kitchen",
+      "subcategories": [
+        {
+          "id": "iya26-c6-kahvalti-s1",
+          "name": "Yumurtalı Lezzetler"
+        },
+        {
+          "id": "iya26-c6-kahvalti-s2",
+          "name": "Tost & Kruvasan"
+        },
+        {
+          "id": "iya26-c6-kahvalti-s3",
+          "name": "Kahvaltı Tabakları"
+        }
+      ],
+      "items": [
+        {
+          "id": "iya26-c6-kahvalti-i01-menemen",
+          "subcategory_id": "iya26-c6-kahvalti-s1",
+          "name": "Menemen",
+          "description": "Domates, yeşil biber ve yumurtayla hazırlanan klasik menemen.",
+          "price": 275,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "kitchen",
+          "variants": [
+            {
+              "id": "iya26-c6-kahvalti-i1-v1",
+              "name": "Peynirli",
+              "price": 305
+            },
+            {
+              "id": "iya26-c6-kahvalti-i1-v2",
+              "name": "Sucuklu",
+              "price": 335
+            }
+          ]
+        },
+        {
+          "id": "iya26-c6-kahvalti-i02-peynirli-omlet",
+          "subcategory_id": "iya26-c6-kahvalti-s1",
+          "name": "Peynirli Omlet",
+          "description": "Yumurta, kaşar peyniri ve taze yeşilliklerle hazırlanır.",
+          "price": 255,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "kitchen",
+          "variants": []
+        },
+        {
+          "id": "iya26-c6-kahvalti-i03-sahanda-sucuklu-yumurta",
+          "subcategory_id": "iya26-c6-kahvalti-s1",
+          "name": "Sahanda Sucuklu Yumurta",
+          "description": "Sahanda iki yumurta ve ızgara sucuk; ekmek eşliğinde.",
+          "price": 295,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "kitchen",
+          "variants": []
+        },
+        {
+          "id": "iya26-c6-kahvalti-i04-kasarli-tost",
+          "subcategory_id": "iya26-c6-kahvalti-s2",
+          "name": "Kaşarlı Tost",
+          "description": "Kızarmış tost ekmeği arasında erimiş kaşar peyniri.",
+          "price": 195,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "kitchen",
+          "variants": []
+        },
+        {
+          "id": "iya26-c6-kahvalti-i05-ayvalik-tostu",
+          "subcategory_id": "iya26-c6-kahvalti-s2",
+          "name": "Ayvalık Tostu",
+          "description": "Sucuk, kaşar, turşu, domates ve özel sosla hazırlanan tost.",
+          "price": 265,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "kitchen",
+          "variants": []
+        },
+        {
+          "id": "iya26-c6-kahvalti-i06-hindi-fumeli-kruvasan",
+          "subcategory_id": "iya26-c6-kahvalti-s2",
+          "name": "Hindi Fümeli Kruvasan",
+          "description": "Tereyağlı kruvasan, hindi füme, kaşar ve yeşillikler.",
+          "price": 315,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "kitchen",
+          "variants": []
+        },
+        {
+          "id": "iya26-c6-kahvalti-i07-avokadolu-ekmek-ustu",
+          "subcategory_id": "iya26-c6-kahvalti-s2",
+          "name": "Avokadolu Ekmek Üstü",
+          "description": "Ekşi mayalı ekmek, avokado ezmesi ve çeri domates.",
+          "price": 320,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "kitchen",
+          "variants": []
+        },
+        {
+          "id": "iya26-c6-kahvalti-i08-iyi-yol-kahvalti-tabagi",
+          "subcategory_id": "iya26-c6-kahvalti-s3",
+          "name": "İyi Yol Kahvaltı Tabağı",
+          "description": "Peynir çeşitleri, haşlanmış yumurta, zeytin, domates, salatalık, bal, reçel ve ekmek.",
+          "price": 445,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "kitchen",
+          "variants": []
+        },
+        {
+          "id": "iya26-c6-kahvalti-i09-iki-kisilik-kahvalti",
+          "subcategory_id": "iya26-c6-kahvalti-s3",
+          "name": "İki Kişilik Kahvaltı",
+          "description": "Paylaşımlık peynirler, yumurta, söğüş, reçel, bal, sıcak ekmek ve iki çay.",
+          "price": 795,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "kitchen",
+          "variants": []
+        }
+      ]
+    },
+    {
+      "id": "iya26-c7-mutfaktan",
+      "name": "Mutfaktan",
+      "active": true,
+      "station": "kitchen",
+      "subcategories": [
+        {
+          "id": "iya26-c7-mutfaktan-s1",
+          "name": "Sandviçler"
+        },
+        {
+          "id": "iya26-c7-mutfaktan-s2",
+          "name": "Burger & Sıcaklar"
+        },
+        {
+          "id": "iya26-c7-mutfaktan-s3",
+          "name": "Salata & Bowl"
+        },
+        {
+          "id": "iya26-c7-mutfaktan-s4",
+          "name": "Paylaşımlıklar"
+        }
+      ],
+      "items": [
+        {
+          "id": "iya26-c7-mutfaktan-i01-hindi-fumeli-sandvic",
+          "subcategory_id": "iya26-c7-mutfaktan-s1",
+          "name": "Hindi Fümeli Sandviç",
+          "description": "Çok tahıllı ekmek, hindi füme, labne, cheddar ve roka.",
+          "price": 295,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "kitchen",
+          "variants": []
+        },
+        {
+          "id": "iya26-c7-mutfaktan-i02-mozzarellali-panini",
+          "subcategory_id": "iya26-c7-mutfaktan-s1",
+          "name": "Mozzarellalı Panini",
+          "description": "Mozzarella, domates, fesleğen ve pesto sosla sıcak panini.",
+          "price": 285,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "kitchen",
+          "variants": []
+        },
+        {
+          "id": "iya26-c7-mutfaktan-i03-tavuklu-sandvic",
+          "subcategory_id": "iya26-c7-mutfaktan-s1",
+          "name": "Tavuklu Sandviç",
+          "description": "Izgara tavuk, marul, domates ve hafif yoğurt sosu.",
+          "price": 295,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "kitchen",
+          "variants": []
+        },
+        {
+          "id": "iya26-c7-mutfaktan-i04-iyi-yol-burger",
+          "subcategory_id": "iya26-c7-mutfaktan-s2",
+          "name": "İyi Yol Burger",
+          "description": "Izgara dana köfte, cheddar, karamelize soğan ve patates kızartması.",
+          "price": 425,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "kitchen",
+          "variants": []
+        },
+        {
+          "id": "iya26-c7-mutfaktan-i05-citir-tavuk-burger",
+          "subcategory_id": "iya26-c7-mutfaktan-s2",
+          "name": "Çıtır Tavuk Burger",
+          "description": "Çıtır tavuk fileto, marul, turşu ve özel sos; patates eşliğinde.",
+          "price": 365,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "kitchen",
+          "variants": []
+        },
+        {
+          "id": "iya26-c7-mutfaktan-i06-tavuklu-sezar-salata",
+          "subcategory_id": "iya26-c7-mutfaktan-s3",
+          "name": "Tavuklu Sezar Salata",
+          "description": "Izgara tavuk, marul, kruton, parmesan ve Sezar sos.",
+          "price": 345,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "kitchen",
+          "variants": []
+        },
+        {
+          "id": "iya26-c7-mutfaktan-i07-akdeniz-salata",
+          "subcategory_id": "iya26-c7-mutfaktan-s3",
+          "name": "Akdeniz Salata",
+          "description": "Mevsim yeşillikleri, beyaz peynir, zeytin, domates ve zeytinyağı.",
+          "price": 295,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "kitchen",
+          "variants": []
+        },
+        {
+          "id": "iya26-c7-mutfaktan-i08-tavuklu-bowl",
+          "subcategory_id": "iya26-c7-mutfaktan-s3",
+          "name": "Tavuklu Bowl",
+          "description": "Bulgur, ızgara tavuk, mevsim sebzeleri ve yoğurtlu sos.",
+          "price": 365,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "kitchen",
+          "variants": []
+        },
+        {
+          "id": "iya26-c7-mutfaktan-i09-baharatli-patates",
+          "subcategory_id": "iya26-c7-mutfaktan-s4",
+          "name": "Baharatlı Patates",
+          "description": "Baharatlarla harmanlanmış çıtır patates ve dip sos.",
+          "price": 195,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "kitchen",
+          "variants": []
+        }
+      ]
+    },
+    {
+      "id": "iya26-c8-tatli-firin",
+      "name": "Tatlı & Fırın",
+      "active": true,
+      "station": "kitchen",
+      "subcategories": [
+        {
+          "id": "iya26-c8-tatli-firin-s1",
+          "name": "Pasta & Cheesecake"
+        },
+        {
+          "id": "iya26-c8-tatli-firin-s2",
+          "name": "Fırından"
+        },
+        {
+          "id": "iya26-c8-tatli-firin-s3",
+          "name": "Dondurmalı Lezzetler"
+        }
+      ],
+      "items": [
+        {
+          "id": "iya26-c8-tatli-firin-i01-san-sebastian-cheesecake",
+          "subcategory_id": "iya26-c8-tatli-firin-s1",
+          "name": "San Sebastian Cheesecake",
+          "description": "Yanık üst yüzeyi ve kremamsı dokusuyla cheesecake; çikolata sosu eşliğinde.",
+          "price": 285,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "kitchen",
+          "variants": []
+        },
+        {
+          "id": "iya26-c8-tatli-firin-i02-lotus-cheesecake",
+          "subcategory_id": "iya26-c8-tatli-firin-s1",
+          "name": "Lotus Cheesecake",
+          "description": "Lotus bisküvisi tabanı ve karamelli krema katmanı.",
+          "price": 265,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "kitchen",
+          "variants": []
+        },
+        {
+          "id": "iya26-c8-tatli-firin-i03-frambuazli-cheesecake",
+          "subcategory_id": "iya26-c8-tatli-firin-s1",
+          "name": "Frambuazlı Cheesecake",
+          "description": "Krem peynir dolgusu, bisküvi tabanı ve frambuaz sos.",
+          "price": 260,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": true,
+          "featured": false,
+          "station": "kitchen",
+          "variants": []
+        },
+        {
+          "id": "iya26-c8-tatli-firin-i04-tiramisu",
+          "subcategory_id": "iya26-c8-tatli-firin-s1",
+          "name": "Tiramisu",
+          "description": "Espressoyla ıslatılmış kedi dili ve mascarpone kreması.",
+          "price": 245,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "kitchen",
+          "variants": []
+        },
+        {
+          "id": "iya26-c8-tatli-firin-i05-havuclu-tarcinli-kek",
+          "subcategory_id": "iya26-c8-tatli-firin-s1",
+          "name": "Havuçlu Tarçınlı Kek",
+          "description": "Havuç, tarçın ve cevizle hazırlanan yumuşak dokulu kek.",
+          "price": 220,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "kitchen",
+          "variants": []
+        },
+        {
+          "id": "iya26-c8-tatli-firin-i06-fudge-brownie",
+          "subcategory_id": "iya26-c8-tatli-firin-s2",
+          "name": "Fudge Brownie",
+          "description": "Yoğun bitter çikolatalı, nemli dokulu brownie.",
+          "price": 225,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "kitchen",
+          "variants": []
+        },
+        {
+          "id": "iya26-c8-tatli-firin-i07-cikolata-parcacikli-cookie",
+          "subcategory_id": "iya26-c8-tatli-firin-s2",
+          "name": "Çikolata Parçacıklı Cookie",
+          "description": "İçi yumuşak, kenarları çıtır tereyağlı çikolatalı kurabiye.",
+          "price": 145,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "kitchen",
+          "variants": []
+        },
+        {
+          "id": "iya26-c8-tatli-firin-i08-sade-kruvasan",
+          "subcategory_id": "iya26-c8-tatli-firin-s2",
+          "name": "Sade Kruvasan",
+          "description": "Kat kat tereyağlı hamurdan hazırlanan fırın kruvasanı.",
+          "price": 155,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "kitchen",
+          "variants": []
+        },
+        {
+          "id": "iya26-c8-tatli-firin-i09-cikolatali-kruvasan",
+          "subcategory_id": "iya26-c8-tatli-firin-s2",
+          "name": "Çikolatalı Kruvasan",
+          "description": "Tereyağlı kruvasan içinde yoğun çikolata dolgusu.",
+          "price": 215,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "kitchen",
+          "variants": []
+        },
+        {
+          "id": "iya26-c8-tatli-firin-i10-affogato",
+          "subcategory_id": "iya26-c8-tatli-firin-s3",
+          "name": "Affogato",
+          "description": "Vanilyalı dondurmanın üzerine dökülen sıcak espresso.",
+          "price": 245,
+          "image_url": "",
+          "image_data": "",
+          "active": true,
+          "sold_out": false,
+          "featured": false,
+          "station": "kitchen",
+          "variants": []
+        }
+      ]
+    }
+  ]
+}
