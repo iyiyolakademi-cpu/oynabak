@@ -282,7 +282,7 @@ check(nativeAudioCode,'window.OynaBakPOSAudio=Object.freeze','Shared POS audio A
 const {runInNewContext}=await import('node:vm');
 const iosFake={plays:0,resumes:0,appends:0};
 class FakeMedia {
- constructor(){this.paused=true;this.currentTime=0;this.volume=1;this.muted=false}
+ constructor(){this.paused=true;this.currentTime=0;this.volume=1;this.muted=false;this.style={}}
  setAttribute(){}
  play(){iosFake.plays++;this.paused=false;return Promise.resolve()}
  pause(){this.paused=true}
