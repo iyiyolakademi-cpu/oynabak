@@ -66,9 +66,11 @@ async function open(id){
   // Each browser remembers its own selected screen, not an extra employee identity.
   const staffRole=me.role;
   const savedScreen=(()=>{try{return localStorage.getItem('ob-ops-screen-'+id)}catch{return null}})();
-  const defaultTab=['overview','requests','kitchen','tables','reports'].includes(savedScreen)?savedScreen:'overview';
+  // Phone opens on actionable tables instead of an oversized/empty overview.
+  const phone=typeof window.matchMedia==='function'&&window.matchMedia('(max-width:700px)').matches;
+  const defaultTab=phone?'tables':(['overview','requests','kitchen','tables','reports'].includes(savedScreen)?savedScreen:'overview');
   const savedStation=(()=>{try{return localStorage.getItem('ob-ops-station-'+id)}catch{return null}})();
-  state={vid:String(id),count:Number(s.table_count)||1,tab:defaultTab,table:0,filter:'',tickets:[],items:[],requests:[],calls:[],products:[],busy:false,permission:{},staffRole,kitchenFilter:['all','kitchen','bar'].includes(savedStation)?savedStation:'all',realtime:false,canManage:Boolean(s.can_manage),floorEditing:false,floorSaved:[],floorDraft:[],floorVersion:0,floorAvailable:true,floorSelected:1,floorZoom:1,floorExpanded:false,floorScroll:null,lastSyncAt:0,lastError:''};
+  state={vid:String(id),count:Number(s.table_count)||1,tab:defaultTab,table:0,filter:'',tickets:[],items:[],requests:[],calls:[],products:[],busy:false,permission:{},staffRole,kitchenFilter:['all','kitchen','bar'].includes(savedStation)?savedStation:'all',realtime:false,canManage:Boolean(s.can_manage),floorEditing:false,floorSaved:[],floorDraft:[],floorVersion:0,floorAvailable:true,floorSelected:1,floorZoom:1,floorExpanded:false,floorScroll:null,mobileTableView:'grid',lastSyncAt:0,lastError:''};
   const actions=['add','review','close','move','split','reports','status'];
   const allowed=await Promise.all(actions.map(action=>rpc('ob_adisyon_permission',{p_venue_id:String(id),p_action:action,p_station:action==='status'&&staffRole==='bar'?'bar':action==='status'?'kitchen':null})));
   if(!state||state.vid!==String(id))return;
@@ -247,10 +249,13 @@ function render(){
  const opened=state.tickets.filter(t=>t.status==='open'),pending=state.items.filter(i=>i.status==='new'&&opened.some(t=>t.id===i.ticket_id));
  const stationOnly=state.staffRole==='kitchen'||state.staffRole==='bar';
  const kitchenItems=state.items.filter(i=>opened.some(t=>t.id===i.ticket_id)&&!['void','served'].includes(i.status));
+ const phone=typeof window.matchMedia==='function'&&window.matchMedia('(max-width:700px)').matches;
+ const mobileTables=phone&&state.tab==='tables'&&!state.table;
  let html='<div class="ob-workspace-title"><div><small>'+esc('OYNABAK · TEK İŞLETME GİRİŞİ')+' ÇALIŞMA EKRANI</small><h3>'+esc('Sipariş, mutfak ve masa yönetimi')+'</h3></div><span class="ob-live-label" id="ob-live-status">'+(state.lastError?'⚠ Güncelleme sorunu':!navigator.onLine?'● Çevrimdışı':state.realtime?'● Canlı bağlı':'◌ 15 sn yedek yenileme')+'</span></div>';
+ if(mobileTables)html=''; // Keep the floor/tiles at the top of a phone screen.
  if(stationOnly){
  html+='<div class="ob-stats"><div class="ob-card"><span class="ob-muted">Bekleyen ürün</span><strong class="metric">'+kitchenItems.filter(i=>i.station===state.staffRole&&i.status==='new').length+'</strong></div><div class="ob-card"><span class="ob-muted">Hazırlanıyor</span><strong class="metric">'+kitchenItems.filter(i=>i.station===state.staffRole&&i.status==='preparing').length+'</strong></div></div>';
- }else if(state.tab!=='overview'){
+ }else if(state.tab!=='overview'&&!mobileTables){
  html+='<div class="ob-stats"><div class="ob-card"><span class="ob-muted">Açık masa</span><strong class="metric">'+opened.length+'</strong></div><div class="ob-card"><span class="ob-muted">QR onayı bekleyen</span><strong class="metric">'+state.requests.length+'</strong></div><div class="ob-card"><span class="ob-muted">Adisyon toplamı (tahsilat değil)</span><strong class="metric">'+money(opened.reduce((v,t)=>v+total(t.id),0))+'</strong></div></div>';
  }
  if((state.alarmCount||0)>0)html+='<div class="ob-loop-alarm" role="alert"><div>🔔 <b>'+state.alarmCount+' yeni işlem bekliyor</b><small>Alarm susturulana kadar tekrar eder.</small></div><button type="button" class="ob-btn" data-ob-alarm-mute>🔕 Sustur</button></div>';
@@ -259,12 +264,13 @@ function render(){
   html+=window.OynaBakLiveControl?.render({state,opened,kitchenItems,esc,money,when,floorBoard,total})||'<section class="ob-card">Kontrol merkezi yüklenemedi; sayfayı yenileyin.</section>';
  }else if(state.tab==='tables'){
    if(!state.table){
-     html+=floorBoard();
-     html+='<section class="ob-card ob-ops-tools"><h3>Masa araçları</h3><div class="ob-row">'+
+     if(mobileTables)html+='<nav class="ob-mobile-view-switch" aria-label="Masa görünümü"><button type="button" class="ob-btn '+(state.mobileTableView==='grid'?'active':'')+'" data-ob-mobile-view="grid" aria-pressed="'+(state.mobileTableView==='grid')+'">▦ Masa listesi</button><button type="button" class="ob-btn '+(state.mobileTableView==='plan'?'active':'')+'" data-ob-mobile-view="plan" aria-pressed="'+(state.mobileTableView==='plan')+'">▤ Mekân planı</button></nav>';
+     html+=mobileTables&&state.mobileTableView==='grid'?(window.OynaBakMobileTables?.render({state,total,money})||floorBoard()):floorBoard();
+     html+='<'+(mobileTables?'details':'section')+' class="ob-card ob-ops-tools'+(mobileTables?' ob-mobile-extra':'')+'">'+(mobileTables?'<summary>⚙ Masa araçları</summary>':'<h3>Masa araçları</h3>')+'<div class="ob-row">'+
        (state.permission.move?'<button class="ob-btn" data-ob-tool="move">Masa taşı</button>':'')+
        (state.permission.split?'<button class="ob-btn" data-ob-tool="split">Hesabı bölüştür</button>':'')+
        (state.canManage?'<button class="ob-btn" data-ob-tool="codes">Masa doğrulaması</button>':'')+
-       '</div><div id="ob-extra-results" aria-live="polite"></div></section>';
+       '</div><div id="ob-extra-results" aria-live="polite"></div></'+(mobileTables?'details':'section')+'>';
    }else{
      const t=active(state.table),list=t?items(t.id):[];
      const products=state.products.map((p,i)=>({...p,index:i})).filter(p=>(p.name+' '+p.category).toLocaleLowerCase('tr-TR').includes(state.filter.toLocaleLowerCase('tr-TR')));
@@ -362,7 +368,7 @@ async function refresh(silent=false){
  syncAlarm();
  if((snapshot.tab==='tools'||snapshot.floorEditing||floorDrag||($('#ob-extra-results')?.childElementCount>0))&&silent)return;
  if(!silent||(document.activeElement?.id!=='ob-adisyon-search'&&!$('#ob-adisyon-add-form')))render();
- }catch(err){if(state){state.lastError=err?.message||'Sunucuya erişilemiyor';if(state.tab==='overview'&&!state.floorEditing)render()}throw err}
+ }catch(err){if(state){state.lastError=err?.message||'Sunucuya erişilemiyor';if(['overview','tables'].includes(state.tab)&&!state.floorEditing)render()}throw err}
  finally{refreshRunning=false}
 }
 function notifyRequests(n){
@@ -430,7 +436,7 @@ async function closeTicket(id){
 }
 
 document.addEventListener('click',async e=>{
- const b=e.target.closest?.('[data-ob-alarm-mute],[data-ob-waiter-done],[data-ob-open],[data-ob-toggle],[data-ob-close],[data-ob-tab],[data-ob-table],[data-ob-back],[data-ob-product],[data-ob-dismiss],[data-ob-void],[data-ob-status],[data-ob-close-ticket],[data-ob-request-approve],[data-ob-request-reject],[data-ob-tool],[data-ob-security-toggle],[data-ob-code-rotate],[data-ob-staff-save],[data-ob-station],[data-ob-enable-alerts],[data-ob-report-days],[data-ob-floor-edit],[data-ob-floor-toggle-shape],[data-ob-floor-auto],[data-ob-floor-cancel],[data-ob-floor-confirm],[data-ob-refresh],[data-ob-floor-zoom],[data-ob-floor-expand],[data-ob-floor-jump]');
+ const b=e.target.closest?.('[data-ob-alarm-mute],[data-ob-waiter-done],[data-ob-open],[data-ob-toggle],[data-ob-close],[data-ob-tab],[data-ob-table],[data-ob-back],[data-ob-product],[data-ob-dismiss],[data-ob-void],[data-ob-status],[data-ob-close-ticket],[data-ob-request-approve],[data-ob-request-reject],[data-ob-tool],[data-ob-security-toggle],[data-ob-code-rotate],[data-ob-staff-save],[data-ob-station],[data-ob-enable-alerts],[data-ob-report-days],[data-ob-floor-edit],[data-ob-floor-toggle-shape],[data-ob-floor-auto],[data-ob-floor-cancel],[data-ob-floor-confirm],[data-ob-refresh],[data-ob-floor-zoom],[data-ob-floor-expand],[data-ob-floor-jump],[data-ob-mobile-view]');
  if(!b||b.disabled)return;e.preventDefault();e.stopImmediatePropagation();
  if(b.hasAttribute('data-ob-close')){if(state?.floorEditing&&!confirm('Kaydedilmemiş masa düzeni var. Kaydetmeden çıkılsın mı?'))return;close();return}
  if(b.hasAttribute('data-ob-dismiss')){$('.ob-product-form',root())?.remove();return}
@@ -446,6 +452,13 @@ document.addEventListener('click',async e=>{
    }
    else if(b.hasAttribute('data-ob-refresh')){if(refreshRunning)notice('Güncelleme zaten sürüyor.');else{await refresh();notice('Kontrol merkezi yenilendi.')}}
     else if(b.dataset.obWaiterDone){await rpc('ob_ops_waiter_done',{p_venue_id:state.vid,p_call_id:b.dataset.obWaiterDone});await refresh();notice('Garson çağrısı tamamlandı.')}
+   else if(b.dataset.obMobileView){
+    if(state.floorEditing&&b.dataset.obMobileView==='grid'){
+     if(!confirm('Kaydedilmemiş masa düzeninden çıkılsın mı?'))return;
+     state.floorDraft=normalizeFloor(state.floorSaved,state.count);state.floorEditing=false;
+    }
+    state.mobileTableView=b.dataset.obMobileView;render();
+   }
    else if(b.dataset.obFloorZoom)changeFloorZoom(b.dataset.obFloorZoom);
    else if(b.hasAttribute('data-ob-floor-expand')){state.floorExpanded=!state.floorExpanded;render()}
    else if(b.hasAttribute('data-ob-floor-jump'))focusFloorTable();
