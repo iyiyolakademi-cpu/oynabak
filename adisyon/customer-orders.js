@@ -86,7 +86,7 @@ function render(){
    (Array.isArray(last.items_status)&&last.items_status.length?
     '<div class="ob-checkout-lines">'+last.items_status.map(i=>
      '<div class="ob-checkout-line"><b>'+esc(i.name)+'</b><small>'+
-     esc(({new:'Alındı',preparing:'Hazırlanıyor',ready:'Hazır',served:'Servis edildi',void:'İptal'}[i.status]||i.status)+'</small></div>').join('')+'</div>':'')+
+     esc(({new:'Alındı',preparing:'Hazırlanıyor',ready:'Hazır',served:'Servis edildi',void:'İptal'}[i.status]||i.status))+'</small></div>').join('')+'</div>':'')+
    (last.reject_reason?'<p class="ob-order-error">'+esc(last.reject_reason)+'</p>':'')+
    '<p class="ob-checkout-hint">Bu ekrandan ödeme alınmaz.</p>'+
    '<div class="ob-checkout-actions"><button type="button" data-ob-order-refresh>↻ Durumu yenile</button>'+
