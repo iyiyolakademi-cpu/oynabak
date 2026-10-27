@@ -200,3 +200,28 @@ for(const term of ['ob-mobile-table--ready','ob-mobile-table--call',
 check(adisyon,'Masalar hazırlanıyor…','Mobile loading state missing');
 check(mobileStyles,'.ob-mobile-loading-grid','Mobile loading styles missing');
 console.log('Mobile table-first UI smoke checks passed (1–200 tables, status, safe HTML).');
+
+/* Sale readiness: live queue, audio parity and SQL-only guards. */
+const simple=read('adisyon/simple-console.js');
+const simpleCss=read('adisyon/simple-console.css');
+for(const token of ["refreshQueued=true","refreshQueued=false","queueMicrotask(()=>refresh(true)",
+ "updateAlarmButton();","ob-sync-error"]){
+ check(adisyon,token,'Operations sync regression: '+token);
+}
+for(const token of ["window.OynaBakPlayWaiterTone(audioCtx)","tab='tables'",
+ "⚠ Bağlantı kontrol ediliyor","document.addEventListener('visibilitychange'",
+ "window.addEventListener('online'","window.addEventListener('offline'"]){
+ check(simple,token,'Simple console alarm/connectivity regression: '+token);
+}
+for(const token of [".ob-simple-tabs{position:fixed",".ob-simple-tables{display:grid;",
+ ".ob-simple-stale","env(safe-area-inset-bottom"]){
+ check(simpleCss,token,'Simple mobile CSS regression: '+token);
+}
+const salesSafety=read('adisyon/2026-10-27-sales-readiness-security.sql');
+for(const token of ["ob_adisyon_permission","venue.active","venue.licensed",
+ "pg_advisory_xact_lock","ob_event_v3","ob_score"]){
+ // Licence columns may appear as v.active / v.licensed in the actual function definition.
+ assert.ok(salesSafety.includes(token)||salesSafety.includes(token.replace('venue.','v.')),
+ 'Sales security SQL missing '+token);
+}
+console.log('Sale readiness security and responsive operations checks passed.');
