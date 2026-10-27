@@ -49,3 +49,9 @@
  #ob-adisyon .ob-floor-hint{font-size:11px}
 }
 @media(prefers-reduced-motion:reduce){#ob-adisyon .ob-floor .ob-floor-scroll{scroll-behavior:auto}}
+
+/* Overview zoom: show table numbers only when fitting a large plan on a small screen. */
+#ob-adisyon .ob-floor .ob-floor-canvas.is-mini .ob-floor-table{padding:0;border-width:1px;gap:0}
+#ob-adisyon .ob-floor .ob-floor-canvas.is-mini .ob-floor-table b{font-size:0;line-height:1}
+#ob-adisyon .ob-floor .ob-floor-canvas.is-mini .ob-floor-table b::after{content:attr(data-number);font-size:clamp(6px,calc(var(--ob-floor-table-size) * .33),12px);font-weight:800}
+#ob-adisyon .ob-floor .ob-floor-canvas.is-mini .ob-floor-table small{display:none}
