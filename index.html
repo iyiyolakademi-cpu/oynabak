@@ -5172,6 +5172,10 @@ try{waiterSoundEnabled=localStorage.getItem('ob_waiter_sound')==='1'}catch(_){}
 // Tarayici ses kilidini ilk kullanici etkilesiminde ac; otomatik oynatma iznini asmaz.
 function unlockWaiterAudio(){
   if(!waiterSoundEnabled)return;
+  if(window.OynaBakPOSAudio?.isApple){
+    window.OynaBakPOSAudio.unlockOnGesture(waiterAudioCtx);
+    return;
+  }
   try{
     const AC=window.AudioContext||window.webkitAudioContext;
     if(!AC)return;
@@ -5218,14 +5222,18 @@ async function toggleWaiterSound(){
   }
   try{
     const AC=window.AudioContext||window.webkitAudioContext;
-    if(!AC)throw Error('Bu cihaz sesli bildirimleri desteklemiyor.');
-    if(!waiterAudioCtx)waiterAudioCtx=new AC();
-    if(waiterAudioCtx.state==='suspended')await waiterAudioCtx.resume();
+    if(!AC&&!window.OynaBakPOSAudio?.isApple)throw Error('Bu cihaz sesli bildirimleri desteklemiyor.');
+    if(!waiterAudioCtx&&AC)waiterAudioCtx=new AC();
+    if(window.OynaBakPOSAudio?.isApple){
+      const status=await window.OynaBakPOSAudio.enable(waiterAudioCtx);
+      if(!status.ok)throw Error('iPhone sesi açılamadı. Telefonun ses seviyesini ve Safari izinlerini kontrol edip tekrar dokun.');
+    }else if(waiterAudioCtx.state!=='running')await waiterAudioCtx.resume();
     waiterSoundEnabled=true;
     try{localStorage.setItem('ob_waiter_sound','1')}catch(_){}
     updateWaiterSoundButton();
-    if(waiterPendingCalls.some(c=>c?.id&&!waiterMutedCalls.has(String(c.id))))startWaiterAlarm(); else waiterBeep();
-    toast('POS alarmı etkin. Sesin duyulması için cihaz sesi açık ve bu sayfayla etkileşim kurulmuş olmalı.');
+    if(waiterPendingCalls.some(c=>c?.id&&!waiterMutedCalls.has(String(c.id))))startWaiterAlarm();
+    else if(!window.OynaBakPOSAudio?.isApple)waiterBeep();
+    toast(window.OynaBakPOSAudio?.isApple?'iPhone POS zil testi çalındı. Ses duyulmuyorsa sessiz mod ve medya sesini kontrol et. Sayfa açıkken yeni siparişlerde tekrarlanır.':'POS alarmı etkin. Sesin duyulması için cihaz sesi açık ve bu sayfayla etkileşim kurulmuş olmalı.');
   }catch(e){
     waiterSoundEnabled=false;
     updateWaiterSoundButton();
@@ -5773,6 +5781,10 @@ function waiterBeep(){
   if(!waiterSoundEnabled)return;
   // The order workspace handles the same call with the same bell once.
   if(document.getElementById('ob-adisyon'))return;
+  if(window.OynaBakPOSAudio?.isApple){
+    window.OynaBakPOSAudio.play(waiterAudioCtx);
+    return;
+  }
   if(!waiterAudioCtx||waiterAudioCtx.state!=='running'){
     unlockWaiterAudio();
     return;
@@ -8137,6 +8149,7 @@ function close(clear=true){node()?.remove();if(clear)state=null}
 window.OynaBakOwnerFinancePreview=Object.freeze({open,close});
 })();
 </script>
+<script src="adisyon/ios-audio.js"></script>
 <link rel="stylesheet" href="adisyon/style.css">
 <link rel="stylesheet" href="adisyon/floor-shapes.css">
 <link rel="stylesheet" href="adisyon/floor-studio.css">
