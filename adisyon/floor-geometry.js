@@ -45,6 +45,20 @@ function positions(count){
  }
  return out;
 }
+function collisions(positions_,count){
+ const positions=Array.isArray(positions_)?positions_:[];
+ const d=dimensions(count,positions),tile=112,pairs=[];
+ for(let i=0;i<positions.length;i++)for(let j=i+1;j<positions.length;j++){
+  const a=positions[i],b=positions[j];
+  // Compare transformed physical distances, not only percent positions.
+  const dx=Math.abs((Number(a.x)-Number(b.x))*(d.width-tile)/100);
+  const dy=Math.abs((Number(a.y)-Number(b.y))*(d.height-tile)/100);
+  if(Number.isFinite(dx)&&Number.isFinite(dy)&&dx<tile-2&&dy<tile-2){
+   pairs.push([Number(a.table),Number(b.table)]);
+  }
+ }
+ return pairs;
+}
 function clampZoom(value){return Math.max(0.1,Math.min(1.6,Math.round(Number(value)*100)/100||1));}
-window.OynaBakFloorGeometry=Object.freeze({dimensions,positions,clampZoom});
+window.OynaBakFloorGeometry=Object.freeze({dimensions,positions,clampZoom,collisions});
 })();
