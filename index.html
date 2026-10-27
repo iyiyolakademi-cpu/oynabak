@@ -5208,11 +5208,14 @@ function startWaiterAlarm(){
 function updateWaiterSoundButton(){
   const btn=document.querySelector('[data-action="waiter-sound"]');
   if(!btn)return;
-  btn.textContent=waiterSoundEnabled?'🔇 Sesi Kapat':'🔊 POS Alarmını Aç';
-  btn.setAttribute('aria-pressed',waiterSoundEnabled?'true':'false');
+  const apple=window.OynaBakPOSAudio?.isApple;
+  const unlocked=!apple||window.OynaBakPOSAudio.status().htmlAudioReady;
+  btn.textContent=waiterSoundEnabled&&unlocked?'🔇 Sesi Kapat':apple?'🔔 iPhone zilini etkinleştir':'🔊 POS Alarmını Aç';
+  btn.setAttribute('aria-pressed',waiterSoundEnabled&&unlocked?'true':'false');
 }
 async function toggleWaiterSound(){
-  if(waiterSoundEnabled){
+  const appleNeedsActivation=window.OynaBakPOSAudio?.isApple&&!window.OynaBakPOSAudio.status().htmlAudioReady;
+  if(waiterSoundEnabled&&!appleNeedsActivation){
     waiterSoundEnabled=false;
     stopWaiterAlarm();
     try{localStorage.setItem('ob_waiter_sound','0')}catch(_){}
