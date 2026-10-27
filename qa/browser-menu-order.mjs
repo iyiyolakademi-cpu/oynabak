@@ -66,6 +66,9 @@ try{
    assert.ok(viewport.right<=width+2,'Inline +Ekle clips offscreen');
    assert.ok(viewport.soldDisabled,'Sold-out item must not be orderable');
    assert.ok(viewport.initialSheetHidden,'Cart sheet must start closed');
+   // A real tap can trigger the browser's initial scrollIntoView; measure only any
+   // unwanted movement caused by the application's add handler itself.
+   await page.locator('[data-ob-menu-add="espresso"]').scrollIntoViewIfNeeded();
    const before=await page.locator('#modal .dialog-body').evaluate(el=>el.scrollTop);
    await page.locator('[data-ob-menu-add="espresso"]').click();
    const after=await page.locator('#modal .dialog-body').evaluate(el=>el.scrollTop);
