@@ -5,7 +5,7 @@ const money=n=>new Intl.NumberFormat('tr-TR',{style:'currency',currency:'TRY'}).
 const when=d=>new Date(d).toLocaleString('tr-TR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
 const bridge=()=>window.OynaBakAdisyonBridge;
 const current=()=>bridge()?.context();
-let state=null,poll=null,mounting=false,seenRequestIds=null,audioCtx=null,signalChannel=null,seenItemStages=null,alarmTimer=null,audioEnabled=false,refreshRunning=false,alarmAcknowledged=new Set(),floorDrag=null;
+let state=null,poll=null,mounting=false,seenRequestIds=null,audioCtx=null,signalChannel=null,seenItemStages=null,alarmTimer=null,audioEnabled=false,refreshRunning=false,refreshQueued=false,alarmAcknowledged=new Set(),floorDrag=null;
 async function rpc(fn,args){const db=current()?.db;if(!db)throw Error('Veritabanı bağlantısı bulunamadı.');const {data,error}=await db.rpc(fn,args);if(error)throw Error(error.message||'Sunucu işlemi başarısız.');return data}
 function notice(msg,error=false){let n=$('#ob-adisyon-message');if(!n){n=document.createElement('div');n.id='ob-adisyon-message';document.body.appendChild(n)}n.textContent=msg;n.className=error?'error':'';clearTimeout(n._timer);n._timer=setTimeout(()=>n.remove(),4500)}
 const venue=id=>(current()?.adminData?.venues||[]).find(v=>String(v.id)===String(id));
@@ -43,7 +43,7 @@ function schedule(){if(scheduled)return;scheduled=true;queueMicrotask(()=>{sched
 function setup(){const app=$('#app');if(app){new MutationObserver(schedule).observe(app,{childList:true,subtree:true});schedule()}}
 function close(){
  stopAlarm();alarmAcknowledged.clear();audioEnabled=false;floorDrag=null;
- seenRequestIds=null;seenItemStages=null;refreshRunning=false;clearInterval(poll);poll=null;
+ seenRequestIds=null;seenItemStages=null;refreshRunning=false;refreshQueued=false;clearInterval(poll);poll=null;
  if(signalChannel){try{current()?.db?.removeChannel(signalChannel)}catch(e){console.warn('Realtime kapatma:',e)}signalChannel=null}
  state=null;$('#ob-adisyon')?.remove();document.body.style.overflow='';
 }
@@ -243,6 +243,8 @@ function syncAlarm(){
  for(const key of alarmAcknowledged)if(!active.has(key))alarmAcknowledged.delete(key);
  state.alarmCount=keys.filter(k=>!alarmAcknowledged.has(k)).length;
  if(!state.alarmCount){stopAlarm();return}
+ // A visual alert stays active even when mobile autoplay blocks the sound.
+ if(!audioEnabled||!audioCtx||audioCtx.state!=='running'){stopAlarm();return}
  if(!alarmTimer){audibleBeep();alarmTimer=setInterval(audibleBeep,1800)}
 }
 function muteAlarm(){activeAlarmKeys().forEach(k=>alarmAcknowledged.add(k));stopAlarm();syncAlarm();render()}
@@ -261,7 +263,8 @@ function render(){
  }else if(state.tab!=='overview'&&!mobileTables){
  html+='<div class="ob-stats"><div class="ob-card"><span class="ob-muted">Açık masa</span><strong class="metric">'+opened.length+'</strong></div><div class="ob-card"><span class="ob-muted">QR onayı bekleyen</span><strong class="metric">'+state.requests.length+'</strong></div><div class="ob-card"><span class="ob-muted">Adisyon toplamı (tahsilat değil)</span><strong class="metric">'+money(opened.reduce((v,t)=>v+total(t.id),0))+'</strong></div></div>';
  }
- if((state.alarmCount||0)>0)html+='<div class="ob-loop-alarm" role="alert"><div>🔔 <b>'+state.alarmCount+' yeni işlem bekliyor</b><small>Alarm susturulana kadar tekrar eder.</small></div><button type="button" class="ob-btn" data-ob-alarm-mute>🔕 Sustur</button></div>';
+ if((state.alarmCount||0)>0)html+='<div class="ob-loop-alarm" role="alert"><div>🔔 <b>'+state.alarmCount+' yeni işlem bekliyor</b><small>'+(audioEnabled&&audioCtx?.state==='running'?'Alarm susturulana kadar tekrar eder.':'Ses için üstteki Bildirim sesini aç düğmesine dokun. Ekran kilitliyken tarayıcı sesi durdurabilir.')+'</small></div><button type="button" class="ob-btn" data-ob-alarm-mute>🔕 Sustur</button></div>';
+ if(state.lastError)html+='<div class="ob-control-warning ob-sync-error" role="alert">⚠ Son güncelleme başarısız: '+esc(state.lastError)+'. Yeniden bağlanıldığında güncellenecek. <button type="button" class="ob-btn" data-ob-refresh>↻ Yenile</button></div>';
  html+='<div class="ob-tabs">'+(!stationOnly?tab('overview','◉ Canlı Kontrol'):'')+(state.permission.review?tab('requests','🛎️ Siparişler ('+(state.requests.length+state.calls.length)+')'):'')+tab('kitchen','♨️ Mutfak / Bar')+(!stationOnly?tab('tables','▦ Masalar'):'')+(state.permission.reports?tab('reports','▤ Raporlar'):'')+'</div>';
  if(state.tab==='overview'&&!stationOnly){
   html+=window.OynaBakLiveControl?.render({state,opened,kitchenItems,esc,money,when,floorBoard,total})||'<section class="ob-card">Kontrol merkezi yüklenemedi; sayfayı yenileyin.</section>';
@@ -321,11 +324,15 @@ function render(){
  const oldViewport=$('[data-ob-floor-viewport]',body());
  if(oldViewport){const oldCanvas=oldViewport.querySelector('[data-ob-floor-canvas]');if(oldCanvas)state.floorScroll={x:(oldViewport.scrollLeft+oldViewport.clientWidth/2)/Math.max(1,oldCanvas.offsetWidth),y:(oldViewport.scrollTop+oldViewport.clientHeight/2)/Math.max(1,oldCanvas.offsetHeight)};}
  body().innerHTML=html;
+ updateAlarmButton();
  const newViewport=$('[data-ob-floor-viewport]',body()),newCanvas=newViewport?.querySelector('[data-ob-floor-canvas]');
  if(newViewport&&newCanvas&&state.floorScroll){newViewport.scrollLeft=state.floorScroll.x*newCanvas.offsetWidth-newViewport.clientWidth/2;newViewport.scrollTop=state.floorScroll.y*newCanvas.offsetHeight-newViewport.clientHeight/2;}
 }
 async function refresh(silent=false){
- if(!state||state.busy||refreshRunning)return;refreshRunning=true;
+ if(!state||state.busy)return;
+ // Realtime signals arriving during a request must not be lost until the 15s poll.
+ if(refreshRunning){refreshQueued=true;return}
+ refreshRunning=true;
  try{
  const snapshot=state,vid=state.vid;
  const d=await rpc('ob_adisyon_list',{p_venue_id:vid});
@@ -371,8 +378,11 @@ async function refresh(silent=false){
  syncAlarm();
  if((snapshot.tab==='tools'||snapshot.floorEditing||floorDrag||($('#ob-extra-results')?.childElementCount>0))&&silent)return;
  if(!silent||(document.activeElement?.id!=='ob-adisyon-search'&&!$('#ob-adisyon-add-form')))render();
- }catch(err){if(state){state.lastError=err?.message||'Sunucuya erişilemiyor';if(['overview','tables'].includes(state.tab)&&!state.floorEditing)render()}throw err}
- finally{refreshRunning=false}
+ }catch(err){if(state){state.lastError=err?.message||'Sunucuya erişilemiyor';if(!state.floorEditing&&!$('#ob-adisyon-add-form'))render()}throw err}
+ finally{
+  refreshRunning=false;
+  if(refreshQueued){refreshQueued=false;queueMicrotask(()=>refresh(true).catch(err=>console.warn('Bekleyen yenileme:',err)))}
+ }
 }
 function notifyRequests(n){
  notice(n+' yeni işlem var.');
