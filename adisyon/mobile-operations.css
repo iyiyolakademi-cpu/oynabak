@@ -129,3 +129,104 @@
  #ob-adisyon .ob-product-form .ob-btn.primary{display:block;width:100%;
   position:sticky;bottom:0;min-height:53px;z-index:1}
 }
+
+
+/* 27 October mobile table redesign — the primary phone screen is compact cards.
+   Desktop/tablet plans and all persisted coordinates are intentionally unchanged. */
+@media(max-width:700px){
+ #ob-adisyon .ob-shell{padding:7px 8px calc(76px + env(safe-area-inset-bottom,0px))}
+ #ob-adisyon .ob-head{padding:5px 1px 8px;margin:0 0 3px}
+ #ob-adisyon .ob-head h2{font-size:18px}
+ #ob-adisyon .ob-head .ob-row{gap:5px}
+ #ob-adisyon .ob-head .ob-btn{min-height:36px;padding:5px 8px;font-size:10px;border-radius:9px}
+ #ob-adisyon .ob-tabs{gap:3px;padding:5px max(5px,env(safe-area-inset-right))
+   max(7px,env(safe-area-inset-bottom)) max(5px,env(safe-area-inset-left))}
+ #ob-adisyon .ob-tabs .ob-btn{min-height:46px;padding:5px 2px;line-height:1.1;font-size:10px;
+  border-radius:9px;overflow-wrap:normal;word-break:normal}
+ #ob-adisyon .ob-mobile-view-switch{display:flex;gap:4px;margin:4px 0 8px;
+  border:1px solid #dce5ef;border-radius:11px;background:#eaf0f7;padding:4px}
+ #ob-adisyon .ob-mobile-view-switch .ob-btn{min-height:37px;min-width:0;background:transparent;
+  border:0;border-radius:8px;font-size:12px;box-shadow:none}
+ #ob-adisyon .ob-mobile-view-switch .ob-btn.active{background:#fff;color:#152d48;
+  border:0;box-shadow:0 2px 7px #122d4a17}
+ #ob-adisyon .ob-mobile-tables{display:block;border:0;border-radius:15px;
+  padding:12px 10px 11px;background:#fff;box-shadow:0 5px 22px #172a460b}
+ #ob-adisyon .ob-mobile-table-heading{align-items:flex-start;gap:8px}
+ #ob-adisyon .ob-mobile-table-heading small{font-size:9px;color:#68809a;font-weight:900}
+ #ob-adisyon .ob-mobile-table-heading h3{font-size:23px;letter-spacing:-.6px;margin:1px 0 2px}
+ #ob-adisyon .ob-mobile-table-heading p{margin:0 0 9px;font-size:11px}
+ #ob-adisyon .ob-mobile-table-count{font-size:11px;padding:6px 9px}
+ #ob-adisyon .ob-mobile-table-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+  margin:4px 0 10px;gap:5px}
+ #ob-adisyon .ob-mobile-table-summary span{display:flex;flex-direction:column;justify-content:center;
+  gap:2px;padding:7px 2px;min-width:0;font-size:10px;white-space:normal;line-height:1.2;
+  background:#f3f6fa;color:#465e76;border-radius:10px}
+ #ob-adisyon .ob-mobile-table-summary span b{font-size:17px;color:#1e344f;
+  font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+ #ob-adisyon .ob-mobile-table-summary span.ob-mobile-sum{background:#e9f2fb}
+ #ob-adisyon .ob-mobile-table-summary span.ob-mobile-sum b{font-size:clamp(10px,3vw,15px)}
+ #ob-adisyon .ob-mobile-table-search{display:flex;align-items:center;gap:8px;min-height:42px;
+  border:1px solid #dce5f0;background:#f8fafd;border-radius:11px;padding:0 12px;margin:4px 0 9px}
+ #ob-adisyon .ob-mobile-table-search span{color:#6685a4;font-size:23px;line-height:1}
+ #ob-adisyon .ob-mobile-table-search input{display:block;min-width:0;width:100%;min-height:39px;
+  border:0;background:transparent;outline:0;color:#172b43;font:600 13px system-ui,sans-serif}
+ #ob-adisyon .ob-mobile-table-search:focus-within{border-color:#588db9;box-shadow:0 0 0 2px #a8c7e6}
+ #ob-adisyon .ob-mobile-table-filters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:5px;margin:0 0 7px}
+ #ob-adisyon .ob-mobile-filter{min-width:0;min-height:35px;padding:5px 3px;
+  border:1px solid #dee6f0;background:#f8fafc;border-radius:9px;
+  color:#526780;font:800 10px/1.15 system-ui,sans-serif;cursor:pointer}
+ #ob-adisyon .ob-mobile-filter.active{background:#192e4a;border-color:#192e4a;color:#fff}
+ #ob-adisyon .ob-mobile-table-results{font-size:10px;color:#718399;margin:0 0 7px}
+ #ob-adisyon .ob-mobile-table-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:8px;max-height:none;overflow:visible;overscroll-behavior:initial;padding:1px;align-content:start}
+ #ob-adisyon .ob-mobile-table{position:relative;display:flex;flex-direction:column;align-items:stretch;
+  justify-content:space-between;gap:5px;min-height:114px;max-height:none;padding:11px;
+  border-radius:13px;border:1px solid #dce4ed;background:#fbfcfe;text-align:left;
+  color:#223a54;box-shadow:0 2px 7px #12294307;touch-action:manipulation}
+ #ob-adisyon .ob-mobile-table[hidden]{display:none!important}
+ #ob-adisyon .ob-mobile-table-top{display:flex;align-items:center;justify-content:space-between;gap:3px}
+ #ob-adisyon .ob-mobile-table-top b{font-size:14px;letter-spacing:-.2px}
+ #ob-adisyon .ob-mobile-table-dot{position:static;display:inline-block;flex:none;width:8px;height:8px}
+ #ob-adisyon .ob-mobile-table-mid{display:flex;flex-direction:column;gap:3px}
+ #ob-adisyon .ob-mobile-table-state{font-size:10px;line-height:1.2;font-weight:750;color:#63758b}
+ #ob-adisyon .ob-mobile-table strong.ob-mobile-table-price{font-size:clamp(14px,3.8vw,19px);
+  line-height:1.14;letter-spacing:-.3px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+ #ob-adisyon .ob-mobile-table-tags{display:flex;align-items:center;flex-wrap:wrap;gap:3px}
+ #ob-adisyon .ob-mobile-tag{font-size:9px;font-weight:800;border-radius:6px;padding:3px 5px;
+  color:#334f68;background:#e8edf4}
+ #ob-adisyon .ob-mobile-tag.call{color:#a22e30;background:#ffe6e2}
+ #ob-adisyon .ob-mobile-tag.order{color:#95530a;background:#ffecd1}
+ #ob-adisyon .ob-mobile-tag.ready{color:#21638f;background:#dff0ff}
+ #ob-adisyon .ob-mobile-table-detail{font-size:10px;font-weight:750;color:#8192a5}
+ #ob-adisyon .ob-mobile-table--occupied{background:#eaf8f0;border-color:#92d4b4}
+ #ob-adisyon .ob-mobile-table--order{background:#fff5e9;border-color:#efd096}
+ #ob-adisyon .ob-mobile-table--call{background:#fff1ef;border-color:#eaa59c}
+ #ob-adisyon .ob-mobile-table--ready{background:#ecf5ff;border-color:#aacbe9}
+ #ob-adisyon .ob-mobile-table--empty .ob-mobile-table-price{color:#6d8092}
+ #ob-adisyon .ob-mobile-no-results{margin:10px 0!important;padding:23px 12px;
+  text-align:center;border:1px dashed #d5e0eb;border-radius:11px;
+  background:#f8fafc;color:#647991;font-size:12px}
+ #ob-adisyon .ob-mobile-no-results[hidden]{display:none!important}
+ #ob-adisyon .ob-mobile-grid-hint{margin:11px 0 0!important;font-size:10px;line-height:1.35}
+ #ob-adisyon .ob-mobile-extra{margin-top:7px;padding:8px 12px;border-radius:12px}
+ #ob-adisyon .ob-mobile-extra summary{font-size:12px}
+ /* The floor is a secondary mode; never steal the opening viewport on iPhone. */
+ #ob-adisyon .ob-floor{padding:10px;border-radius:14px}
+ #ob-adisyon .ob-floor-header{gap:8px;align-items:center}
+ #ob-adisyon .ob-floor-header h3{font-size:16px}
+ #ob-adisyon .ob-floor-header .ob-muted{font-size:10px;line-height:1.4}
+ #ob-adisyon .ob-floor-actions .ob-btn{min-height:35px;padding:6px 10px;font-size:11px}
+ #ob-adisyon .ob-floor .ob-floor-scroll{height:clamp(230px,40dvh,380px);overflow:auto}
+ #ob-adisyon .ob-floor-summary{font-size:11px}
+ #ob-adisyon .ob-floor-hint{font-size:10px}
+}
+@media(max-width:355px){
+ #ob-adisyon .ob-mobile-tables{padding:9px 7px}
+ #ob-adisyon .ob-mobile-table{min-height:109px;padding:9px}
+ #ob-adisyon .ob-mobile-filter{font-size:9px}
+ #ob-adisyon .ob-mobile-table-top b{font-size:13px}
+}
+@media(min-width:560px) and (max-width:700px){
+ #ob-adisyon .ob-mobile-table-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+}
