@@ -18,7 +18,7 @@ function render({state,active,total,money,floorStyle}){
    '<button type="button" class="ob-btn primary" data-ob-floor-edit>✥ Masaları düzenle</button>';
  }else if(!state.floorAvailable)html+='<span class="ob-muted">Plan yüklenemedi; ekranı yeniden açıp deneyin.</span>';
  html+='</div></header>';
- html+='<div class="ob-floor-toolbar"><div class="ob-floor-toolbar-group"><button type="button" class="ob-btn ob-floor-icon" data-ob-floor-zoom="minus" aria-label="Planı küçült"'+(zoom<=.5?' disabled':'')+'>−</button>'+
+ html+='<div class="ob-floor-toolbar"><div class="ob-floor-toolbar-group"><button type="button" class="ob-btn ob-floor-icon" data-ob-floor-zoom="minus" aria-label="Planı küçült"'+(zoom<=.1?' disabled':'')+'>−</button>'+
   '<span class="ob-floor-zoom-level" aria-label="Yakınlaştırma oranı">'+Math.round(zoom*100)+'%</span>'+
   '<button type="button" class="ob-btn ob-floor-icon" data-ob-floor-zoom="plus" aria-label="Planı büyüt"'+(zoom>=1.6?' disabled':'')+'>+</button>'+
   '<button type="button" class="ob-btn" data-ob-floor-zoom="fit">Tümünü sığdır</button>'+
@@ -29,7 +29,7 @@ function render({state,active,total,money,floorStyle}){
   '<button type="button" class="ob-btn primary" data-ob-floor-expand aria-pressed="'+(expanded?'true':'false')+'">'+(expanded?'✕ Tam ekrandan çık':'⛶ Tam ekran')+'</button></div></div>';
  if(editing)html+='<div class="ob-floor-edit-controls"><button type="button" class="ob-btn" data-ob-floor-toggle-shape>Seçilen masayı yuvarlak / kare yap</button><span class="ob-muted">Otomatik diz yalnızca taslak planı düzenler; kayıt için onay gerekir.</span></div>';
  html+='<div class="ob-floor-summary"><span><strong>'+state.count+' masa</strong></span><span>·</span><span>'+dimensions.columns+' sütun × '+dimensions.rows+' sıra</span><span>·</span><span>Yatay ve dikey kaydırılabilir</span></div>';
- html+='<div class="ob-floor-scroll" data-ob-floor-viewport tabindex="0" aria-label="Kaydırılabilir masa planı"><div class="ob-floor-canvas'+(editing?' is-editing':'')+
+ html+='<div class="ob-floor-scroll" data-ob-floor-viewport tabindex="0" aria-label="Kaydırılabilir masa planı"><div class="ob-floor-canvas'+(zoom<.46?' is-mini':'')+(editing?' is-editing':'')+
   '" data-ob-floor-canvas style="width:'+width+'px;height:'+height+'px;--ob-floor-zoom:'+zoom+';--ob-floor-table-size:'+tile+'px">';
  html+='<div class="ob-floor-entrance">🚪 GİRİŞ</div>';
  const openByTable=new Map(state.tickets.filter(t=>t.status==='open').map(t=>[Number(t.table_no),t]));
@@ -43,7 +43,7 @@ function render({state,active,total,money,floorStyle}){
    (hasCall?' has-call':hasRequest?' has-request':hasReady?' has-ready':'')+
    '" style="'+floorStyle(pos)+'"'+(editing?' data-ob-floor-drag="'+pos.table+'"':' data-ob-table="'+pos.table+'"')+
    ' aria-label="Masa '+pos.table+(editing?' konumunu sürükleyerek değiştir':' adisyonunu aç')+'">'+
-   '<b>Masa '+pos.table+'</b><small>'+(hasCall?'🔔 Garson çağrısı':hasRequest?'⏳ QR onayı':hasReady?'✓ Servis hazır':t?money(total(t.id)):'Boş')+'</small></button>';
+   '<b data-number="'+pos.table+'">Masa '+pos.table+'</b><small>'+(hasCall?'🔔 Garson çağrısı':hasRequest?'⏳ QR onayı':hasReady?'✓ Servis hazır':t?money(total(t.id)):'Boş')+'</small></button>';
  }
  html+='</div></div><p class="ob-floor-hint">'+(editing?
   'Düzeni değiştirmek için masayı sürükle; klavyede ok tuşlarıyla ince ayar yapabilirsin. Masaların üst üste gelmediğini kontrol ederek kaydet.':
