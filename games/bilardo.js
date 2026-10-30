@@ -38,6 +38,14 @@ function makeBalls(){
  return a;
 }
 function remaining(type){return balls.filter(b=>b.type===type&&!b.potted).length}
+// The animated physics on each phone can have slightly different trajectories.
+// Score labels MUST come only from the last server-confirmed, finished shot.
+// Never count a locally predicted pocket as a real point before it is committed.
+function confirmedRemaining(type){
+ const snapshotBalls=state?.snapshot?.balls;
+ if(!Array.isArray(snapshotBalls)||snapshotBalls.length!==16)return 7;
+ return snapshotBalls.filter(b=>b.type===type&&!b.potted).length;
+}
 function isMyTurn(){return state?.status==='playing'&&state.turn===state.seat&&!state.active&&!activeShot&&!remoteAnimating}
 function myColor(){return state?.seat===0?'red':'blue'}
 function otherColor(){return state?.seat===0?'blue':'red'}
@@ -124,10 +132,10 @@ function display(){
  $('myName').textContent=seatName(me);
  $('oppName').textContent=seatName(opp);
  const myC=localSeatColor(me),otherC=localSeatColor(opp);
- $('myScore').textContent=remaining(myC);
- $('oppScore').textContent=remaining(otherC);
- $('bluePotted').textContent=String(7-remaining('blue'));
- $('redPotted').textContent=String(7-remaining('red'));
+ $('myScore').textContent=confirmedRemaining(myC);
+ $('oppScore').textContent=confirmedRemaining(otherC);
+ $('bluePotted').textContent=String(7-confirmedRemaining('blue'));
+ $('redPotted').textContent=String(7-confirmedRemaining('red'));
  document.querySelector('.person.me .colour-dot').className='colour-dot '+myC;
  document.querySelector('.person.opp .colour-dot').className='colour-dot '+otherC;
  $('waiting').hidden=state.status!=='waiting';
@@ -430,11 +438,28 @@ async function shot(dx,dy,speed){
 }
 async function sendFrame(action,next=null,winner=null){
  if(!session||!state)return;
+ const originalRoom=session.room,originalToken=session.token;
  const snapshot=serialize(next,winner);
- const response=await rpc('ob_bilardo_act',{p_code:session.room,p_token:session.token,
-  p_action:action,p_payload:snapshot});
- if(!session)return;
+ let response;
+ try{
+  response=await rpc('ob_bilardo_act',{p_code:originalRoom,p_token:originalToken,
+   p_action:action,p_payload:snapshot});
+ }catch(originalError){
+  // A lost HTTP response must not leave two devices showing different scores.
+  // First find out whether the authoritative server accepted the finish.
+  const check=await rpc('ob_bilardo_state',{p_code:originalRoom,p_token:originalToken});
+  if(check.shot===snapshot.shot&&!check.active){
+   response=check;
+  }else if(check.shot===snapshot.shot&&check.active){
+   response=await rpc('ob_bilardo_act',{p_code:originalRoom,p_token:originalToken,
+    p_action:action,p_payload:snapshot});
+  }else throw originalError;
+ }
+ if(!session||session.room!==originalRoom)return;
  state=response;lastFrame=state.frame;
+ // Shooter and receiver both rebuild their board from the EXACT same
+ // server-accepted shot result, instead of keeping local simulations apart.
+ applySnapshot(state.snapshot);
 }
 // Mobile 8-ball rules: fixed blue/red groups, first hit, post-contact rail,
 // cue-ball-in-hand on any foul, and legal 8-ball only after clearing the group.
