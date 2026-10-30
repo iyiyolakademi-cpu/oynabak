@@ -283,3 +283,67 @@ body.playing .turn-announcement.show{
     transform:translate(-50%,0) scale(1);
   }
 }
+
+/* Mobile: true edge-to-edge billiards. Remove the former pink footer entirely. */
+html:has(body.playing),body.playing,body.playing main,body.playing .game{
+  overflow:hidden!important;
+  margin:0!important;
+  padding:0!important;
+  background:#103c31!important;
+}
+body.playing.turn-blue,body.playing.turn-blue main,body.playing.turn-blue .game{
+  background:#278de8!important;
+}
+body.playing.turn-red,body.playing.turn-red main,body.playing.turn-red .game{
+  background:#eb5d60!important;
+}
+body.playing .table-shell{
+  width:100vw;
+  height:100vh;
+  height:100dvh;
+  max-width:none;
+  max-height:none;
+  margin:0;
+  filter:none;
+}
+body.playing .table-wrap{
+  inset:0;
+  background:#103c31;
+  border:0;
+  box-shadow:none;
+}
+body.playing .game-header,
+body.playing .controls{
+  -webkit-backdrop-filter:none;
+  backdrop-filter:none;
+}
+body.playing .table-wait{
+  -webkit-backdrop-filter:none;
+  backdrop-filter:none;
+}
+@media(min-width:720px){
+  body.playing .game{
+    width:100vw;
+    height:100dvh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  body.playing .table-shell{
+    height:min(100dvh,1100px);
+    width:min(600px,calc(100dvh * .56));
+    max-width:600px;
+    margin:0 auto;
+  }
+}
+@media(orientation:landscape) and (max-height:600px){
+  body.playing .table-shell{
+    width:min(100vw,calc(100dvh * .56));
+    height:100dvh;
+  }
+}
+@media (max-width:719px) and (orientation:portrait){
+  body.playing .table-shell{width:100vw;height:100dvh}
+  body.playing .table-wrap canvas{height:100%;width:100%}
+  body.playing .controls{bottom:max(8px,env(safe-area-inset-bottom))}
+}
