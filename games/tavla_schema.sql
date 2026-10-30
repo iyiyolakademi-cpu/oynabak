@@ -116,7 +116,7 @@ BEGIN
  ) THEN RAISE EXCEPTION 'Bu işletme için geçerli oyun erişimi bulunamadı.' USING errcode='42501';END IF;
  nm:=pg_catalog.left(pg_catalog.btrim(coalesce(p_name,'')),18);
  IF pg_catalog.length(nm)<2 THEN RAISE EXCEPTION 'Oyuncu adın en az 2 karakter olmalı';END IF;
- code_:=pg_catalog.nullif(pg_catalog.upper(pg_catalog.btrim(coalesce(p_code,''))),'');
+ code_:=nullif(pg_catalog.upper(pg_catalog.btrim(coalesce(p_code,''))),'');
  IF code_ IS NULL THEN
   IF (SELECT count(*) FROM public.ob_tavla_rooms WHERE venue_id=p_venue_id AND created_at>now()-interval '1 hour')>=30
   THEN RAISE EXCEPTION 'Çok fazla masa açıldı, biraz sonra tekrar deneyin';END IF;
