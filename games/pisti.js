@@ -34,6 +34,7 @@ function chooseMode(mode){
  $('chooseCreate').classList.toggle('active',!join);$('chooseJoin').classList.toggle('active',join);
  $('chooseCreate').setAttribute('aria-selected',String(!join));
  $('chooseJoin').setAttribute('aria-selected',String(join));
+ $('pistiFormTitle').textContent=join?'Arkadaşının masasına katıl':'Yeni oyun oluştur';
  if(join)$('joinCode').focus();
 }
 function username(){
@@ -55,8 +56,16 @@ function writeNames(){
 }
 function render(){
  if(!game)return;
+ document.body.classList.add('pisti-playing');
  $('lobby').hidden=true;$('game').hidden=false;
  $('roomLabel').textContent=game.room;
+ const firstTurn=game.status==='playing'&&game.round===1&&game.move<=1;
+ $('openingBanner').hidden=!firstTurn;
+ if(firstTurn){
+  const mine=game.turn===game.seat;
+  $('openingText').textContent=mine?'İlk kartı sen oynayacaksın':'İlk kartı rakibin oynayacak';
+  $('openingBanner').classList.toggle('my-first-turn',mine);
+ }
  writeNames();
  const them=game.players?.[1-game.seat];
  const oppCount=them?.hand_count||0;
@@ -90,7 +99,7 @@ function showResult(){
  const isMatch=game.status==='finished';
  const who=last.winner;
  const name=who===null?'Berabere':game.players[who]?.name||'Oyuncu';
- $('resultSymbol').textContent=isMatch?'🏆':'🃏';
+ $('resultSymbol').textContent=isMatch?'♠':'♦';
  $('resultEyebrow').textContent=isMatch?'MAÇ TAMAMLANDI':game.round+'. EL BİTTİ';
  $('resultTitle').textContent=isMatch?(who===game.seat?'Kazandın!':name+' kazandı!'):'El tamamlandı';
  $('resultName0').textContent=game.players[0]?.name||'1. oyuncu';
@@ -118,7 +127,7 @@ async function refresh(){
   connection('● Bağlı');
  }catch(err){connection('● Bağlantı hatası',true);console.warn('Pişti güncelleme:',err)}
 }
-function setPolling(){if(poll)clearInterval(poll);poll=setInterval(refresh,1800)}
+function setPolling(){if(poll)clearInterval(poll);poll=setInterval(refresh,1100)}
 async function openRoom(name,code='',token=null){
  if(busy)return;
  if(!navigator.onLine){toast('Oynayabilmek için internet bağlantısı gerekli.');return}
@@ -163,6 +172,7 @@ async function ready(){
  finally{busy=false;if(game)render()}
 }
 function showLobby(){
+ document.body.classList.remove('pisti-playing');
  $('game').hidden=true;$('resultModal').hidden=true;$('lobby').hidden=false;
  if(poll){clearInterval(poll);poll=null}
  if(session){$('resume').hidden=false;$('resume').textContent='Son masama dön: '+session.room}
@@ -238,13 +248,13 @@ function wire(){
  $('chooseCreate').addEventListener('click',()=>chooseMode('create'));
  $('chooseJoin').addEventListener('click',()=>chooseMode('join'));
  const code=(search.get('masa')||'').toUpperCase();
- if(/^[A-F0-9]{6}$/.test(code)){$('joinCode').value=code;chooseMode('join')}
- $('joinCode').addEventListener('input',e=>{e.target.value=e.target.value.toUpperCase().replace(/[^A-F0-9]/g,'').slice(0,6)});
+ if(/^[0-9]{4}$/.test(code)){$('joinCode').value=code;chooseMode('join')}
+ $('joinCode').addEventListener('input',e=>{e.target.value=e.target.value.replace(/\D/g,'').slice(0,4)});
  $('createForm').addEventListener('submit',e=>{e.preventDefault();const n=username();if(n)openRoom(n)});
  $('joinForm').addEventListener('submit',e=>{
   e.preventDefault();const n=username();if(!n)return;
   const c=$('joinCode').value.trim().toUpperCase();
-  if(!/^[A-F0-9]{6}$/.test(c)){toast('6 karakterli masa kodunu gir.');return}
+  if(!/^[0-9]{4}$/.test(c)){toast('4 rakamlı masa kodunu gir.');return}
   openRoom(n,c);
  });
  $('resume').addEventListener('click',()=>{if(session)openRoom(session.name,session.room,session.token)});
@@ -258,7 +268,7 @@ function wire(){
  $('readyButton').addEventListener('click',ready);
  $('dismissResult').addEventListener('click',()=>{$('resultModal').hidden=true});
  installTouch();
- if(previous&&/^[A-F0-9]{6}$/.test(previous.room||'')&&/^[0-9a-f-]{36}$/i.test(previous.token||'')){
+ if(previous&&/^(?:[0-9]{4}|[A-F0-9]{6})$/.test(previous.room||'')&&/^[0-9a-f-]{36}$/i.test(previous.token||'')){
   session=previous;$('resume').hidden=false;$('resume').textContent='Son masama dön: '+previous.room;
   // Do not hijack an invite deep link to a different room.
   if(!code||code===previous.room)openRoom(previous.name||'Oyuncu',previous.room,previous.token);
