@@ -79,3 +79,131 @@ body.playing main{width:100%;height:100dvh;overflow:hidden}
 @media(max-width:360px){.welcome{padding-left:15px;padding-right:15px}.cover-art{transform:scale(.88) rotate(-7deg);margin:-10px}.cta{padding:9px 12px;min-height:69px}.person strong{font-size:11px}.game-status small{font-size:9px}.power{flex-basis:81px}}
 @media(orientation:landscape) and (max-height:520px){body.playing .game{grid-template-columns:120px minmax(0,1fr) 145px;grid-template-rows:auto minmax(0,1fr);gap:4px}.game-header{grid-column:1/-1}.players{grid-column:1;grid-row:2;display:flex;flex-direction:column}.table-wrap{grid-column:2;grid-row:2}.controls{grid-column:3;grid-row:2;flex-direction:column;justify-content:center}.power{flex:none;width:100%}}
 @media(prefers-reduced-motion:reduce){.cta,.power .track div{transition:none}}
+
+
+/* Reference-matched portrait pool table: mobile-first with a desktop play surface.
+   The cloth, pockets, rails and moving balls are painted by canvas rather than
+   placing a static image above the interactive game. */
+body.playing,body.playing main{background:#f49b7f;overflow:hidden;touch-action:none}
+body.playing .game{
+ box-sizing:border-box;position:fixed;inset:0;
+ display:flex;align-items:center;justify-content:center;
+ width:100vw;height:100vh;height:100dvh;
+ padding:0;background:#f49b7f;overflow:hidden;
+}
+body.playing .table-shell{
+ position:relative;flex:0 1 auto;box-sizing:border-box;
+ height:100%;width:min(100vw,calc(100dvh * 0.495));
+ max-width:625px;max-height:1100px;
+ margin:0 auto;overflow:visible;
+ filter:drop-shadow(0 5px 14px #3b1b0b21);
+}
+body.playing .table-wrap{
+ box-sizing:border-box;
+ display:block;position:absolute;inset:0;
+ border:0;border-radius:0;box-shadow:none;
+ background:#f49b7f;overflow:hidden;touch-action:none;
+}
+body.playing .table-wrap canvas{width:100%;height:100%;display:block;touch-action:none;user-select:none;-webkit-user-select:none}
+body.playing .game-header{
+ position:absolute;z-index:5;top:max(3px,env(safe-area-inset-top));left:50%;
+ transform:translateX(-50%);
+ display:flex;align-items:center;justify-content:center;
+ width:max-content;max-width:70%;min-height:0;
+ gap:5px;padding:3px 6px;
+ border:1px solid #fff8e496;
+ border-radius:12px;background:#fff9e8e8;color:#274734;
+ box-shadow:0 3px 9px #0002;
+ backdrop-filter:blur(6px);
+ pointer-events:auto;
+}
+body.playing .game-header .room{
+ display:flex;flex-direction:row;align-items:center;gap:5px;
+ min-width:0;padding:2px 4px;border-radius:7px;border:0;
+ background:transparent;color:#2d3c34;
+}
+body.playing .game-header .room small{font-size:8px;white-space:nowrap}
+body.playing .game-header .room strong{font-size:13px;line-height:1;letter-spacing:0;font-variant-numeric:tabular-nums}
+body.playing .game-status{min-width:0;gap:0;max-width:160px}
+body.playing .game-status strong{font-size:10px;line-height:1.15;color:#37634e}
+body.playing .game-status small{display:none}
+body.playing .players{display:none}
+body.playing .side-score,
+body.playing .side-exit{
+ display:flex;position:absolute;top:50%;z-index:6;box-sizing:border-box;
+ transform:translateY(-50%);
+ align-items:center;justify-content:center;
+ width:72px;height:98px;
+ background:linear-gradient(150deg,#ffffff,#f2f1ee);color:#263238;
+ border:1px solid #d9dedc;
+ box-shadow:0 4px 16px #00170d47;
+}
+body.playing .side-score{
+ flex-direction:column;gap:0;
+ left:-28px;border-radius:0 54px 54px 0;padding-left:17px;
+ pointer-events:none;
+}
+body.playing .side-score strong{font-size:27px;font-weight:900;line-height:1.08;font-variant-numeric:tabular-nums}
+body.playing .side-score .score-blue{color:#159eea}
+body.playing .side-score .score-red{color:#e65e57}
+body.playing .side-score .score-separator{color:#636363;font-size:18px;line-height:14px;font-weight:900}
+body.playing .side-exit{
+ right:-28px;border-radius:54px 0 0 54px;
+ padding:0 10px 0 0;border:1px solid #d9dedc;
+ font-size:16px;font-weight:950;letter-spacing:-.6px;color:#3d4147;
+ writing-mode:vertical-rl;transform:translateY(-50%) rotate(180deg);
+ cursor:pointer;
+}
+body.playing .side-exit:active{background:#dedfdc}
+body.playing .controls{
+ position:absolute;z-index:5;left:50%;bottom:max(20px,calc(env(safe-area-inset-bottom) + 7px));
+ transform:translateX(-50%);
+ box-sizing:border-box;width:min(82%,390px);
+ display:flex;align-items:center;justify-content:center;gap:7px;
+ min-height:0;padding:5px 10px;
+ border-radius:12px;
+ background:#fffaf0d9;border:1px solid #e9d6ac9c;
+ box-shadow:0 3px 8px #3a1b1540;
+ color:#3e4a43;backdrop-filter:blur(5px);
+ pointer-events:none;
+}
+body.playing .control-copy{flex:1 1 auto;min-width:0;gap:0}
+body.playing .control-copy strong{font-size:11px;line-height:1.15;white-space:normal;text-align:center}
+body.playing .control-copy span{display:none}
+body.playing .controls .power{flex:0 0 73px;gap:3px}
+body.playing .controls .power span{font-size:7px}
+body.playing .controls .track{height:6px;background:#c7c7c0}
+body.playing .table-wait{
+ position:absolute;z-index:3;inset:0;
+ background:#001d159a;color:#fff;
+ backdrop-filter:blur(2px);
+}
+body.playing .table-wait strong{font-size:18px}
+body.playing .table-wait p{font-size:12px}
+body.playing .ball-hint{z-index:4;bottom:70px;max-width:75%;font-size:11px}
+@media(min-width:720px){
+ body.playing .table-shell{
+   width:min(520px,calc(94dvh * .495));height:min(94dvh,1050px);
+   margin:auto;
+ }
+ body.playing .side-score{left:-31px}
+ body.playing .side-exit{right:-31px}
+ body.playing .controls{bottom:22px}
+}
+@media(max-width:390px){
+ body.playing .side-score,body.playing .side-exit{width:61px;height:86px}
+ body.playing .side-score{left:-23px;padding-left:13px}
+ body.playing .side-exit{right:-23px;font-size:14px}
+ body.playing .side-score strong{font-size:24px}
+ body.playing .game-header{max-width:76%;padding:3px 5px}
+ body.playing .controls{width:75%;bottom:max(13px,env(safe-area-inset-bottom));padding:4px 7px}
+}
+@media(orientation:landscape){
+ body.playing .game{display:flex;grid-template-columns:none;grid-template-rows:none}
+ body.playing .table-shell{width:min(83vw,calc(96dvh * .495));height:96dvh;margin:auto}
+ body.playing .game-header{top:2px}
+ body.playing .controls{bottom:11px}
+ body.playing .side-score,body.playing .side-exit{width:62px;height:72px}
+ body.playing .side-score strong{font-size:20px}
+ body.playing .side-exit{font-size:13px}
+}
