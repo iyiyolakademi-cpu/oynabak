@@ -387,6 +387,8 @@ function physics(dt){
 }
 function validWhiteLocation(x,y){
  if(x<LEFT+RADIUS+3||x>RIGHT-RADIUS-3||y<TOP+RADIUS+3||y>BOTTOM-RADIUS-3)return false;
+ // Do not permit the cue ball to be placed directly inside a pocket mouth.
+ if(pockets.some(p=>Math.hypot(x-p.x,y-p.y)<POCKET_CAPTURE_RADIUS+7))return false;
  return balls.every(b=>b.id===0||b.potted||Math.hypot(b.x-x,b.y-y)>RADIUS*2+3);
 }
 function beginPlace(x,y){
