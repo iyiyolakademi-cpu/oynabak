@@ -387,3 +387,35 @@ body.playing .side-score,body.playing .side-exit{z-index:8}
   box-shadow:inset 8px 0 0 var(--pool-edge),inset -8px 0 0 var(--pool-edge);
  }
 }
+
+/* Personal turn callout: the same blue/red theme on both phones,
+   different instruction depending on which seat owns this device. */
+body.playing .turn-announcement{
+ flex-direction:column;
+ align-items:center;
+ justify-content:center;
+ gap:5px;
+ min-width:168px;
+}
+body.playing .turn-announcement:not([hidden]){display:flex}
+body.playing .turn-announcement strong{
+ display:block;
+ font-size:clamp(19px,5.7vw,27px);
+ font-weight:950;
+ line-height:1.1;
+}
+body.playing .turn-announcement span{
+ display:block;
+ font-size:11px;
+ line-height:1.2;
+ font-weight:850;
+ letter-spacing:1.1px;
+ color:#e4e9df;
+}
+body.playing.turn-blue .game-header .game-status strong{color:#036caf}
+body.playing.turn-red .game-header .game-status strong{color:#a92937}
+body.playing .game-header .game-status strong{
+ font-weight:900;
+ font-size:clamp(11px,3vw,14px);
+}
+body.playing .rules-note{font-size:11px}
