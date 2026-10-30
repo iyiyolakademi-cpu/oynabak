@@ -10,7 +10,7 @@ const pockets=[{x:LEFT,y:TOP},{x:RIGHT,y:TOP},{x:LEFT,y:H/2},{x:RIGHT,y:H/2},{x:
 const colors={red:'#dd433c',blue:'#307cd2',black:'#191d1d',cue:'#f4f4ec'};
 let db,session=null,state=null,balls=makeBalls(),pollTimer=null,heartbeat=null;
 let activeShot=false,lastFrame=-1,aiming=false,drag=null,previous=0,lastFrameSent=0,shotStarted=0;
-let firstHit=null,ownPocket=false,whitePocket=false,blackPocket=false,localWinner=null,placing=false,finishedUi=false,polling=false,joinMode=false;
+let firstHit=null,ownPocket=false,whitePocket=false,blackPocket=false,localWinner=null,placing=false,finishedUi=false,polling=false,joinMode=false,framePending=null;
 const canvas=$('table'),ctx=canvas.getContext('2d');
 let sx=1,sy=1,scale=1,dpr=1;
 function ball(id,type,x,y){return{id,type,x,y,vx:0,vy:0,potted:false}}
@@ -276,9 +276,9 @@ function animate(t){
  if(activeShot){
   physics(dt);
   const moving=balls.some(b=>!b.potted&&Math.hypot(b.vx,b.vy)>.12);
-  if(t-lastFrameSent>200){
+  if(t-lastFrameSent>200&&!framePending){
    lastFrameSent=t;
-   sendFrame('frame').catch(()=>{});
+   framePending=sendFrame('frame').catch(()=>{}).finally(()=>{framePending=null});
   }
   if(!moving&&t-shotStarted>160){
    activeShot=false;
@@ -294,7 +294,10 @@ let finalizing=false;
 async function finishShotFromLoop(){
  if(finalizing||!session)return;
  finalizing=true;activeShot=true;
- try{await finishShot()}finally{activeShot=false;finalizing=false}
+ try{
+  if(framePending)await framePending.catch(()=>{});
+  await finishShot();
+ }finally{activeShot=false;finalizing=false}
 }
 function pointerDown(e){
  if(!isMyTurn())return;
