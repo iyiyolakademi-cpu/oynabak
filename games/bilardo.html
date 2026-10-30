@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#003226">
+<meta name="theme-color" content="#f49b7d">
 <meta name="robots" content="noindex,nofollow">
 <title>Bilardo · OynaBak</title>
-<link rel="stylesheet" href="./bilardo.css?v=20261030-portrait2">
+<link rel="stylesheet" href="./bilardo.css?v=20261030-reference3">
 <script src="../assets/supabase-client.bundle.js"></script>
-<script defer src="./bilardo.js?v=20261030-portrait2"></script>
+<script defer src="./bilardo.js?v=20261030-reference3"></script>
 </head>
 <body>
 <main>
@@ -46,20 +46,28 @@
  </div>
 </section>
 <section id="game" class="game" hidden>
- <div class="game-header">
-  <button id="copy" type="button" class="room"><small>ODA KODU</small><strong id="roomLabel">----</strong></button>
-  <div class="game-status"><strong id="status">Rakip bekleniyor</strong><small id="presence">Rakip bekleniyor</small></div>
-  <button id="leave" class="exit" type="button">Çıkış</button>
+ <div class="table-shell">
+  <div class="table-wrap">
+   <canvas id="table" aria-label="Dikey bilardo masası. Beyaz topu geriye doğru sürükleyip bırakarak vur."></canvas>
+   <div id="waiting" class="table-wait"><strong>Rakip bekleniyor</strong><p>4 haneli kodunu arkadaşınla paylaş.</p></div>
+   <div id="ballHint" class="ball-hint" hidden>Beyaz topu yerleştirmek için masaya dokun.</div>
+  </div>
+  <div class="game-header" aria-live="polite">
+   <button id="copy" type="button" class="room" aria-label="Oda kodunu kopyala"><small>ODA</small><strong id="roomLabel">----</strong></button>
+   <div class="game-status"><strong id="status">Rakip bekleniyor</strong><small id="presence">Bağlanıyor</small></div>
+  </div>
+  <div class="players" aria-hidden="true">
+   <div class="person opp"><span class="colour-dot blue"></span><span><small>RAKİP</small><strong id="oppName">Bekleniyor</strong></span><b id="oppScore">7</b></div>
+   <div class="person me"><span class="colour-dot red"></span><span><small>SEN</small><strong id="myName">Oyuncu</strong></span><b id="myScore">7</b></div>
+  </div>
+  <div class="side-score" aria-label="Kalan mavi ve kırmızı toplar">
+    <strong id="bluePotted" class="score-blue">0</strong>
+    <span class="score-separator">·</span>
+    <strong id="redPotted" class="score-red">0</strong>
+  </div>
+  <button id="leave" class="side-exit" type="button" aria-label="Bilardo oyunundan çık">EXIT</button>
+  <div class="controls"><div class="control-copy"><strong id="turnLabel">Rakip bekleniyor</strong><span id="actionHint">İki oyuncu katılınca başlayacak.</span></div><div class="power"><span>GÜÇ</span><div class="track"><div id="powerFill"></div></div></div></div>
  </div>
- <div class="players">
-  <div class="person opp"><span class="colour-dot blue"></span><span><small>RAKİP</small><strong id="oppName">Bekleniyor</strong></span><b id="oppScore">7</b></div>
-  <div class="person me"><span class="colour-dot red"></span><span><small>SEN</small><strong id="myName">Oyuncu</strong></span><b id="myScore">7</b></div>
- </div>
- <div class="table-wrap"><canvas id="table" aria-label="Dikey bilardo masası; beyaz topu geriye çekip bırakarak vur"></canvas>
-  <div id="waiting" class="table-wait"><strong>İkinci oyuncu bekleniyor</strong><p>Oda kodunu arkadaşınla paylaş.</p></div>
-  <div id="ballHint" class="ball-hint" hidden>Beyaz topu yerleştirmek için masaya dokun.</div>
- </div>
- <div class="controls"><div class="control-copy"><strong id="turnLabel">Rakip bekleniyor</strong><span id="actionHint">İki oyuncu katılınca başlayacak.</span></div><div class="power"><span>VURUŞ GÜCÜ</span><div class="track"><div id="powerFill"></div></div></div></div>
 </section>
 </main>
 <div id="toast" class="toast" role="alert" hidden></div>
