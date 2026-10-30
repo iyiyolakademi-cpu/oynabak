@@ -66,7 +66,7 @@ function updateTurnPresentation(){
  const color=currentTurnColor();
  document.body.classList.toggle('turn-blue',color==='blue');
  document.body.classList.toggle('turn-red',color==='red');
- document.querySelector('meta[name="theme-color"]')?.setAttribute('content',color==='blue'?'#278de8':color==='red'?'#eb5d60':'#f49b7e');
+ document.querySelector('meta[name="theme-color"]')?.setAttribute('content',color==='blue'?'#278de8':color==='red'?'#eb5d60':'#103c31');
  const newKey=color?`${state.room}:${state.turn}`:null;
  if(!newKey){
   if(state?.status==='waiting')announcedTurn=null;
@@ -98,7 +98,7 @@ async function openRoom(code=null,token=null,override=null){
 }
 function enterGame(){
  $('lobby').hidden=true;$('game').hidden=false;document.body.classList.add('playing');
- document.querySelector('meta[name="theme-color"]')?.setAttribute('content','#f49b7e');
+ document.querySelector('meta[name="theme-color"]')?.setAttribute('content','#103c31');
  resize();display();clearInterval(pollTimer);clearInterval(heartbeat);
  pollTimer=setInterval(refresh,400);
  connectLiveRoom();
@@ -273,7 +273,7 @@ function draw(){
  c.setTransform(sx,0,0,sy,0,0);c.clearRect(0,0,W,H);
  // Narrow the outer band and expand the playable green cloth.
  // Outer band always identifies the player whose turn is active.
- c.fillStyle=currentTurnColor()==='blue'?'#278de8':currentTurnColor()==='red'?'#eb5d60':'#f49b7e';
+ c.fillStyle=currentTurnColor()==='blue'?'#278de8':currentTurnColor()==='red'?'#eb5d60':'#103c31';
  c.fillRect(0,0,W,H);
  c.fillStyle='#050505';c.fillRect(0,0,W,10);c.fillRect(0,H-10,W,10);
  c.fillStyle='#91533b';roundedRect(c,0,10,W,H-20,8);c.fill();
