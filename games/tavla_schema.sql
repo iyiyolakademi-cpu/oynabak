@@ -1,9 +1,9 @@
--- OynaBak | Tavla: iki telefon, altı haneli oda kodu.
+-- OynaBak | Tavla: iki telefon, 4 rakamlı oda kodu (eski 6 karakterli odalar korunur).
 -- Maç durumu sunucuda tutulur; oyuncular birbirlerinin oturum tokenını göremez.
 -- Canlı durum anonim erişime açılmaz; sadece RPC'ler üzerinden kontrol edilir.
 CREATE TABLE IF NOT EXISTS public.ob_tavla_rooms (
  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
- room_code text NOT NULL UNIQUE CHECK (room_code ~ '^[A-F0-9]{6}$'),
+ room_code text NOT NULL UNIQUE CHECK (room_code ~ '^([0-9]{4}|[A-F0-9]{6})$'),
  venue_id text NOT NULL,
  status text NOT NULL DEFAULT 'waiting' CHECK (status IN ('waiting','playing','finished')),
  players jsonb NOT NULL DEFAULT '[]'::jsonb CHECK (jsonb_typeof(players)='array' AND jsonb_array_length(players)<=2),
@@ -121,8 +121,8 @@ BEGIN
   IF (SELECT count(*) FROM public.ob_tavla_rooms WHERE venue_id=p_venue_id AND created_at>now()-interval '1 hour')>=30
   THEN RAISE EXCEPTION 'Çok fazla masa açıldı, biraz sonra tekrar deneyin';END IF;
   new_token:=gen_random_uuid();
-  FOR attempt IN 1..8 LOOP
-   code_:=pg_catalog.upper(pg_catalog.substr(pg_catalog.md5(gen_random_uuid()::text),1,6));
+  FOR attempt IN 1..40 LOOP
+   code_:=pg_catalog.lpad((pg_catalog.floor(pg_catalog.random()*10000)::int)::text,4,'0');
    BEGIN
     INSERT INTO public.ob_tavla_rooms(room_code,venue_id,players)
     VALUES(code_,p_venue_id,pg_catalog.jsonb_build_array(
@@ -135,7 +135,8 @@ BEGIN
   IF r.id IS NULL THEN RAISE EXCEPTION 'Masa açılamadı, yeniden dene';END IF;
   RETURN oynabak_private.ob_tavla_snapshot(r,new_token) || pg_catalog.jsonb_build_object('token',new_token::text);
  END IF;
- IF code_ !~ '^[A-F0-9]{6}$' THEN RAISE EXCEPTION '6 karakterli geçerli bir oda kodu gir';END IF;
+ IF code_ !~ '^[0-9]{4}$' AND (p_token IS NULL OR code_ !~ '^[A-F0-9]{6}$') THEN
+  RAISE EXCEPTION '4 rakamlı geçerli oda kodunu gir';END IF;
  SELECT * INTO r FROM public.ob_tavla_rooms
   WHERE room_code=code_ AND venue_id=p_venue_id FOR UPDATE;
  IF NOT FOUND THEN RAISE EXCEPTION 'Bu kodla bir Tavla masası bulunamadı';END IF;
