@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0e352b">
+<meta name="robots" content="noindex,nofollow">
+<title>Gol Arena · OynaBak</title>
+<link rel="stylesheet" href="./gol-arena.css?v=20261030-online1">
+<script src="../assets/supabase-client.bundle.js"></script>
+<script defer src="./gol-arena.js?v=20261030-online1"></script>
+</head>
+<body>
+<main>
+ <section id="lobby" class="lobby">
+  <div id="welcome" class="welcome">
+   <header class="lobby-header"><b>OYNABAK</b><span id="network">Bağlanıyor</span></header>
+   <div class="welcome-hero">
+    <div class="chess-art" aria-hidden="true"><span class="art-light">⚽</span><span class="art-dark">🥅</span><span class="art-board"></span></div>
+    <h1>Gol Arena</h1><p>İki telefonda, karşılıklı GOL ARENA.</p>
+   </div>
+   <div class="welcome-actions">
+    <button id="chooseCreate" class="lobby-action primary" type="button"><span class="action-icon">+</span><strong>Oda Oluştur</strong><span class="chevron">›</span></button>
+    <button id="chooseJoin" class="lobby-action secondary" type="button"><span class="action-icon users">⚽</span><strong>Kodla Katıl</strong><span class="chevron">›</span></button>
+    <button id="resume" type="button" class="resume" hidden>Son oyuna dön</button>
+   </div>
+   <footer class="lobby-footer"><a id="back" href="../#play" aria-label="Oyunlara geri dön">‹</a><button id="rulesOpen" type="button"><span class="question">?</span> Nasıl Oynanır?</button></footer>
+  </div>
+  <div id="setup" class="setup" hidden>
+   <header><button id="setupBack" type="button" aria-label="Geri">‹</button><b>OYNABAK / GOL ARENA</b><span>2 KİŞİ</span></header>
+   <div class="setup-intro"><div class="setup-symbol">⚽</div><small>CANLI GOL ARENA</small><h2 id="setupTitle">Oda oluştur</h2><p id="setupDescription">Oda kodunu paylaş, karşılıklı futbol oyna.</p></div>
+   <div class="setup-card">
+    <label for="playerName">OYUNCU ADIN</label>
+    <input id="playerName" type="text" maxlength="18" minlength="2" placeholder="Adını yaz" autocomplete="nickname">
+    <form id="createForm"><p>Mavi ve kırmızı takımlar otomatik belirlenir.</p>
+<label for="goalTarget">MAÇ UZUNLUĞU</label><select id="goalTarget"><option value="3">İlk 3 Gol</option><option value="5">İlk 5 Gol</option></select><button type="submit">Oda Oluştur <span>→</span></button></form>
+    <form id="joinForm" hidden><label for="roomCode">4 HANELİ KOD</label><input id="roomCode" type="text" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" placeholder="0000" autocomplete="one-time-code"><p>Arkadaşının oluşturduğu oda kodunu yaz.</p><button type="submit">Masaya Katıl <span>→</span></button></form>
+   </div>
+   <p class="setup-note">Mavi ve kırmızı takım oyuncuları kendi sahalarını alttan görür.</p>
+  </div>
+ </section>
+ <section id="game" class="game" hidden>
+ <header class="game-bar">
+  <button id="copyRoom" class="room-code" type="button"><small>ODA</small><b id="roomLabel">----</b></button>
+  <div class="game-label"><b>Gol Arena</b><span id="presence">Rakip bekleniyor</span></div>
+  <button id="exit" class="exit" type="button">Çıkış</button>
+ </header>
+ <div class="game-inner">
+  <div class="score-panel"><div class="team-score blue"><small id="blueName">Mavi</small><b id="blueScore">0</b></div><div class="score-center"><span id="scoreMode">İLK 3 GOL</span><b id="gameStatus">Rakip bekleniyor</b></div><div class="team-score red"><small id="redName">Kırmızı</small><b id="redScore">0</b></div></div>
+  <div class="pitch-wrap">
+   <canvas id="pitch" aria-label="Gol Arena sahası. Kendi mavi veya kırmızı oyuncunu geriye sürükleyip bırak." width="600" height="940"></canvas>
+   <div id="waiting" class="wait-layer" hidden><span class="waiting-piece">⚽</span><b>Rakip bekleniyor</b><small>Oda kodunu paylaş.</small></div>
+   <div id="goalBanner" class="goal-banner" hidden>GOOOL!</div>
+  </div>
+  <div class="turn-bar"><span id="turnDot" class="turn-dot"></span><b id="turnText">Rakip bekleniyor</b><span id="turnHint">Oyuncunu geriye çekip bırak</span></div>
+  <div class="game-tools"><button id="rulesInGame" type="button">? Kurallar</button><button id="resign" type="button">Pes Et</button></div>
+ </div>
+ <div id="turnAnnouncement" class="turn-announcement" hidden><b id="announcementTitle">Sıra sende</b><span id="announcementSubtitle">MAVİ OYNUYOR</span></div>
+</section>
+</main>
+<div id="confirmModal" class="overlay" hidden><div class="dialog"><h2>Maçtan ayrılmak istiyor musun?</h2><p>Maç rakibin galibiyetiyle sonuçlanır.</p><div class="dialog-actions"><button id="cancelResign" class="outline" type="button">Vazgeç</button><button id="confirmResign" type="button">Pes Et</button></div></div></div>
+<div id="finishModal" class="overlay" hidden><div class="dialog finish-dialog"><span class="finish-icon">🏆</span><h2 id="finishTitle">Maç sona erdi</h2><p id="finishReason"></p><button id="finishExit" type="button">Oyunlara Dön</button></div></div>
+<div id="rulesModal" class="overlay" hidden><div class="dialog rules-dialog"><div class="rules-heading"><span>OYNABAK · GOL ARENA</span><button id="rulesClose" type="button" aria-label="Kapat">×</button></div><h2>Nasıl Oynanır?</h2><p>Gol Arena iki telefonda oynanan sıra tabanlı futbol düellosudur. Her oyuncu kendi beş futbolcusunu ekranın altından görür.</p><ol><li>Bir mavi, bir kırmızı takım vardır. Mavi takım başlar.</li><li>Sıra sendeyken kendi oyuncuna dokun ve geriye çekip bırak. Oyuncu topa çarparak kaleye göndermeye çalışır.</li><li>Top veya oyuncular durana kadar yeni şut atılamaz. Sonra sıra rakibe geçer.</li><li>Top rakip kaleye girerse gol kazanırsın. 3 veya 5 gole ilk ulaşan takım maçı kazanır.</li><li>Oda koduyla iki farklı telefon veya bilgisayar bağlanabilir.</li></ol><button id="rulesDone" type="button">Anladım</button></div></div>
+<div id="toast" class="toast" role="alert" hidden></div>
+</body>
+</html>
