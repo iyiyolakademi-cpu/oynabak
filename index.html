@@ -6898,6 +6898,7 @@ async function stats(id,days=7){
 
       <div class="metric-grid">
         <div class="metric-card"><div class="metric-icon">⌁</div><small>QR açılışı</small><strong>${unavailable?'—':metricValue(a.qr_opens)}</strong><p>${period}</p></div>
+        <div class="metric-card"><div class="metric-icon">▶</div><small>Oyun Oyna tıklamaları</small><strong>${unavailable?'—':metricValue(a.game_entry_clicks)}</strong><p>${period} · oyun alanına giriş</p></div>
         <div class="metric-card"><div class="metric-icon">🎮</div><small>Tamamlanan oyun</small><strong>${unavailable?'—':metricValue(a.game_finishes)}</strong><p>${period}</p></div>
         <div class="metric-card"><div class="metric-icon">◎</div><small>Instagram tıklamaları</small><strong>${unavailable?'—':metricValue(a.instagram_clicks)}</strong><p>${period} · bağlantı açılışları</p></div>
         <div class="metric-card"><div class="metric-icon">★</div><small>Değerlendirme tıklaması</small><strong>${unavailable?'—':metricValue(a.review_clicks)}</strong><p>Google değerlendirme sayfasına geçiş</p></div>
@@ -6935,6 +6936,7 @@ async function stats(id,days=7){
             <div><small>Menü açılışı</small><b>${unavailable?'—':metricValue(a.menu_opens)}</b></div>
             <div><small>Değerlendirme</small><b>${unavailable?'—':metricValue(a.review_clicks)}</b></div>
             <div><small>Instagram</small><b>${unavailable?'—':metricValue(a.instagram_clicks)}</b></div>
+            <div><small>Oyun Oyna</small><b>${unavailable?'—':metricValue(a.game_entry_clicks)}</b></div>
           </div>
         </section>
       </div>
