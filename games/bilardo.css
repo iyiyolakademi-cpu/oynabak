@@ -360,3 +360,30 @@ body.playing .table-wait{
   body.playing .side-score,body.playing .side-exit{width:42px;height:66px}
   body.playing .side-score strong{font-size:18px}
 }
+
+/* Make turn colour visible on actual phone glass, not just behind a full-bleed
+   canvas. The 7px edge stays entirely on the wooden rail, outside the felt. */
+body.playing .table-shell{
+ --pool-edge:#103c31;
+}
+body.playing.turn-blue .table-shell{--pool-edge:#268fff}
+body.playing.turn-red .table-shell{--pool-edge:#fb5262}
+body.playing .table-shell::after{
+ content:"";
+ position:absolute;
+ inset:0;
+ z-index:4;
+ pointer-events:none;
+ box-shadow:
+   inset 7px 0 0 var(--pool-edge),
+   inset -7px 0 0 var(--pool-edge);
+}
+body.playing .game-header{z-index:7}
+body.playing .turn-announcement{z-index:9}
+body.playing .controls{z-index:7}
+body.playing .side-score,body.playing .side-exit{z-index:8}
+@media(min-width:720px){
+ body.playing .table-shell::after{
+  box-shadow:inset 8px 0 0 var(--pool-edge),inset -8px 0 0 var(--pool-edge);
+ }
+}
