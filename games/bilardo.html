@@ -60,7 +60,7 @@
    <div class="person opp"><span class="colour-dot blue"></span><span><small>RAKİP</small><strong id="oppName">Bekleniyor</strong></span><b id="oppScore">7</b></div>
    <div class="person me"><span class="colour-dot red"></span><span><small>SEN</small><strong id="myName">Oyuncu</strong></span><b id="myScore">7</b></div>
   </div>
-  <div id="turnAnnouncement" class="turn-announcement" role="status" aria-live="polite" aria-atomic="true" hidden>Sıra Mavi'de</div>
+  <div id="turnAnnouncement" class="turn-announcement" role="status" aria-live="polite" aria-atomic="true" hidden><strong id="turnAnnouncementText">Sıra sende</strong><span id="turnAnnouncementColor">MAVİ OYNUYOR</span></div>
   <div class="side-score" aria-label="Kalan mavi ve kırmızı toplar">
     <strong id="bluePotted" class="score-blue">0</strong>
     <span class="score-separator">·</span>
@@ -75,8 +75,17 @@
 <div id="rulesModal" class="rules-overlay" hidden><div class="rules-box" role="dialog" aria-modal="true" aria-labelledby="rulesTitle">
  <div class="rules-head"><span>BİLARDO · OYNABAK</span><button id="rulesClose" type="button" aria-label="Kapat">×</button></div>
  <h2 id="rulesTitle">Nasıl Oynanır?</h2>
- <p>İki telefonla karşılıklı Bilardo oynayın. Sırası gelen oyuncu beyaz topa dokunup geriye çekerek vuruşunu yapar.</p>
- <ol><li>Bir oyuncu kırmızı, diğeri mavi topları toplar.</li><li>Kendi rengindeki tüm topları bitirince siyah 8 numaralı topu sokarak kazanırsın.</li><li>Yanlış topa ilk temas veya beyaz topun deliğe girmesi fauldür; rakibe sıra geçer.</li><li>Toplar hareket hâlindeyken yeni vuruş yapılamaz. Masa iki telefonda eşitlenir.</li></ol>
+ <p>OynaBak Bilardo, iki kişilik 8-top oyununun kırmızı-mavi uyarlamasıdır. Telefonu çevirmeden beyaz topu geriye çekip bırakarak vuruş yaparsın.</p>
+ <ol>
+  <li><strong>Kırmızı ve Mavi:</strong> Bir oyuncu 7 kırmızı, diğeri 7 mavi topu toplar. Oyuna ilk başlayan oyuncu açılış vuruşunu yapar.</li>
+  <li><strong>Geçerli vuruş:</strong> Açılış hariç önce kendi rengindeki topa temas etmelisin. Ardından bir top cebe girmeli veya herhangi bir top banta değmelidir.</li>
+  <li><strong>Sıra:</strong> Kurallara uygun şekilde kendi topunu cebe sokarsan yeniden oynarsın. Sokamazsan sıra rakibe geçer.</li>
+  <li><strong>Faul:</strong> Beyaz topu cebe sokmak, yanlış renge veya siyah 8'e erken vurmak, hiçbir topa değmemek ya da temas sonrasında cep/bant olmaması fauldür.</li>
+  <li><strong>Faul sonrası:</strong> Sıra rakibe geçer ve rakip beyaz topu masadaki boş bir yere yerleştirerek devam eder.</li>
+  <li><strong>Siyah 8:</strong> Yalnızca kendi rengindeki 7 topu bitirdiğinde 8 numaralı topa oynayabilirsin. 8'i erken veya faulle sokarsan kaybedersin.</li>
+  <li><strong>İki telefon:</strong> Masanın kenar rengi sırası gelen oyuncuyu gösterir. O oyuncuda “Sıra sende”, diğerinde “Sıra rakipte” yazar.</li>
+ </ol>
+ <p class="rules-note">Bu, mobil oynanışa uyarlanmış 8-top modudur; profesyonel turnuvalardaki cep beyanı ve bütün açılış seçenekleri bulunmaz.</p>
  <button id="rulesDone" type="button">Anladım</button>
  </div></div>
 <div id="winnerModal" class="winner-overlay" hidden><div class="winner-box"><div class="winner-ball">8</div><h2 id="winnerTitle">Maç tamamlandı</h2><p id="winnerText"></p><button id="winnerExit" type="button">Oyunlara dön</button></div></div>
