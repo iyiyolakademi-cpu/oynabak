@@ -76,3 +76,6 @@ body.playing .turn-announcement span{color:#d8d8d8}
  .chess-art .art-light .chess-piece,.chess-art .art-dark .chess-piece{width:123px;height:156px}
  .square .chess-piece{width:96%;height:96%}
 }
+
+.wait-layer .waiting-piece{width:68px;height:75px;display:grid;place-items:center}
+.wait-layer .waiting-piece-svg{width:68px;height:68px;filter:drop-shadow(0 3px 2px #0009)}
