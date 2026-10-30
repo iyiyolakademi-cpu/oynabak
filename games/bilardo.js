@@ -61,9 +61,11 @@ function showWelcome(){
 function localSeatColor(seat){return seat===0?'red':'blue'}
 function currentTurnColor(){return state?.status==='playing'?localSeatColor(state.turn):null}
 function updateTurnPresentation(){
+ if(!document.body.classList.contains('playing'))return;
  const color=currentTurnColor();
  document.body.classList.toggle('turn-blue',color==='blue');
  document.body.classList.toggle('turn-red',color==='red');
+ document.querySelector('meta[name="theme-color"]')?.setAttribute('content',color==='blue'?'#278de8':color==='red'?'#eb5d60':'#f49b7e');
  const newKey=color?`${state.room}:${state.turn}`:null;
  if(!newKey){
   if(state?.status==='waiting')announcedTurn=null;
