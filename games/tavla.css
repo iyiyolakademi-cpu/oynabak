@@ -55,3 +55,7 @@ body.in-game .rolls span{font-size:9px}body.in-game .rolls b{font-size:13px}
 .board>.point:nth-child(11),.board>.point:nth-child(23){grid-column:12}
 .board>.point:nth-child(12),.board>.point:nth-child(24){grid-column:13}
 .board::after{left:calc(50% - 6px);transform:none;width:12px}
+
+/* A full-screen board needs to capture touch drags instead of page scrolling. */
+body.in-game .board .point{touch-action:none}
+@media(orientation:landscape) and (max-height:550px){body.in-game .players{display:flex}body.in-game .players .player{flex:1}.board{row-gap:5px}body.in-game .board-frame{padding:3px}.bar-area>span{display:none}}
