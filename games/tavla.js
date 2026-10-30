@@ -13,12 +13,20 @@ function paintDie(el,value){
 function toast(msg){const el=$('toast');el.textContent=msg;el.hidden=false;clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>el.hidden=true,4100)}
 async function rpc(method,args){const {data,error}=await db.rpc(method,args);if(error)throw Error(error.message||'Bağlantı hatası');return data}
 function save(){try{localStorage.setItem(SESSION_KEY,JSON.stringify(session))}catch(_){}}
+function showWelcome(){
+ $('lobbyHome').hidden=false;$('lobbySetup').hidden=true;
+ $('createMode').classList.remove('active');$('joinMode').classList.remove('active');
+}
 function mode(join){
+ $('lobbyHome').hidden=true;$('lobbySetup').hidden=false;
  $('createForm').hidden=join;$('joinForm').hidden=!join;
  $('createMode').classList.toggle('active',!join);$('joinMode').classList.toggle('active',join);
  $('createMode').setAttribute('aria-selected',String(!join));$('joinMode').setAttribute('aria-selected',String(join));
  $('lobbyModeTitle').textContent=join?'Arkadaşının masasına katıl':'Yeni bir masa kur';
- if(join)$('code').focus();
+ $('setupDescription').textContent=join
+   ?'Arkadaşının dört haneli oda kodunu gir, aynı masaya bağlan.'
+   :'Masanı oluştur, dört haneli kodunu arkadaşına gönder.';
+ if(join)$('code').focus();else $('name').focus();
 }
 function name(){const v=$('name').value.trim();if(v.length<2){toast('En az 2 karakterli adını yaz');return null}return v}
 async function open(join){const nm=name();if(!nm||busy)return;busy=true;try{const x=await rpc('ob_tavla_open',{p_venue_id:VENUE_ID,p_name:nm,p_code:join?$('code').value.toUpperCase().trim():null});session={room:x.room,token:x.token,name:nm};save();game=x;show();toast(join?'Masaya katıldın!':'Masan hazır! Kodu arkadaşına gönder.')}catch(e){toast(e.message)}finally{busy=false}}
@@ -88,7 +96,16 @@ function render(){if(!game)return;document.body.classList.add('in-game');$('lobb
 function show(){render();clearInterval(poll);poll=setInterval(refresh,950)}
 async function refresh(){if(!session||busy||document.hidden)return;try{const next=await rpc('ob_tavla_ping',{p_code:session.room,p_token:session.token});$('network').textContent='Bağlı';if(!game||next.move!==game.move){game=next;chosen=null;render()}else{game.opponent_online=next.opponent_online;$('connection').textContent=next.opponent_online?'● Rakip bağlı':'○ Rakip çevrimdışı'}}catch(e){$('network').textContent='Yeniden bağlanıyor'}}
 async function share(){if(!game)return;const u=new URL(location.href);u.searchParams.set('masa',game.room);const txt='OynaBak Tavla odama katıl. Kod: '+game.room;try{if(navigator.share)await navigator.share({title:'OynaBak Tavla',text:txt,url:u.href});else{await navigator.clipboard.writeText(txt+' '+u.href);toast('Davet bağlantısı kopyalandı')}}catch(_){}}
-function leave(){clearInterval(poll);poll=0;rollSeq++;rolling=false;$('diceStage').classList.remove('rolling');document.body.classList.remove('in-game');game=null;session=null;chosen=null;notified=false;localStorage.removeItem(SESSION_KEY);$('game').hidden=true;$('lobby').hidden=false;$('finish').hidden=true}
-function init(){if(!VENUE_ID){$('network').textContent='İşletme kodu gerekli';toast('Tavla yalnızca işletme QR bağlantısından açılır');return}if(!window.supabase){toast('Bağlantı kütüphanesi yüklenemedi');return}db=window.supabase.createClient(PROJECT,KEY);$('network').textContent='Hazır';try{$('name').value=localStorage.getItem(NAME_KEY)||'';session=JSON.parse(localStorage.getItem(SESSION_KEY)||'null')}catch(_){}if(session)$('resume').hidden=false;$('code').addEventListener('input',()=>{$('code').value=$('code').value.replace(/\D/g,'').slice(0,4)});const code=new URL(location.href).searchParams.get('masa');if(code&&/^\d{4}$/.test(code)){$('code').value=code;mode(true)}$('createMode').onclick=()=>mode(false);$('joinMode').onclick=()=>mode(true);$('createForm').onsubmit=e=>{e.preventDefault();localStorage.setItem(NAME_KEY,$('name').value.trim());open(false)};$('joinForm').onsubmit=e=>{e.preventDefault();localStorage.setItem(NAME_KEY,$('name').value.trim());open(true)};$('resume').onclick=resume;$('roll').onclick=roll;$('barButton').onclick=()=>choose(-1);$('cancel').onclick=()=>{chosen=null;$('moveChoices').hidden=true;renderBoard()};$('copy').onclick=async()=>{try{await navigator.clipboard.writeText(game.room);toast('Oda kodu kopyalandı')}catch(_){toast(game.room)}};$('share').onclick=share;$('leave').onclick=leave;$('finishClose').onclick=()=>location.assign('../?isletme='+encodeURIComponent(VENUE_ID)+'#play');$('back').href='../?isletme='+encodeURIComponent(VENUE_ID)+'#play';if(session)resume()}
+function leave(){clearInterval(poll);poll=0;rollSeq++;rolling=false;$('diceStage').classList.remove('rolling');document.body.classList.remove('in-game');game=null;session=null;chosen=null;notified=false;localStorage.removeItem(SESSION_KEY);$('game').hidden=true;$('lobby').hidden=false;$('finish').hidden=true;showWelcome()}
+function init(){if(!VENUE_ID){$('network').textContent='İşletme kodu gerekli';toast('Tavla yalnızca işletme QR bağlantısından açılır');return}if(!window.supabase){toast('Bağlantı kütüphanesi yüklenemedi');return}db=window.supabase.createClient(PROJECT,KEY);$('network').textContent='Hazır';try{$('name').value=localStorage.getItem(NAME_KEY)||'';session=JSON.parse(localStorage.getItem(SESSION_KEY)||'null')}catch(_){}if(session)$('resume').hidden=false;$('code').addEventListener('input',()=>{$('code').value=$('code').value.replace(/\D/g,'').slice(0,4)});const code=new URL(location.href).searchParams.get('masa');if(code&&/^\d{4}$/.test(code)){$('code').value=code;mode(true)}$('createMode').onclick=()=>mode(false);$('joinMode').onclick=()=>mode(true);
+ $('setupBack').onclick=showWelcome;
+ const rules=$('rulesModal');
+ const hideRules=()=>{rules.hidden=true;$('rulesOpen').focus()};
+ $('rulesOpen').onclick=()=>{rules.hidden=false;$('rulesClose').focus()};
+ $('rulesClose').onclick=hideRules;
+ $('rulesDone').onclick=hideRules;
+ rules.addEventListener('click',e=>{if(e.target===rules)hideRules()});
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!rules.hidden)hideRules()});
+$('createForm').onsubmit=e=>{e.preventDefault();localStorage.setItem(NAME_KEY,$('name').value.trim());open(false)};$('joinForm').onsubmit=e=>{e.preventDefault();localStorage.setItem(NAME_KEY,$('name').value.trim());open(true)};$('resume').onclick=resume;$('roll').onclick=roll;$('barButton').onclick=()=>choose(-1);$('cancel').onclick=()=>{chosen=null;$('moveChoices').hidden=true;renderBoard()};$('copy').onclick=async()=>{try{await navigator.clipboard.writeText(game.room);toast('Oda kodu kopyalandı')}catch(_){toast(game.room)}};$('share').onclick=share;$('leave').onclick=leave;$('finishClose').onclick=()=>location.assign('../?isletme='+encodeURIComponent(VENUE_ID)+'#play');$('back').href='../?isletme='+encodeURIComponent(VENUE_ID)+'#play';if(session)resume()}
 document.addEventListener('DOMContentLoaded',init);
 })();
