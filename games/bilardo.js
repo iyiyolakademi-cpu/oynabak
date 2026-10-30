@@ -5,12 +5,14 @@ const PROJECT='https://qacmubkcierbpxmdtsph.supabase.co';
 const KEY='sb_publishable_RU5vtZxlqK2dMD-LWuwUaA_Eak6b9cj';
 const ROOM_KEY='ob-bilardo:room:'+VENUE, NAME_KEY='ob-bilardo:name';
 const $=id=>document.getElementById(id);
-const W=400,H=840,LEFT=48,RIGHT=352,TOP=103,BOTTOM=748,RADIUS=14.1;
-const pockets=[{x:44,y:103},{x:356,y:103},{x:44,y:426},{x:356,y:426},{x:44,y:748},{x:356,y:748}];
+const W=400,H=840,LEFT=42,RIGHT=358,TOP=81,BOTTOM=779,RADIUS=14.1;
+const POCKET_CAPTURE_RADIUS=28,POCKET_GUIDE_RADIUS=38;
+const pockets=[{x:40,y:81},{x:360,y:81},{x:40,y:430},{x:360,y:430},{x:40,y:779},{x:360,y:779}];
 const colors={red:'#dd433c',blue:'#307cd2',black:'#191d1d',cue:'#f4f4ec'};
 let db,session=null,state=null,balls=makeBalls(),pollTimer=null,heartbeat=null;
 let activeShot=false,lastFrame=-1,aiming=false,drag=null,previous=0,lastFrameSent=0,shotStarted=0;
 let firstHit=null,ownPocket=false,whitePocket=false,blackPocket=false,localWinner=null,placing=false,finishedUi=false,polling=false,joinMode=false,framePending=null;
+let announcedTurn=null,turnToastTimer=null;
 const canvas=$('table'),ctx=canvas.getContext('2d');
 let sx=1,sy=1,scale=1,dpr=1;
 function ball(id,type,x,y){return{id,type,x,y,vx:0,vy:0,potted:false}}
@@ -51,11 +53,35 @@ function choose(type){
  if(joinMode)$('code').focus();else $('name').focus();
 }
 function showWelcome(){
- document.body.classList.remove('playing');document.querySelector('meta[name="theme-color"]')?.setAttribute('content','#003226');$('game').hidden=true;$('lobby').hidden=false;
+ document.body.classList.remove('playing','turn-blue','turn-red');document.querySelector('meta[name="theme-color"]')?.setAttribute('content','#003226');$('game').hidden=true;$('lobby').hidden=false;
+ clearTimeout(turnToastTimer);announcedTurn=null;$('turnAnnouncement').hidden=true;
  $('welcome').hidden=false;$('setup').hidden=true;$('winnerModal').hidden=true;
  const st=stored();$('resume').hidden=!st;$('resume').textContent=st?'Son masama dön: '+st.room:'Son masama dön';
 }
 function localSeatColor(seat){return seat===0?'red':'blue'}
+function currentTurnColor(){return state?.status==='playing'?localSeatColor(state.turn):null}
+function updateTurnPresentation(){
+ const color=currentTurnColor();
+ document.body.classList.toggle('turn-blue',color==='blue');
+ document.body.classList.toggle('turn-red',color==='red');
+ const newKey=color?`${state.room}:${state.turn}`:null;
+ if(!newKey){
+  if(state?.status==='waiting')announcedTurn=null;
+  return;
+ }
+ if(newKey===announcedTurn)return;
+ announcedTurn=newKey;
+ const announcement=$('turnAnnouncement');
+ announcement.textContent=color==='blue'?"Sıra Mavi'de":"Sıra Kırmızı'da";
+ announcement.classList.remove('show','turn-blue','turn-red');
+ announcement.classList.add('turn-'+color);
+ announcement.hidden=false;
+ // Restart the entry animation even if the first two renders are close together.
+ void announcement.offsetWidth;
+ announcement.classList.add('show');
+ clearTimeout(turnToastTimer);
+ turnToastTimer=setTimeout(()=>{announcement.classList.remove('show');announcement.hidden=true},1750);
+}
 async function openRoom(code=null,token=null,override=null){
  if(!db)throw Error('Bağlantı kurulamadı');
  const name=($('name').value.trim()||override||'').slice(0,18);
@@ -63,7 +89,7 @@ async function openRoom(code=null,token=null,override=null){
  const data=await rpc('ob_bilardo_open',{p_venue_id:VENUE,p_name:name,p_code:code,p_token:token});
  if(data.venue!==VENUE)throw Error('İşletme doğrulanamadı');
  session={room:data.room,token:data.token,name};
- persist();state=data;activeShot=false;lastFrame=-1;finishedUi=false;placing=false;
+ persist();state=data;activeShot=false;lastFrame=-1;finishedUi=false;placing=false;announcedTurn=null;
  balls=makeBalls();applySnapshot(state.snapshot);
  enterGame();
 }
@@ -112,6 +138,7 @@ function display(){
   $('actionHint').textContent='Rakibin vuruşunu bekle.';
  }
  $('ballHint').hidden=!(placing&&isMyTurn());
+ updateTurnPresentation();
 }
 function showWinner(){
  if(finishedUi)return;finishedUi=true;
@@ -174,20 +201,22 @@ function draw(){
  if(!ctx)return;
  const c=ctx;
  c.setTransform(sx,0,0,sy,0,0);c.clearRect(0,0,W,H);
- // Apricot surrounds, black horizontal rails and solid warm wooden border.
- c.fillStyle='#f49b7e';c.fillRect(0,0,W,H);
- c.fillStyle='#050505';c.fillRect(0,47,W,13);c.fillRect(0,800,W,14);
- c.fillStyle='#91533b';roundedRect(c,0,60,W,740,9);c.fill();
- c.strokeStyle='#a26649';c.lineWidth=2;roundedRect(c,2,62,W-4,736,9);c.stroke();
- // Black six-pocket rail with bright, flat green felt.
- c.fillStyle='#050604';roundedRect(c,27,90,W-54,683,8);c.fill();
- c.fillStyle='#347e41';c.fillRect(43,107,W-86,643);
- c.fillStyle='#4fc75e';c.fillRect(58,107,W-116,643);
- const g=c.createLinearGradient(43,0,70,0);
+ // Narrow the outer band and expand the playable green cloth.
+ // Outer band always identifies the player whose turn is active.
+ c.fillStyle=currentTurnColor()==='blue'?'#278de8':currentTurnColor()==='red'?'#eb5d60':'#f49b7e';
+ c.fillRect(0,0,W,H);
+ c.fillStyle='#050505';c.fillRect(0,26,W,10);c.fillRect(0,811,W,11);
+ c.fillStyle='#91533b';roundedRect(c,0,37,W,774,9);c.fill();
+ c.strokeStyle='#a26649';c.lineWidth=2;roundedRect(c,2,39,W-4,770,9);c.stroke();
+ // Black six-pocket rail and a slightly wider vivid-green play surface.
+ c.fillStyle='#050604';roundedRect(c,21,62,W-42,731,8);c.fill();
+ c.fillStyle='#347e41';c.fillRect(34,81,W-68,698);
+ c.fillStyle='#4fc75e';c.fillRect(48,81,W-96,698);
+ const g=c.createLinearGradient(34,0,62,0);
  g.addColorStop(0,'#1e6434aa');g.addColorStop(1,'#31864500');
- c.fillStyle=g;c.fillRect(43,107,29,643);
+ c.fillStyle=g;c.fillRect(34,81,28,698);
  for(const pocket of pockets){
-  c.beginPath();c.arc(pocket.x,pocket.y,26.5,0,Math.PI*2);
+  c.beginPath();c.arc(pocket.x,pocket.y,28,0,Math.PI*2);
   c.fillStyle='#030404';c.fill();
  }
  // The reference uses direct aiming and a simple shot line.
@@ -247,12 +276,22 @@ function physics(dt){
   b.vx*=Math.pow(.984,step);b.vy*=Math.pow(.984,step);
   if(Math.hypot(b.vx,b.vy)<.11)b.vx=b.vy=0;
   for(const p of pockets){
-   if(Math.hypot(b.x-p.x,b.y-p.y)<16){
+   const dx=p.x-b.x,dy=p.y-b.y,dist=Math.hypot(dx,dy);
+   // An approach inside the mouth should be accepted before the cushion bounces.
+   if(dist<POCKET_CAPTURE_RADIUS){
     b.potted=true;b.vx=b.vy=0;
     if(b.type==='cue')whitePocket=true;
     else if(b.type==='black')blackPocket=true;
     else if(b.type===myColor())ownPocket=true;
     break;
+   }
+   // Gentle inward guidance near the lip, without affecting normal table play.
+   if(dist<POCKET_GUIDE_RADIUS&&dist>0){
+    const approach=(b.vx*dx+b.vy*dy)/dist;
+    if(approach>0.2){
+      b.vx+=dx/dist*.12*step;
+      b.vy+=dy/dist*.12*step;
+    }
    }
   }
   if(b.potted)continue;
