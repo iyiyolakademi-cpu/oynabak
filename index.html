@@ -7515,7 +7515,7 @@ function listGames(){
         </svg>`;
 
     items.push({
-      kind:'custom',
+      kind:String(g.id)==='3aa8e92b-edb1-4ff3-88a0-69844c563e10'?'tavla':'custom',
       key:String(g.id),
       name:g.name||'Özel oyun',
       description:g.description||'İşletmeye özel hazırlanmış oyun.',
@@ -7591,7 +7591,7 @@ function listGames(){
 
   const featured=visible[0];
   const rest=visible.slice(1);
-  const featuredAction=featured.kind==='okey'?'data-action="okey-open"':featured.kind==='pisti'?'data-action="pisti-open"':`data-custom="${featured.key}"`;
+  const featuredAction=featured.kind==='okey'?'data-action="okey-open"':featured.kind==='pisti'?'data-action="pisti-open"':featured.kind==='tavla'?'data-action="tavla-open"':`data-custom="${featured.key}"`;
 
   const featuredMeta=[
     featured.players?`<span>${metaIcons.users}${esc(featured.players)}</span>`:'',
@@ -7599,7 +7599,7 @@ function listGames(){
   ].join('');
 
   const cards=rest.map(item=>{
-    const action=item.kind==='okey'?'data-action="okey-open"':item.kind==='pisti'?'data-action="pisti-open"':`data-custom="${item.key}"`;
+    const action=item.kind==='okey'?'data-action="okey-open"':item.kind==='pisti'?'data-action="pisti-open"':item.kind==='tavla'?'data-action="tavla-open"':`data-custom="${item.key}"`;
 
     const meta=[
       item.players?`<span>${metaIcons.users}${esc(item.players)}</span>`:'',
@@ -7787,6 +7787,14 @@ if(menuCat){
   return;
 }
 
+if(a==='tavla-open'){
+  if(!hasQrGameAccess()||!featureOn(venue,'games')){toast('Tavla yalnızca işletme QR bağlantısıyla açılır.');return}
+  await trackEvent('game_open',{game:'tavla'});
+  const tavlaUrl=new URL('games/tavla.html',location.href);
+  tavlaUrl.searchParams.set('isletme',String(venue.id));
+  location.assign(tavlaUrl.href);
+  return;
+}
 if(a==='pisti-open'){
   if(!hasQrGameAccess()||!featureOn(venue,'games')||String(venue?.id)!=='70abef21-053c-4026-b402-e18311f758d5'){
     toast('Pişti yalnızca İyi Yol Akademi işletmesinde açık.');return;
