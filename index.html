@@ -1089,6 +1089,13 @@ body.customer-mode #app{
   font-weight:650;
 }
 
+.game-finish-stats{width:min(100%,440px);margin:20px auto 0;text-align:left}
+.game-finish-stats-title{color:#555;font-size:10px;font-weight:900;letter-spacing:.7px;text-transform:uppercase;margin-bottom:9px}
+.game-finish-stats-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.game-finish-stat{min-width:0;padding:13px 9px;border:1px solid #e6e6e3;border-radius:13px;background:#f7f7f6;text-align:center}
+.game-finish-stat small{display:block;font-size:10px;font-weight:750;color:#777;margin-bottom:7px}
+.game-finish-stat strong{display:block;font-size:clamp(13px,3.4vw,17px);font-weight:900;color:#111;overflow-wrap:anywhere;line-height:1.25}
+@media(max-width:360px){.game-finish-stats-grid{gap:5px}.game-finish-stat{padding:11px 5px}}
 .finish-review-card{
   width:min(100%,440px);
   margin:27px auto 0;
@@ -5440,11 +5447,7 @@ async function openReviewPage(){
 function toast(m){$('#toast').textContent=m;clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').textContent='',6500)}
 function modal(title,html){leaveGameScreen();gameCleanup();gameCleanup=()=>{};$('#modalTitle').textContent=title;$('#modalBody').innerHTML=html;if(!$('#modal').open)$('#modal').showModal()}
 function closeModal(){
-  const state=activeCustomGame;
-  if(state&&!state.finished&&state.startedAt){
-    finishCustomGame(state,{auto:true,detectedBy:'modal-close'}).catch(err=>toast(err.message));
-    return;
-  }
+  // Oyundan çıkılması, oyun tamamlandı anlamına gelmez.
   leaveGameScreen();
   gameCleanup();
   gameCleanup=()=>{};
@@ -6288,7 +6291,7 @@ document.addEventListener('click',function(e){
   }
 
   if(/oyundan cik|oyundan çık|oyunlara don|oyunlara dön|ana menu|ana menü|menuye don|menüye dön|quit game|exit game|back to games/.test(t)){
-    finishOnce({auto:true,detectedBy:'exit-button'});
+    send('collapse',{reason:'user-exit'});
     e.preventDefault();
     e.stopImmediatePropagation();
     return;
@@ -6601,8 +6604,8 @@ function safeFrame(code,target,opts={}){
       gameName:opts.gameName||'Özel oyun',
       builtinKey:String(opts.builtinKey||''),
       scoreKey:String(opts.scoreKey||('custom:'+opts.gameId)),
-      lastScore:0,
-      players:1,
+      lastScore:null,
+      players:null,
       winner:'',
       startedAt:0,
       finished:false
@@ -6684,12 +6687,12 @@ function showGameFinishScreen({gameName='Oyun',score=null,winner='',players=null
   $('#modal').classList.add('finish-full');
   document.body.classList.add('game-open');
 
-  const numericScore=Number(score);
-  const showScore=Number.isFinite(numericScore)&&numericScore>0;
+  const showScore=score!=null&&score!==''&&Number.isFinite(Number(score));
+  const numericScore=showScore?clampScore(score):null;
   const cleanWinner=String(winner||'').trim();
-  const meta=[];
-  if(Number(players)>1)meta.push(`${Number(players)} oyuncu`);
-  if(Number(duration)>0)meta.push(`${Number(duration)} sn`);
+  const playerCount=players!=null&&Number(players)>0?clampPlayers(players):null;
+  const seconds=Number(duration)>0?Math.round(Number(duration)):0;
+  const durationText=seconds>=60?`${Math.floor(seconds/60)} dk ${seconds%60} sn`:seconds>0?`${seconds} sn`:'—';
 
   const replayAttr=replayType==='game'
     ? `data-game="${esc(replayId)}"`
@@ -6705,8 +6708,14 @@ function showGameFinishScreen({gameName='Oyun',score=null,winner='',players=null
         <div class="game-finish-kicker">${esc(gameName)}</div>
         <h2 class="game-finish-title">Oyun bitti.</h2>
         ${cleanWinner?`<div class="game-finish-winner">${esc(cleanWinner)} kazandı</div>`:''}
-        ${showScore?`<div class="game-finish-score">${Math.round(numericScore)} <small>/ 100</small></div>`:''}
-        ${meta.length?`<p class="game-finish-meta">${esc(meta.join(' · '))}</p>`:''}
+        <div class="game-finish-stats" aria-label="Oyun istatistikleri">
+          <div class="game-finish-stats-title">Oyun istatistikleri</div>
+          <div class="game-finish-stats-grid">
+            <div class="game-finish-stat"><small>Puan</small><strong>${showScore?numericScore+'/100':'—'}</strong></div>
+            <div class="game-finish-stat"><small>Oyuncu</small><strong>${playerCount==null?'—':playerCount+' kişi'}</strong></div>
+            <div class="game-finish-stat"><small>Süre</small><strong>${durationText}</strong></div>
+          </div>
+        </div>
 
         <div class="finish-review-card">
           <div class="finish-review-stars" aria-hidden="true">★★★★★</div>
@@ -6740,8 +6749,8 @@ async function finishCustomGame(state,payload={}){
   if(!state||state.finished)return;
   state.finished=true;
 
-  const score=clampScore(payload.score??state.lastScore);
-  const players=clampPlayers(payload.players??state.players);
+  const score=payload.score==null?null:clampScore(payload.score);
+  const players=(payload.players??state.players)==null?null:clampPlayers(payload.players??state.players);
   const winner=String(payload.winner??state.winner??'').trim().slice(0,80);
   const duration=state.startedAt?Math.max(0,Math.round((Date.now()-state.startedAt)/1000)):0;
   const scoreKey=state.scoreKey||('custom:'+state.gameId);
@@ -6761,17 +6770,13 @@ async function finishCustomGame(state,payload={}){
     replayId
   });
 
-  // A sandboxed iframe can claim any score. Treat it as untrusted display-only
-  // data. Never send it to ob_score or game_finish analytics as verified.
-  // To enable verified scores, implement a server-authoritative game engine
-  // with server-side session, rules, move validation, and replay protection.
+  // Yalnızca tamamlanma etkileşimi kaydedilir; istemci puanı doğrulanmış sayılmaz.
   if(!venue?.demo){
-    console.info('[OynaBak] Oyun tamamlandı; istemci puanı doğrulanmadığı için kaydedilmedi.',{
-      game:scoreKey, claimedScore:score, duration
-    });
+    const recorded=await trackEvent('game_finish',{game:scoreKey});
+    if(!recorded)console.warn('[OynaBak] Oyun bitiş metriği kaydedilemedi:',scoreKey);
   }
 }
-window.addEventListener('message' ,async e=>{const d=e.data,state=activeCustomGame;if(!state||e.source!==state.frame.contentWindow||!d||d.source!==GAME_BRIDGE_SOURCE||d.version!==GAME_BRIDGE_VERSION)return;const p=d.payload&&typeof d.payload==='object'?d.payload:{};if(d.type==='ready'){sendGameInit(state);return}if(d.type==='runtime-error'){console.error('[OynaBak]',state.gameName,'runtime error:',p.message||'Bilinmeyen hata');return}if(d.type==='storage-get'||d.type==='storage-set'||d.type==='storage-remove'){handleGameStorage(state,d.type,p);return}if(d.type==='expand'){enterGameScreen();return}if(d.type==='collapse'){exitGameScreen();return}if(d.type==='start'){state.players=clampPlayers(p.players??state.players);state.startedAt=Date.now();state.finished=false;return}if(d.type==='score'){state.lastScore=clampScore(p.score);if(p.players!=null)state.players=clampPlayers(p.players);if(p.winner!=null)state.winner=String(p.winner).slice(0,80);return}if(d.type==='finish'){if(p.players!=null)state.players=clampPlayers(p.players);if(p.winner!=null)state.winner=String(p.winner).slice(0,80);finishCustomGame(state,p).catch(err=>toast(err.message))}});
+window.addEventListener('message' ,async e=>{const d=e.data,state=activeCustomGame;if(!state||e.source!==state.frame.contentWindow||!d||d.source!==GAME_BRIDGE_SOURCE||d.version!==GAME_BRIDGE_VERSION)return;const p=d.payload&&typeof d.payload==='object'?d.payload:{};if(d.type==='ready'){sendGameInit(state);return}if(d.type==='runtime-error'){console.error('[OynaBak]',state.gameName,'runtime error:',p.message||'Bilinmeyen hata');return}if(d.type==='storage-get'||d.type==='storage-set'||d.type==='storage-remove'){handleGameStorage(state,d.type,p);return}if(d.type==='expand'){enterGameScreen();return}if(d.type==='collapse'){closeModal();return}if(d.type==='start'){if(p.players!=null)state.players=clampPlayers(p.players);state.startedAt=Date.now();state.finished=false;return}if(d.type==='score'){state.lastScore=clampScore(p.score);if(p.players!=null)state.players=clampPlayers(p.players);if(p.winner!=null)state.winner=String(p.winner).slice(0,80);return}if(d.type==='finish'){if(p.players!=null)state.players=clampPlayers(p.players);if(p.winner!=null)state.winner=String(p.winner).slice(0,80);finishCustomGame(state,p).catch(err=>toast(err.message))}});
 
 function decodeEmbeddedGame(key){
   const raw=embeddedGameBase64[key];
@@ -7906,11 +7911,6 @@ if(a==='menu-add-variant'){b.closest('[data-menu-item]')?.querySelector('.menu-v
 if(a==='menu-remove-variant'){b.closest('[data-menu-variant]')?.remove();return}
 if(a==='menu-remove-item'){const cat=b.closest('[data-menu-cat]');b.closest('[data-menu-item]')?.remove();if(cat)menuUpdateGroupCounts(cat);return}
 if(a==='copy-venue-code'){const code=await businessCodeForVenue(id||me?.venue?.id);try{await navigator.clipboard.writeText(code);toast('İşletme kodu kopyalandı.')}catch{toast('Kod kopyalanamadı.')}return}if(a==='regen-venue-code'){const vid=id||me?.venue?.id;if(!vid)throw Error('İşletme bulunamadı.');const ok=window.confirm('İşletme kodunu yenilemek istiyor musun? Eski kod hemen geçersiz olur ve standdaki kod etiketini değiştirmen gerekir.');if(!ok)return;b.disabled=true;try{const code=await regenerateBusinessCode(vid);toast('Yeni işletme kodu: '+code)}finally{b.disabled=false}return}if(a==='retry')await route();if(a==='close-game'){
-  const state=activeCustomGame;
-  if(state&&!state.finished&&state.startedAt){
-    await finishCustomGame(state,{auto:true,detectedBy:'close-game'});
-    return;
-  }
   closeModal();
   return
 }if(a==='logout'){const {error}=await db.auth.signOut();if(error)throw error;me=null;adminData=null;await route()}if(a==='reset'){const email=$('#authForm [name=email]').value;if(!email)throw Error('Önce e-posta adresini yaz.');const redirect=new URL(location.href);redirect.search='?recovery=1';redirect.hash='';const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo:redirect.href});if(error)throw error;toast('Hesabın varsa şifre yenileme bağlantısı gönderilecek.')}if(a==='venue-new')venueForm();if(a==='venue-edit')await adminVenueFeatures(getVenue(id));if(a==='merchant-edit')venueForm(me.venue,true);if(a==='game-new')gameForm();if(a==='game-edit')gameForm(adminData.games.find(g=>g.id===id));if(a==='game-delete'){const game=adminData.games.find(g=>String(g.id)===String(id));const gameName=String(game?.name||b.dataset.name||'Bu oyun');const ok=window.confirm(`“${gameName}” oyununu kalıcı olarak silmek istediğine emin misin?\n\nBu işlem geri alınamaz ve oyun atandığı tüm işletmelerden de kaldırılır.`);if(!ok)return;b.disabled=true;try{await rpc('ob_delete_game',{gid:String(id)});toast('Oyun silindi.');await route()}finally{b.disabled=false}return}if(a==='preview-code')safeFrame($('#gameForm [name=code]').value,$('#codePreview'),{gameName:$('#gameForm [name=name]').value||'Önizleme',preview:true});if(a==='qr')qrView(id);if(a==='stats')await stats(id,7);if(a==='stats-period')await stats(id,Number(b.dataset.days||7));if(a==='games'){trackEvent('games_open');const box=$('#gameList');if(!box.innerHTML.trim())listGames();box.scrollIntoView({behavior:'smooth',block:'start'})}if(a==='review')openReviewPage();}catch(err){toast(err.message)}});
