@@ -6,6 +6,16 @@ const KEY='sb_publishable_RU5vtZxlqK2dMD-LWuwUaA_Eak6b9cj';
 const $=id=>document.getElementById(id);
 const engine=window.OynaChessEngine;
 const PIECES={wk:'♔',wq:'♕',wr:'♖',wb:'♗',wn:'♘',wp:'♙',bk:'♚',bq:'♛',br:'♜',bb:'♝',bn:'♞',bp:'♟︎'};
+const PIECE_NAMES={k:'Şah',q:'Vezir',r:'Kale',b:'Fil',n:'At',p:'Piyon'};
+function svgPiece(p,extra=''){
+ const img=document.createElement('img');
+ img.className='chess-piece '+extra;
+ img.src=window.OynaChessPieces?.[p.c+p.t.toUpperCase()]||'';
+ img.alt=(p.c==='w'?'Beyaz ':'Siyah ')+PIECE_NAMES[p.t];
+ img.draggable=false;
+ img.decoding='async';
+ return img;
+}
 const STORAGE='ob-satranc:room:'+VENUE;
 let db=null,room=null,session=null,lastVersion=-1,selected=-1,legalTargets=[],promoChoices=null;
 let pollTimer=null,pingTimer=null,channel=null,connected=false,polling=false,lastAnnounce='',turnTimer=null,finishedShown=false,localFinished=null,pendingMove=false;
@@ -41,7 +51,8 @@ function display(){
  $('roomLabel').textContent=room.room;
  $('selfName').textContent=playerAtSeat(me);$('opponentName').textContent=playerAtSeat(them);
  $('selfColor').textContent=colorName(mine);$('opponentColor').textContent=colorName(opposite);
- $('selfIcon').textContent=PIECES[mine+'k'];$('opponentIcon').textContent=PIECES[opposite+'k'];
+ $('selfIcon').replaceChildren(svgPiece({c:mine,t:'k'},'panel-chess-piece'));
+ $('opponentIcon').replaceChildren(svgPiece({c:opposite,t:'k'},'panel-chess-piece'));
  $('selfPanel').classList.toggle('active',room.status==='playing'&&room.turn===mine);
  $('opponentPanel').classList.toggle('active',room.status==='playing'&&room.turn===opposite);
  $('selfTurn').textContent=room.turn===mine?'●':'○';$('opponentTurn').textContent=room.turn===opposite?'●':'○';
@@ -84,11 +95,11 @@ function drawBoard(){
  for(const i of squares){
   const row=Math.floor(i/8),col=i%8,p=g.board[i];
   const el=document.createElement('button');el.type='button';el.dataset.square=String(i);
-  el.setAttribute('role','gridcell');el.setAttribute('aria-label',engine.squareName(i)+' '+(p?(p.c==='w'?'Beyaz ':'Siyah ')+p.t:'boş'));
+  el.setAttribute('role','gridcell');el.setAttribute('aria-label',engine.squareName(i)+' '+(p?(p.c==='w'?'Beyaz ':'Siyah ')+PIECE_NAMES[p.t]:'boş'));
   el.className='square '+((row+col)%2===0?'light':'dark')+(i===selected?' selected':'')+
    (legalTargets.some(m=>m.to===i)?' hint':'')+
    (last&&(last.from===i||last.to===i)?' last':'')+(i===kingIndex?' check':'');
-  if(p){const piece=document.createElement('span');piece.className='piece '+(p.c==='w'?'white':'black');piece.textContent=PIECES[p.c+p.t];el.appendChild(piece)}
+  if(p)el.appendChild(svgPiece(p));
   const shownFile=reverse?col===7:col===0;const shownRank=reverse?row===0:row===7;
   if(shownFile||shownRank){const label=document.createElement('small');label.className='coordinate';label.textContent=shownFile?(8-row):engine.squareName(i)[0];el.appendChild(label)}
   frag.appendChild(el);
@@ -113,7 +124,7 @@ function renderPromotion(){
  if(!promoChoices)return;
  const frag=document.createDocumentFragment();
  for(const t of ['q','r','b','n']){
-  const b=document.createElement('button');b.type='button';b.dataset.piece=t;b.textContent=PIECES[room.color+t];b.title={q:'Vezir',r:'Kale',b:'Fil',n:'At'}[t];frag.appendChild(b);
+  const b=document.createElement('button');b.type='button';b.dataset.piece=t;b.title=PIECE_NAMES[t];b.setAttribute('aria-label',PIECE_NAMES[t]);b.appendChild(svgPiece({c:room.color,t},'promotion-piece'));frag.appendChild(b);
  }
  $('promotionPieces').replaceChildren(frag);
 }
@@ -217,6 +228,10 @@ function events(){
 }
 function init(){
  events();if(!engine){toast('Satranç motoru yüklenemedi');return}
+ for(const [selector,color] of [['.chess-art .art-light','w'],['.chess-art .art-dark','b']]){
+  const node=document.querySelector(selector);
+  if(node)node.replaceChildren(svgPiece({c:color,t:'k'},'cover-chess-piece'));
+ }
  $('back').href='../?isletme='+encodeURIComponent(VENUE)+'#play';
  if(!/^[0-9a-f-]{36}$/i.test(VENUE)){$('network').textContent='İşletme QR bağlantısı gerekli';return}
  try{db=window.supabase.createClient(PROJECT,KEY,{auth:{persistSession:false}});$('network').textContent='● Bağlı'}catch(e){$('network').textContent='Sunucu bağlantısı yok';return}
