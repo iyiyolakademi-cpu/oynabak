@@ -6,34 +6,63 @@
 <meta name="theme-color" content="#112c25">
 <meta name="robots" content="noindex,nofollow">
 <title>Pişti · OynaBak</title>
-<link rel="stylesheet" href="./pisti.css?v=20261030-modes4">
+<link rel="stylesheet" href="./pisti.css?v=20261030-left-screen-v1">
 <script src="../assets/supabase-client.bundle.js"></script>
-<script defer src="./pisti.js?v=20261030-modes4"></script>
+<script defer src="./pisti.js?v=20261030-left-screen-v1"></script>
 </head>
 <body>
-<header class="site-header">
- <a id="back" class="back-link" href="../#play" aria-label="OynaBak oyunlarına dön">‹ <span>OynaBak</span></a>
- <div class="branding">PİŞTİ <small>2 KİŞİLİK · CANLI</small></div>
- <span id="network" class="network" aria-live="polite">Bağlanıyor</span>
-</header>
+
 <main>
- <section id="lobby" class="lobby" aria-labelledby="lobbyTitle">
-  <div class="pisti-identity"><span class="pisti-mark" aria-hidden="true"><i></i><i></i></span><span>OYNABAK <em>/</em> CANLI PİŞTİ</span><span class="pisti-person-tag"><i aria-hidden="true"></i> 2 KİŞİLİK</span></div>
-  <div class="pisti-hero">
-    <div class="pisti-emblem" aria-hidden="true"><div class="pisti-emblem-card back"><span class="emblem-card-mark">O</span></div><div class="pisti-emblem-card front"><span>A</span><span class="emblem-suit">♠</span><span class="emblem-bottom">A</span></div></div>
-    <p class="pisti-eyebrow">MASADA YERİN HAZIR</p>
-    <h1 id="lobbyTitle">Bir el Pişti,<br><span>bolca rekabet.</span></h1>
-    <p class="subtitle">İki telefon, aynı masa. Yeni oyun oluştur veya arkadaşının dört haneli koduyla katıl.</p>
-  </div>
-  <div class="lobby-card">
-   <div class="pisti-panel-head"><div><span>MASANA HOŞ GELDİN</span><h2 id="pistiFormTitle">Yeni oyun oluştur</h2></div><div class="pisti-target"><strong>101</strong><small>HEDEF PUAN</small></div></div>
-   <div class="choice-group" role="tablist" aria-label="Oyun seçimi">
-    <button id="chooseCreate" type="button" role="tab" aria-selected="true" class="choice active"><small>01</small><strong>Oda Oluştur</strong></button>
-    <button id="chooseJoin" type="button" role="tab" aria-selected="false" class="choice"><small>02</small><strong>Kodla Katıl</strong></button>
+ <section id="lobby" class="lobby pisti-lobby-v3" aria-labelledby="lobbyTitle">
+  <div id="lobbyHome" class="welcome-stage">
+   <div class="welcome-top">
+    <span class="welcome-wordmark">OYNABAK</span>
+    <span id="network" class="network welcome-network" role="status" aria-live="polite">Bağlanıyor</span>
    </div>
-   <label for="playerName">OYUNCU ADIN</label>
-   <input id="playerName" type="text" maxlength="18" minlength="2" autocomplete="nickname" placeholder="Nasıl hitap edelim?">
-   <form id="createForm">
+   <div class="welcome-center">
+    <div class="welcome-art" aria-hidden="true">
+      <div class="playing-card ace-card">
+       <span class="card-rank">A<small>♠</small></span><span class="card-suit-large">♠</span><span class="card-rank card-rank-bottom">A<small>♠</small></span>
+      </div>
+      <div class="playing-card king-card">
+       <span class="card-rank">K<small>♥</small></span><span class="king-crown">♛</span><span class="card-suit-large">♥</span><span class="card-rank card-rank-bottom">K<small>♥</small></span>
+      </div>
+     </div>
+     <h1 id="lobbyTitle">Pişti</h1>
+     <p class="welcome-subtitle">Arkadaşınla klasik kart oyunu.</p>
+   </div>
+   <div class="welcome-bottom">
+    <div class="welcome-actions">
+     <button id="chooseCreate" type="button" class="welcome-action welcome-create" aria-label="Pişti için yeni oda oluştur">
+      <span class="welcome-action-symbol" aria-hidden="true">+</span><strong>Oda Oluştur</strong><span class="welcome-action-chevron" aria-hidden="true">›</span>
+     </button>
+     <button id="chooseJoin" type="button" class="welcome-action welcome-join" aria-label="Dört haneli kodla Pişti odasına katıl">
+      <span class="welcome-action-symbol people-symbol" aria-hidden="true"><span></span><span></span></span><strong>Kodla Katıl</strong><span class="welcome-action-chevron" aria-hidden="true">›</span>
+     </button>
+    </div>
+    <button id="resume" class="resume welcome-resume" type="button" hidden>Son masama dön</button>
+    <div class="welcome-footer">
+     <a id="back" class="welcome-back" href="../#play" aria-label="OynaBak oyunlarına geri dön">‹</a>
+     <button id="rulesOpen" class="welcome-rules" type="button"><span class="rules-book" aria-hidden="true">▤</span> Nasıl Oynanır?</button>
+    </div>
+   </div>
+  </div>
+  <div id="lobbySetup" class="setup-stage" hidden>
+   <div class="setup-bar">
+    <button id="setupBack" class="setup-back" type="button" aria-label="Oda seçim ekranına dön">‹</button>
+    <span>OYNABAK <em>/</em> PİŞTİ</span>
+    <span class="setup-tag">2 KİŞİLİK</span>
+   </div>
+   <div class="setup-heading">
+    <div class="setup-suit" aria-hidden="true">♠</div>
+    <p>CANLI PİŞTİ</p>
+    <h2 id="pistiFormTitle">Yeni oyun oluştur</h2>
+    <span id="setupDescription">Oda oluştur, modunu seç ve dört haneli kodunu arkadaşınla paylaş.</span>
+   </div>
+   <div class="lobby-card setup-card">
+    <label for="playerName">OYUNCU ADIN</label>
+    <input id="playerName" type="text" maxlength="18" minlength="2" autocomplete="nickname" placeholder="Nasıl hitap edelim?">
+    <form id="createForm">
     <fieldset class="match-mode-fieldset">
       <legend>OYUN MODUNU SEÇ</legend>
       <div id="matchModes" class="match-mode-grid" role="group" aria-label="Pişti maç türü">
@@ -43,18 +72,18 @@
         <button type="button" class="mode-card" data-mode="single" aria-pressed="false"><span class="mode-value mode-one-round">1 EL</span><span class="mode-copy"><strong>Tek El</strong><small>Bir destede en yüksek puan</small></span></button>
       </div>
     </fieldset>
-    <p class="form-help">Seçtiğin modla oda kurulur. Arkadaşın aynı kurallarla katılır.</p>
-    <button type="submit" class="start-button"><span>Oda Oluştur</span><span aria-hidden="true">→</span></button>
-   </form>
-   <form id="joinForm" hidden>
-    <label for="joinCode">ODA KODU <span>4 RAKAM</span></label>
-    <input id="joinCode" maxlength="4" minlength="4" inputmode="numeric" pattern="[0-9]{4}" autocomplete="one-time-code" spellcheck="false" placeholder="0000">
-    <p class="form-help">Arkadaşının gönderdiği dört rakamlı kodu gir.</p>
-    <button type="submit" class="start-button"><span>Masaya Katıl</span><span aria-hidden="true">→</span></button>
-   </form>
+     <p class="form-help">Seçtiğin oyun modunu arkadaşın da aynı şekilde oynayacak.</p>
+     <button type="submit" class="start-button"><span>Odayı Oluştur</span><span aria-hidden="true">→</span></button>
+    </form>
+    <form id="joinForm" hidden>
+     <label for="joinCode">ODA KODU <span>4 RAKAM</span></label>
+     <input id="joinCode" maxlength="4" minlength="4" inputmode="numeric" pattern="[0-9]{4}" autocomplete="one-time-code" spellcheck="false" placeholder="0000">
+     <p class="form-help">Arkadaşının paylaştığı kodu gir. Oyun modu otomatik uygulanacak.</p>
+     <button type="submit" class="start-button"><span>Masaya Katıl</span><span aria-hidden="true">→</span></button>
+    </form>
+   </div>
+   <p class="setup-help">İki farklı telefondan aynı masaya bağlanabilirsiniz.</p>
   </div>
-  <button id="resume" class="resume" type="button" hidden>Son masama dön <span aria-hidden="true">↗</span></button>
-  <p class="lobby-footer"><span class="lobby-online-dot"></span> Güvenli oda <span>·</span> 2 oyuncu <span>·</span> 101 puan</p>
  </section>
  <section id="game" class="game" hidden>
   <div class="game-topline">
@@ -91,6 +120,22 @@
  </section>
 </main>
 <div id="toast" class="toast" role="alert" hidden></div>
+<div id="rulesModal" class="rules-overlay" hidden>
+ <section class="rules-dialog" role="dialog" aria-modal="true" aria-labelledby="rulesHeading">
+  <div class="rules-dialog-top"><span>OYNABAK · PİŞTİ</span><button id="rulesClose" type="button" aria-label="Kuralları kapat">×</button></div>
+  <h2 id="rulesHeading">Nasıl Oynanır?</h2>
+  <p>İki kişi sırayla birer kart oynar. Amaç kartları ve puanları toplamaktır.</p>
+  <ol>
+   <li>Her oyuncuya dört kart dağıtılır. Dört kart da masaya açılır; üstteki kart görünür.</li>
+   <li>Yerdeki üst kartla aynı değerde kart veya vale atarsan yerdeki kartları alırsın.</li>
+   <li>Yerde yalnızca bir kart varken aynı değerli kartla alırsan <strong>Pişti +10</strong>; vale ile pişti yaparsan <strong>+20</strong> puan alırsın.</li>
+   <li>Kartlar bitince toplanan kartlar ve bonus puanlar hesaplanır.</li>
+  </ol>
+  <p><strong>Oyun modları:</strong> 51, 101, 151 puanlık maç ya da tek destelik Tek El.</p>
+  <button id="rulesDone" class="rules-done" type="button">Anladım</button>
+ </section>
+</div>
+
 <div id="resultModal" class="modal" hidden>
  <div class="result-card"><div class="result-symbol" id="resultSymbol" aria-hidden="true">♠</div><p class="eyebrow" id="resultEyebrow">EL TAMAMLANDI</p><h2 id="resultTitle">El bitti</h2>
   <div class="result-scores"><div><span id="resultName0">Oyuncu 1</span><strong id="resultScore0">0</strong></div><div><span id="resultName1">Oyuncu 2</span><strong id="resultScore1">0</strong></div></div>
