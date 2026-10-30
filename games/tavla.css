@@ -414,3 +414,371 @@ body.in-game .opening-die .die-pip{width:4px;height:4px}
 @media(max-height:670px){body.in-game .opening-panel{min-height:39px;padding:3px 8px}body.in-game .opening-die{width:22px;height:22px;padding:3px}.lobby-board-emblem{margin-bottom:10px}}
 @media(max-width:360px){.lobby-identity{gap:5px;font-size:8px}.lobby-online{padding:5px;font-size:7px}body:not(.in-game) .lobby-panel{padding:19px}body:not(.in-game) .lobby h1{font-size:36px}}
 @media(max-height:780px){.lobby-identity{margin-bottom:14px}.lobby-board-emblem{height:55px;width:106px;margin-bottom:12px}body:not(.in-game) .lobby-panel{margin-top:18px}.lobby-footnote{margin-top:14px}}
+
+/* 2026-10-30: real Pişti two-button lobby, based on selected dark-green concept. */
+body:not(.in-game){
+ --welcome-green:#002e22;
+ --welcome-cream:#f9e8ce;
+ background:#002d22;
+ background-image:radial-gradient(ellipse at 20% 28%,#155840 0%,#002f24 49%,#001d18 100%);
+ color:#f9f7ed;
+}
+body:not(.in-game) main{
+ width:100%;
+ max-width:none;
+ margin:0;
+ padding:0;
+ min-height:100dvh;
+}
+body:not(.in-game) .tavla-lobby-v3{
+ box-sizing:border-box;
+ max-width:520px;
+ width:100%;
+ padding:0;
+ margin:0 auto;
+ text-align:center;
+}
+.tavla-lobby-v3 .welcome-stage,.tavla-lobby-v3 .setup-stage{box-sizing:border-box;}
+body:not(.in-game) .tavla-lobby-v3 .welcome-stage{
+ min-height:100vh;
+ min-height:100dvh;
+ display:flex;flex-direction:column;
+ padding:max(19px,env(safe-area-inset-top)) clamp(18px,5vw,30px) max(16px,env(safe-area-inset-bottom));
+ position:relative;
+ overflow:hidden;
+ isolation:isolate;
+}
+.tavla-lobby-v3 .welcome-stage::before,.tavla-lobby-v3 .welcome-stage::after{
+ content:"♠";position:absolute;pointer-events:none;z-index:-1;
+ font:clamp(180px,55vw,290px)/1 Georgia,serif;
+ color:#8fbb9910;
+ transform:rotate(-13deg);
+}
+.tavla-lobby-v3 .welcome-stage::before{top:5%;left:-25%}
+.tavla-lobby-v3 .welcome-stage::after{right:-25%;bottom:13%;transform:rotate(18deg);font-size:230px}
+.tavla-lobby-v3 .welcome-top{min-height:40px;position:relative;display:flex;align-items:center;justify-content:center}
+.tavla-lobby-v3 .welcome-wordmark{font-size:12px;letter-spacing:3.4px;font-weight:800;line-height:1.3;color:#f8f6ed}
+.tavla-lobby-v3 .welcome-network{position:absolute;right:0;top:50%;transform:translateY(-50%);font-size:10px;font-weight:650;color:#a3beaa;letter-spacing:0;min-width:0;width:auto}
+.tavla-lobby-v3 .welcome-network.off{color:#f3ba9d}
+.tavla-lobby-v3 .welcome-center{
+ flex:1 1 auto;
+ min-height:235px;
+ display:flex;flex-direction:column;justify-content:center;align-items:center;
+ padding-top:16px;
+}
+.tavla-lobby-v3 .welcome-art{
+ position:relative;
+ height:170px;width:205px;
+ margin:0 auto 13px;
+ filter:drop-shadow(0 14px 13px #00180fc2);
+}
+.tavla-lobby-v3 .playing-card{
+ position:absolute;
+ box-sizing:border-box;
+ width:106px;height:149px;
+ border:1px solid #dad6ca;
+ border-radius:10px;
+ background:linear-gradient(145deg,#fffef9,#e8e8e0);
+ box-shadow:0 12px 21px #00190d73, inset 0 0 0 3px #ffffffac;
+ padding:9px 10px;
+ color:#183c2d;
+ display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;
+}
+.tavla-lobby-v3 .playing-card.ace-card{left:19px;top:9px;transform:rotate(-18deg);z-index:1}
+.tavla-lobby-v3 .playing-card.king-card{left:86px;top:10px;transform:rotate(12deg);z-index:2;color:#bc3936}
+.tavla-lobby-v3 .card-rank{font-family:Georgia,serif;font-size:22px;line-height:.83;font-weight:900;display:flex;flex-direction:column;align-items:center;gap:1px}
+.tavla-lobby-v3 .card-rank small{font-size:16px;line-height:1}
+.tavla-lobby-v3 .card-rank-bottom{transform:rotate(180deg);align-self:flex-end}
+.tavla-lobby-v3 .card-suit-large{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font:64px/1 Georgia,serif}
+.tavla-lobby-v3 .king-card .card-suit-large{font-size:44px;transform:translate(-50%,-23%);color:#b82937}
+.tavla-lobby-v3 .king-crown{position:absolute;left:50%;top:29%;transform:translate(-50%,-50%);font:41px/1 Georgia,serif;color:#d3aa51}
+body:not(.in-game) .tavla-lobby-v3 .welcome-center h1{
+ color:#fffdf5;font-size:clamp(56px,13vw,72px);font-weight:900;letter-spacing:-2.5px;
+ line-height:1.05;margin:0 0 7px;
+}
+body:not(.in-game) .tavla-lobby-v3 .welcome-subtitle{
+ margin:0;color:#e0e8dc;font-size:clamp(13px,3.7vw,16px);line-height:1.5;
+}
+.tavla-lobby-v3 .welcome-bottom{flex:0 0 auto;width:100%;display:flex;flex-direction:column}
+.tavla-lobby-v3 .welcome-actions{display:flex;flex-direction:column;gap:13px;margin:0 0 22px}
+.tavla-lobby-v3 .welcome-action{
+ position:relative;min-height:76px;width:100%;
+ padding:12px 18px;
+ border-radius:18px;
+ border:1.5px solid transparent;
+ display:grid;grid-template-columns:44px minmax(0,1fr) 23px;
+ gap:8px;align-items:center;justify-items:center;
+ transition:transform .16s ease,background-color .16s ease;
+ -webkit-tap-highlight-color:transparent;
+}
+.tavla-lobby-v3 .welcome-action:active{transform:scale(.985)}
+.tavla-lobby-v3 .welcome-action:focus-visible,.tavla-lobby-v3 .welcome-back:focus-visible,.tavla-lobby-v3 .welcome-rules:focus-visible{
+ outline:3px solid #e9cc9c;outline-offset:3px;
+}
+.tavla-lobby-v3 .welcome-action strong{font-size:clamp(16px,4.7vw,20px);font-weight:850;letter-spacing:-.4px}
+.tavla-lobby-v3 .welcome-create{background:linear-gradient(145deg,#fff1d9,#f4dfba);color:#13291f;box-shadow:0 10px 24px #001c145b}
+.tavla-lobby-v3 .welcome-join{background:#00291f50;color:#faf6e9;border-color:#ffffff6a;box-shadow:inset 0 0 0 1px #ffffff0b}
+.tavla-lobby-v3 .welcome-action-symbol{
+ width:43px;height:43px;
+ display:grid;place-items:center;
+ border-radius:50%;background:#00392d;color:#fff9e9;
+ font-size:32px;line-height:1;font-weight:400;
+}
+.tavla-lobby-v3 .welcome-join .welcome-action-symbol{background:transparent;color:#fff9e9}
+.tavla-lobby-v3 .welcome-action-chevron{font:40px/1 ui-sans-serif,system-ui,sans-serif;font-weight:250;color:inherit;transform:translateY(-2px)}
+.tavla-lobby-v3 .people-symbol{position:relative}
+.tavla-lobby-v3 .people-symbol span:first-child{
+ position:absolute;width:12px;height:12px;top:9px;left:14px;background:#f8f6ec;border-radius:50%;
+}
+.tavla-lobby-v3 .people-symbol span:first-child::after{
+ content:"";position:absolute;top:13px;left:-5px;width:22px;height:14px;background:#f8f6ec;border-radius:13px 13px 5px 5px;
+}
+.tavla-lobby-v3 .people-symbol span:last-child{
+ position:absolute;width:9px;height:9px;top:13px;left:29px;background:#f8f6ec;border-radius:50%;
+}
+.tavla-lobby-v3 .people-symbol span:last-child::after{
+ content:"";position:absolute;top:10px;left:-2px;width:13px;height:13px;background:#f8f6ec;border-radius:10px 10px 4px 4px;
+}
+.tavla-lobby-v3 .welcome-footer{
+ margin-top:auto;
+ min-height:48px;display:flex;align-items:center;justify-content:space-between;
+ gap:12px;
+}
+.tavla-lobby-v3 .welcome-back{
+ width:45px;height:45px;border:1px solid #ffffff41;background:#ffffff0a;
+ border-radius:50%;color:#f8f2e9;display:grid;place-items:center;text-decoration:none;
+ font:43px/.7 ui-sans-serif,system-ui,sans-serif;padding:0 0 6px 0;
+}
+.tavla-lobby-v3 .welcome-rules{
+ border:0;background:none;color:#e0e7da;
+ display:flex;gap:9px;align-items:center;justify-content:center;
+ font-size:13px;font-weight:750;padding:9px 0;
+}
+.tavla-lobby-v3 .rules-book{font-size:20px;line-height:1;font-weight:300}
+body:not(.in-game) .tavla-lobby-v3 .welcome-resume{
+ width:auto;display:block;align-self:center;margin:0 auto 15px;
+ background:transparent;border:1px solid #86a68d6b;color:#d0e1c9;padding:9px 15px;
+ border-radius:11px;font-size:12px;min-height:35px;
+}
+
+/* Form stage: keep the existing 4 choices as real working controls, only shown after a CTA. */
+body:not(.in-game) .tavla-lobby-v3 .setup-stage{
+ min-height:100vh;min-height:100dvh;
+ padding:max(17px,env(safe-area-inset-top)) clamp(16px,4vw,27px) max(20px,env(safe-area-inset-bottom));
+ display:flex;flex-direction:column;
+}
+.tavla-lobby-v3 .setup-bar{
+ display:grid;grid-template-columns:40px 1fr auto;align-items:center;gap:8px;
+ color:#f1f3e9;font-size:11px;letter-spacing:1.35px;font-weight:850;
+}
+.tavla-lobby-v3 .setup-bar em{font-style:normal;color:#a6b7a1}
+.tavla-lobby-v3 .setup-back{
+ width:39px;height:39px;border:1px solid #ffffff49;border-radius:11px;
+ background:#ffffff14;color:#fff;font-size:34px;line-height:1;padding:0 0 5px;
+}
+.tavla-lobby-v3 .setup-tag{font-size:9px;letter-spacing:.8px;color:#d2ddca;white-space:nowrap}
+.tavla-lobby-v3 .setup-heading{padding:23px 5px 19px;text-align:center}
+.tavla-lobby-v3 .setup-suit{width:50px;height:50px;display:grid;place-items:center;margin:0 auto 12px;font:32px Georgia,serif;border-radius:14px;background:#f6e6cb;color:#1d4937;transform:rotate(-7deg)}
+.tavla-lobby-v3 .setup-heading>p{font-size:10px;color:#c6d5bc;letter-spacing:2px;font-weight:900;margin:0 0 5px}
+.tavla-lobby-v3 .setup-heading h2{font-size:clamp(25px,6vw,31px);font-weight:850;letter-spacing:-.8px;line-height:1.2;margin:0 0 7px;color:#fffaf0}
+.tavla-lobby-v3 .setup-heading>span{display:block;margin:0 auto;color:#bed1c1;font-size:12px;line-height:1.55;max-width:330px}
+body:not(.in-game) .tavla-lobby-v3 .setup-card{
+ width:100%;box-sizing:border-box;max-width:440px;margin:0 auto;
+ padding:clamp(17px,4vw,23px);
+ border-radius:19px;background:#fbfaf5;color:#253829;border:1px solid #ffffffbc;
+ box-shadow:0 15px 50px #0006;
+}
+body:not(.in-game) .tavla-lobby-v3 .setup-card>label,
+body:not(.in-game) .tavla-lobby-v3 .setup-card #joinForm label{
+ font-size:10px;color:#4a6b54;letter-spacing:1px;font-weight:900;
+}
+body:not(.in-game) .tavla-lobby-v3 .setup-card>input,
+body:not(.in-game) .tavla-lobby-v3 .setup-card #joinCode{
+ box-sizing:border-box;background:#fff;border:1px solid #d6e2d5;
+ color:#254533;border-radius:11px;min-height:51px;
+}
+body:not(.in-game) .tavla-lobby-v3 .setup-card #joinCode{font-size:26px;letter-spacing:10px}
+body:not(.in-game) .tavla-lobby-v3 .setup-card .match-mode-fieldset{margin-top:20px}
+body:not(.in-game) .tavla-lobby-v3 .setup-card .start-button{
+ background:#084b37;color:#fff;border-radius:12px;min-height:53px;
+ font-weight:850;font-size:15px;
+}
+.tavla-lobby-v3 .setup-help{color:#abbdad;font-size:11px;margin:15px auto 5px}
+.rules-overlay[hidden]{display:none!important}
+.rules-overlay{
+ position:fixed;inset:0;z-index:2200;display:grid;place-items:center;
+ padding:max(12px,env(safe-area-inset-top)) 14px max(12px,env(safe-area-inset-bottom));
+ background:#00150fc9;backdrop-filter:blur(7px);
+}
+.rules-dialog{box-sizing:border-box;width:min(100%,460px);max-height:88dvh;overflow-y:auto;padding:22px;border-radius:21px;background:#fbfaf5;color:#273f31;text-align:left;box-shadow:0 18px 70px #0009}
+.rules-dialog-top{display:flex;align-items:center;justify-content:space-between;gap:9px;font-size:10px;letter-spacing:1.4px;font-weight:900;color:#657b68}
+.rules-dialog-top button{border:0;background:#edf0e9;color:#273f31;border-radius:8px;width:35px;height:35px;font-size:27px;line-height:1}
+.rules-dialog h2{font-size:27px;margin:8px 0 11px;color:#183e2b;letter-spacing:-1px}
+.rules-dialog p,.rules-dialog li{font-size:13px;line-height:1.65;color:#43594a}
+.rules-dialog ol{padding-left:23px}.rules-dialog li{padding:4px 0}
+.rules-dialog .rules-done{border:0;background:#0c4b36;color:#fff;min-height:47px;border-radius:11px;font-weight:800;width:100%;margin-top:6px}
+/* Important: [hidden] must win over display:flex for either stage. */
+.tavla-lobby-v3 #lobbyHome[hidden],.tavla-lobby-v3 #lobbySetup[hidden]{display:none!important}
+@media(max-width:360px){
+ .tavla-lobby-v3 .welcome-art{width:175px;height:146px}
+ .tavla-lobby-v3 .playing-card{width:92px;height:132px}
+ .tavla-lobby-v3 .playing-card.ace-card{left:13px}
+ .tavla-lobby-v3 .playing-card.king-card{left:72px}
+ .tavla-lobby-v3 .welcome-actions{gap:10px}
+ .tavla-lobby-v3 .welcome-action{min-height:65px;border-radius:14px}
+ .tavla-lobby-v3 .welcome-action-symbol{width:38px;height:38px}
+}
+@media(max-height:690px){
+ .tavla-lobby-v3 .welcome-stage{padding-top:max(8px,env(safe-area-inset-top));padding-bottom:max(8px,env(safe-area-inset-bottom))}
+ .tavla-lobby-v3 .welcome-center{min-height:190px}
+ .tavla-lobby-v3 .welcome-art{transform:scale(.82);margin-bottom:-5px;height:150px}
+ body:not(.in-game) .tavla-lobby-v3 .welcome-center h1{font-size:52px}
+ .tavla-lobby-v3 .welcome-action{min-height:64px}
+ .tavla-lobby-v3 .welcome-actions{gap:9px;margin-bottom:12px}
+}
+@media(max-height:520px){
+ body:not(.in-game) .tavla-lobby-v3 .welcome-stage{min-height:520px}
+ .tavla-lobby-v3 .welcome-stage{overflow-y:auto}
+}
+@media(prefers-reduced-motion:reduce){.tavla-lobby-v3 .welcome-action{transition:none}}
+
+
+/* Tavla variant: matching Pişti's two-button UX, finished with walnut/cream detail. */
+body:not(.in-game){
+  background:#24170f;
+  background-image:radial-gradient(ellipse at 22% 28%,#563825 0%,#2b1b13 49%,#160f0d 100%);
+  color:#fff6e7;
+}
+body:not(.in-game) .tavla-lobby-v3{max-width:520px;width:100%;margin:0 auto;padding:0;text-align:center}
+body:not(.in-game) .tavla-lobby-v3 .welcome-stage{
+  background:transparent;
+  min-height:100vh;min-height:100dvh;
+}
+.tavla-lobby-v3 .welcome-stage::before,
+.tavla-lobby-v3 .welcome-stage::after{
+  content:"●";color:#d8a97714;
+  transform:rotate(-20deg);
+}
+.tavla-lobby-v3 .welcome-wordmark{color:#fff7e8}
+.tavla-lobby-v3 .welcome-network{color:#d4c2a3}
+.tavla-lobby-v3 .welcome-subtitle{color:#e7d6bf}
+.tavla-lobby-v3 .welcome-create{
+  background:linear-gradient(155deg,#fff3da,#eddbb8);color:#2e2117;
+  box-shadow:0 10px 25px #120c0a74;
+}
+.tavla-lobby-v3 .welcome-join{
+  color:#fff8e9;background:#291a14a8;
+  border-color:#ffffff66;
+}
+.tavla-lobby-v3 .welcome-action-symbol{background:#3d291c;color:#fff3dc}
+.tavla-lobby-v3 .welcome-join .welcome-action-symbol{background:transparent}
+.tavla-lobby-v3 .welcome-art{
+  width:230px;height:174px;margin:0 auto 15px;
+  filter:drop-shadow(0 13px 16px #0906059b);
+  transform:rotate(-8deg);
+}
+.tavla-lobby-v3 .cover-board{
+  box-sizing:border-box;position:absolute;left:15px;top:9px;
+  display:flex;width:204px;height:132px;padding:7px;
+  background:linear-gradient(145deg,#b9864f,#85512a 50%,#be8852);
+  border:7px ridge #b57a45;
+  border-radius:10px;
+  box-shadow:inset 0 0 0 2px #4f3119,0 9px 22px #170b0770;
+  overflow:hidden;
+}
+.tavla-lobby-v3 .cover-half{
+  box-sizing:border-box;position:relative;flex:1;display:flex;
+  background:#e8c48c;overflow:hidden;
+  border-top:2px solid #be905d;
+  border-bottom:2px solid #be905d;
+}
+.tavla-lobby-v3 .cover-half>i{
+  flex:1;background:#633b29;
+  height:83%;clip-path:polygon(0 0,100% 0,50% 100%);
+}
+.tavla-lobby-v3 .cover-half>i:nth-child(even){background:#f8e7c3}
+.tavla-lobby-v3 .cover-bar{flex:0 0 7px;background:linear-gradient(90deg,#5a2e17,#af7139,#67391c);box-shadow:0 0 2px #251307}
+.tavla-lobby-v3 .cover-stones{
+  position:absolute;z-index:2;top:7px;left:3px;display:flex;flex-direction:column;gap:1px;
+}
+.tavla-lobby-v3 .cover-stones-dark{left:auto;right:3px}
+.tavla-lobby-v3 .cover-stones b{
+  display:block;width:22px;height:22px;border-radius:50%;
+  border:2px solid #beb6a5;
+  background:radial-gradient(circle at 34% 28%,#fffef9,#ded6c4);
+  box-shadow:1px 2px 3px #26170985;
+}
+.tavla-lobby-v3 .cover-stones-dark b{
+  border-color:#2b231f;
+  background:radial-gradient(circle at 35% 28%,#76685a,#251e1a);
+}
+.tavla-lobby-v3 .cover-dice{
+  position:absolute;z-index:4;left:82px;bottom:9px;display:flex;gap:8px;
+  transform:rotate(9deg);
+}
+.tavla-lobby-v3 .cover-die{
+  width:35px;height:35px;display:grid;grid-template-columns:repeat(3,1fr);
+  grid-template-rows:repeat(3,1fr);align-items:center;justify-items:center;gap:2px;
+  padding:6px;box-sizing:border-box;background:#fffdf6;border:1px solid #c8b79c;
+  border-radius:7px;box-shadow:1px 3px 0 #bbab93,0 7px 11px #140b066e;
+}
+.tavla-lobby-v3 .cover-die i{width:5px;height:5px;border-radius:50%;background:#211b17}
+.tavla-lobby-v3 .cover-die.die-two i:nth-child(1){grid-area:1/1}
+.tavla-lobby-v3 .cover-die.die-two i:nth-child(2){grid-area:3/3}
+.tavla-lobby-v3 .cover-die.die-five i:nth-child(1){grid-area:1/1}
+.tavla-lobby-v3 .cover-die.die-five i:nth-child(2){grid-area:1/3}
+.tavla-lobby-v3 .cover-die.die-five i:nth-child(3){grid-area:2/2}
+.tavla-lobby-v3 .cover-die.die-five i:nth-child(4){grid-area:3/1}
+.tavla-lobby-v3 .cover-die.die-five i:nth-child(5){grid-area:3/3}
+body:not(.in-game) .tavla-lobby-v3 .welcome-center h1{color:#fff8eb}
+.tavla-lobby-v3 .welcome-action:focus-visible{outline-color:#e2ba81}
+.tavla-lobby-v3 .setup-heading{color:#fff2dc}
+.tavla-lobby-v3 .setup-heading>p{color:#dec095}
+.tavla-lobby-v3 .setup-heading h2{color:#fff5e7}
+.tavla-lobby-v3 .setup-heading>span{color:#d3bda2}
+.tavla-lobby-v3 .setup-suit{
+  box-sizing:border-box;background:#f8e5c5;border-radius:14px;
+  display:grid;place-items:center;transform:rotate(-8deg);
+}
+.tavla-lobby-v3 .setup-checker{
+  display:block;border-radius:50%;width:29px;height:29px;
+  background:radial-gradient(circle at 30% 28%,#faf9f5,#a99c89 85%);
+  box-shadow:0 2px 3px #5b3f2552;border:2px solid #9a8a71;
+}
+body:not(.in-game) .tavla-lobby-v3 .setup-card{
+  background:#fcf9f2;border:1px solid #fff2e0;color:#3c2c22;
+}
+body:not(.in-game) .tavla-lobby-v3 .setup-card>label,
+body:not(.in-game) .tavla-lobby-v3 .setup-card #joinForm label{
+  color:#876847;font-size:10px;font-weight:900;letter-spacing:1px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+body:not(.in-game) .tavla-lobby-v3 .setup-card #name,
+body:not(.in-game) .tavla-lobby-v3 .setup-card #code{
+  box-sizing:border-box;background:#fff;border:1px solid #e2d5c1;
+  color:#3f2a1c;min-height:51px;width:100%;border-radius:11px;
+}
+body:not(.in-game) .tavla-lobby-v3 .setup-card #code{
+  text-align:center;letter-spacing:10px;font-size:25px;font-weight:900;
+}
+body:not(.in-game) .tavla-lobby-v3 .setup-card #joinForm label{margin-top:17px}
+body:not(.in-game) .tavla-lobby-v3 .setup-card .lobby-form-note{
+  margin:15px 0;color:#89745f;font-size:12px;line-height:1.5;
+}
+body:not(.in-game) .tavla-lobby-v3 .setup-card .primary{
+  margin:0;display:flex;justify-content:space-between;align-items:center;gap:9px;
+  width:100%;min-height:53px;background:#442b1d;color:#fff5e5;
+  border:0;border-radius:12px;padding:12px 17px;font-size:15px;font-weight:850;
+}
+.tavla-lobby-v3 .setup-help{color:#cbb396}
+.tavla-lobby-v3 .rules-dialog{background:#fcf9f2;color:#453325}
+.tavla-lobby-v3 .rules-dialog h2{color:#4a2d1b}
+.tavla-lobby-v3 .rules-dialog .rules-done{background:#493021}
+body:not(.in-game) .rules-overlay .rules-done{background:#493021}
+.tavla-lobby-v3 #lobbyHome[hidden],.tavla-lobby-v3 #lobbySetup[hidden]{display:none!important}
+@media(max-width:360px){
+ .tavla-lobby-v3 .welcome-art{transform:scale(.9) rotate(-8deg);margin-bottom:-4px}
+}
+@media(max-height:690px){
+ .tavla-lobby-v3 .welcome-art{transform:scale(.82) rotate(-8deg);margin-bottom:-11px}
+}
