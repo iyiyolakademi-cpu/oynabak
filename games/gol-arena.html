@@ -6,9 +6,9 @@
 <meta name="theme-color" content="#0e352b">
 <meta name="robots" content="noindex,nofollow">
 <title>Gol Arena · OynaBak</title>
-<link rel="stylesheet" href="./gol-arena.css?v=20261030-online2">
+<link rel="stylesheet" href="./gol-arena.css?v=20261030-playfix3">
 <script src="../assets/supabase-client.bundle.js"></script>
-<script defer src="./gol-arena.js?v=20261030-online2"></script>
+<script defer src="./gol-arena.js?v=20261030-playfix3"></script>
 </head>
 <body>
 <main>
@@ -52,7 +52,7 @@
    <div id="waiting" class="wait-layer" hidden><span class="waiting-piece">⚽</span><b>Rakip bekleniyor</b><small>Oda kodunu paylaş.</small></div>
    <div id="goalBanner" class="goal-banner" hidden>GOOOL!</div>
   </div>
-  <div class="turn-bar"><span id="turnDot" class="turn-dot"></span><b id="turnText">Rakip bekleniyor</b><span id="turnHint">Oyuncunu geriye çekip bırak</span></div>
+  <div class="turn-bar"><span id="turnDot" class="turn-dot"></span><b id="turnText">Rakip bekleniyor</b><span id="turnHint">Önce kendi oyuncuna dokun</span></div>
   <div class="game-tools"><button id="rulesInGame" type="button">? Kurallar</button><button id="resign" type="button">Pes Et</button></div>
  </div>
  <div id="turnAnnouncement" class="turn-announcement" hidden><b id="announcementTitle">Sıra sende</b><span id="announcementSubtitle">MAVİ OYNUYOR</span></div>
@@ -60,7 +60,7 @@
 </main>
 <div id="confirmModal" class="overlay" hidden><div class="dialog"><h2>Maçtan ayrılmak istiyor musun?</h2><p>Maç rakibin galibiyetiyle sonuçlanır.</p><div class="dialog-actions"><button id="cancelResign" class="outline" type="button">Vazgeç</button><button id="confirmResign" type="button">Pes Et</button></div></div></div>
 <div id="finishModal" class="overlay" hidden><div class="dialog finish-dialog"><span class="finish-icon">🏆</span><h2 id="finishTitle">Maç sona erdi</h2><p id="finishReason"></p><button id="finishExit" type="button">Oyunlara Dön</button></div></div>
-<div id="rulesModal" class="overlay" hidden><div class="dialog rules-dialog"><div class="rules-heading"><span>OYNABAK · GOL ARENA</span><button id="rulesClose" type="button" aria-label="Kapat">×</button></div><h2>Nasıl Oynanır?</h2><p>Gol Arena iki telefonda oynanan sıra tabanlı futbol düellosudur. Her oyuncu kendi beş futbolcusunu ekranın altından görür.</p><ol><li>Bir mavi, bir kırmızı takım vardır. Mavi takım başlar.</li><li>Sıra sendeyken kendi oyuncuna dokun ve geriye çekip bırak. Oyuncu topa çarparak kaleye göndermeye çalışır.</li><li>Top veya oyuncular durana kadar yeni şut atılamaz. Sonra sıra rakibe geçer.</li><li>Top rakip kaleye girerse gol kazanırsın. 3 veya 5 gole ilk ulaşan takım maçı kazanır.</li><li>Oda koduyla iki farklı telefon veya bilgisayar bağlanabilir.</li></ol><button id="rulesDone" type="button">Anladım</button></div></div>
+<div id="rulesModal" class="overlay" hidden><div class="dialog rules-dialog"><div class="rules-heading"><span>OYNABAK · GOL ARENA</span><button id="rulesClose" type="button" aria-label="Kapat">×</button></div><h2>Nasıl Oynanır?</h2><p>Gol Arena iki telefonda oynanan sıra tabanlı futbol düellosudur. Her oyuncu kendi beş futbolcusunu ekranın altından görür.</p><ol><li>Bir mavi, bir kırmızı takım vardır. Mavi takım başlar.</li><li>Sıra sendeyken kendi futbolcuna dokunarak seç, ardından parmağını geriye çekip bırak. Oyuncu topa çarparak kaleye göndermeye çalışır.</li><li>Top veya oyuncular durana kadar yeni şut atılamaz. Sonra sıra rakibe geçer.</li><li>Top rakip kaleye girerse gol kazanırsın. 3 veya 5 gole ilk ulaşan takım maçı kazanır.</li><li>Oda koduyla iki farklı telefon veya bilgisayar bağlanabilir.</li></ol><button id="rulesDone" type="button">Anladım</button></div></div>
 <div id="toast" class="toast" role="alert" hidden></div>
 </body>
 </html>
