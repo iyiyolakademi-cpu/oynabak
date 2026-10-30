@@ -37,3 +37,21 @@ body.in-game .rolls span{font-size:9px}body.in-game .rolls b{font-size:13px}
 @media(prefers-reduced-motion:reduce){.dice-stage.rolling .die-face{animation:none}}
 
 #connection{font-size:10px;font-weight:800;color:#4c855e}body.in-game #connection{white-space:nowrap}.board{grid-template-columns:repeat(6,minmax(0,1fr)) 11px repeat(6,minmax(0,1fr))}.board::after{content:'';pointer-events:none;position:absolute;inset:0 auto 0 50%;transform:translateX(-50%);width:11px;background:linear-gradient(90deg,#603617,#a36b36,#603617);z-index:2}.board .point:nth-child(n+7):nth-child(-n+12){grid-column:span 1}body.in-game .point{touch-action:manipulation}@media(max-width:390px){body.in-game #connection{display:none}}
+
+/* The wooden bar occupies the real center column; do not let a point fall on it. */
+.board{grid-template-columns:repeat(6,minmax(0,1fr)) 12px repeat(6,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));grid-auto-flow:row}
+.board>.point{grid-row:1}
+.board>.point:nth-child(n+13){grid-row:2}
+.board>.point:nth-child(1),.board>.point:nth-child(13){grid-column:1}
+.board>.point:nth-child(2),.board>.point:nth-child(14){grid-column:2}
+.board>.point:nth-child(3),.board>.point:nth-child(15){grid-column:3}
+.board>.point:nth-child(4),.board>.point:nth-child(16){grid-column:4}
+.board>.point:nth-child(5),.board>.point:nth-child(17){grid-column:5}
+.board>.point:nth-child(6),.board>.point:nth-child(18){grid-column:6}
+.board>.point:nth-child(7),.board>.point:nth-child(19){grid-column:8}
+.board>.point:nth-child(8),.board>.point:nth-child(20){grid-column:9}
+.board>.point:nth-child(9),.board>.point:nth-child(21){grid-column:10}
+.board>.point:nth-child(10),.board>.point:nth-child(22){grid-column:11}
+.board>.point:nth-child(11),.board>.point:nth-child(23){grid-column:12}
+.board>.point:nth-child(12),.board>.point:nth-child(24){grid-column:13}
+.board::after{left:calc(50% - 6px);transform:none;width:12px}
