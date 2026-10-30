@@ -483,3 +483,32 @@ body:not(.pisti-playing) .pisti-lobby-v3 .setup-card .start-button{
  body.pisti-playing .hand .card{height:clamp(43px,19vh,60px);width:clamp(33px,13.2vh,44px)}
  body.pisti-playing .hand .card .big-suit{font-size:17px}
 }
+
+/* Phone portrait is the primary Pişti play surface; never ask for rotation. */
+@media (orientation:portrait) and (max-width:700px){
+ html,body{max-width:100%;overflow-x:hidden}
+ body.pisti-playing{height:100dvh;overflow:hidden;position:fixed;inset:0}
+ body.pisti-playing main{height:100dvh;min-height:0;max-width:100vw;overflow:hidden;padding:max(5px,env(safe-area-inset-top)) max(6px,env(safe-area-inset-right)) max(5px,env(safe-area-inset-bottom)) max(6px,env(safe-area-inset-left))}
+ body.pisti-playing .game{display:grid;grid-template-rows:auto auto auto minmax(0,1fr) auto;gap:clamp(3px,1vh,7px);height:100%;min-height:0}
+ body.pisti-playing .game-topline{grid-row:1;min-height:43px;max-width:100%;grid-template-columns:auto minmax(0,1fr) auto;overflow:hidden}
+ body.pisti-playing .game-topline #invite{display:none}
+ body.pisti-playing .scoreboard{grid-row:2;gap:5px}
+ body.pisti-playing .first-turn-banner{grid-row:3;min-height:30px}
+ body.pisti-playing .first-turn-banner[hidden]{display:none!important}
+ body.pisti-playing .felt{grid-row:4;flex:none;height:100%;width:100%;min-height:0;max-height:none;overflow:hidden;border-radius:23px;border-width:5px}
+ body.pisti-playing .my-rack{grid-row:5;min-height:0;max-width:100%;flex:none;padding:7px 7px 4px}
+ body.pisti-playing .hand{display:flex;justify-content:space-evenly;gap:clamp(3px,1vw,7px);min-height:0;padding:5px 0 3px}
+ body.pisti-playing .hand .card{width:clamp(46px,21vw,79px);height:clamp(64px,29vw,108px);border-radius:8px}
+ body.pisti-playing .opponent-area{top:6px}
+ body.pisti-playing .opponent-hand .card-back{width:clamp(19px,6vw,27px);height:clamp(26px,8vw,37px)}
+ body.pisti-playing .play-area{top:52%;gap:clamp(6px,2.8vw,17px)}
+ body.pisti-playing .stock-pile>.card-back,body.pisti-playing .center-pile .card,body.pisti-playing .center-pile .empty-pile{width:clamp(43px,13vw,66px);height:clamp(62px,19vw,96px)}
+ body.pisti-playing .help-line{font-size:9px;max-width:100%;overflow:hidden}
+}
+@media (orientation:portrait) and (max-height:680px){
+ body.pisti-playing .score-person,body.pisti-playing .score-center{min-height:42px;padding:3px 5px}
+ body.pisti-playing .game{gap:3px}
+ body.pisti-playing .hand .card{height:clamp(57px,22vw,86px);width:clamp(43px,17vw,63px)}
+ body.pisti-playing .my-rack{padding:4px 6px}
+ body.pisti-playing .rack-caption{font-size:8px}
+}
