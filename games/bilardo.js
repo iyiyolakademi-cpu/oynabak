@@ -132,13 +132,13 @@ function display(){
   $('actionHint').textContent='Kazanan belli oldu.';
   showWinner();
  }else if(activeShot||remoteAnimating||state.active){
-  $('status').textContent='Toplar hareket ediyor';$('turnLabel').textContent='Vuruş sürüyor';
+  $('status').textContent=(currentTurnColor()==='blue'?'Mavi':'Kırmızı')+' oynuyor';$('turnLabel').textContent='Vuruş sürüyor';
   $('actionHint').textContent='Masa iki telefonda güncelleniyor.';
  }else if(state.turn===state.seat){
-  $('status').textContent='Sıra sende';$('turnLabel').textContent=placing?'Beyaz topu yerleştir':'Vuruşunu yap';
+  $('status').textContent=currentTurnColor()==='blue'?"Sıra Mavi'de":"Sıra Kırmızı'da";$('turnLabel').textContent=placing?'Beyaz topu yerleştir':'Vuruşunu yap';
   $('actionHint').textContent=placing?'Boş bir noktaya dokun.':'Beyaz topu geriye çekip bırak.';
  }else{
-  $('status').textContent='Sıra rakipte';$('turnLabel').textContent='Rakibin oynuyor';
+  $('status').textContent=currentTurnColor()==='blue'?"Sıra Mavi'de":"Sıra Kırmızı'da";$('turnLabel').textContent='Rakibin oynuyor';
   $('actionHint').textContent='Rakibin vuruşunu bekle.';
  }
  $('ballHint').hidden=!(placing&&isMyTurn());
@@ -208,6 +208,13 @@ function startRemoteAnimation(action){
  if(state.snapshot)applySnapshot(state.snapshot);
  const cue=balls[0];
  if(cue.potted)return;
+ // Position the cue ball at the shooter's selected ball-in-hand spot.
+ // Previously each phone used a different location after a white-ball foul.
+ const x=Number(action.cx),y=Number(action.cy);
+ if(Number.isFinite(x)&&Number.isFinite(y)&&x>=LEFT+RADIUS&&x<=RIGHT-RADIUS&&y>=TOP+RADIUS&&y<=BOTTOM-RADIUS){
+  cue.x=x;cue.y=y;
+ }
+ placing=false;
  remoteAnimating=true;remoteShotNo=shotNo;
  cue.vx=Number(action.dx)*Number(action.speed);
  cue.vy=Number(action.dy)*Number(action.speed);
@@ -275,9 +282,11 @@ function draw(){
  // Outer band always identifies the player whose turn is active.
  c.fillStyle=currentTurnColor()==='blue'?'#278de8':currentTurnColor()==='red'?'#eb5d60':'#103c31';
  c.fillRect(0,0,W,H);
- c.fillStyle='#050505';c.fillRect(0,0,W,10);c.fillRect(0,H-10,W,10);
- c.fillStyle='#91533b';roundedRect(c,0,10,W,H-20,8);c.fill();
- c.strokeStyle='#a26649';c.lineWidth=2;roundedRect(c,2,12,W-4,H-24,8);c.stroke();
+ // Leave a permanent 9px visible blue/red rail on both phone edges.
+ // The felt and active ball coordinates remain unchanged.
+ c.fillStyle='#050505';c.fillRect(9,7,W-18,10);c.fillRect(9,H-17,W-18,10);
+ c.fillStyle='#91533b';roundedRect(c,9,16,W-18,H-32,8);c.fill();
+ c.strokeStyle='#a26649';c.lineWidth=2;roundedRect(c,11,18,W-22,H-36,8);c.stroke();
  // Rails extend to both screen edges; there is no pink footer.
  c.fillStyle='#050604';roundedRect(c,16,24,W-32,H-48,7);c.fill();
  c.fillStyle='#347e41';c.fillRect(27,39,W-54,H-78);
@@ -383,12 +392,13 @@ function beginPlace(x,y){
 async function shot(dx,dy,speed){
  if(!isMyTurn()||activeShot)return;
  activeShot=true;shotStarted=0;
+ const cx=Math.round(balls[0].x*100)/100,cy=Math.round(balls[0].y*100)/100;
  try{
-  const snapshot=await rpc('ob_bilardo_act',{p_code:session.room,p_token:session.token,p_action:'shot',p_payload:{dx,dy,speed}});
+  const snapshot=await rpc('ob_bilardo_act',{p_code:session.room,p_token:session.token,p_action:'shot',p_payload:{dx,dy,speed,cx,cy}});
   state=snapshot;firstHit=null;ownPocket=false;whitePocket=false;blackPocket=false;localWinner=null;
   const cue=balls[0];cue.vx=dx*speed;cue.vy=dy*speed;
   shotStarted=performance.now();
-  broadcast('shot',{shot:state.shot,dx,dy,speed});
+  broadcast('shot',{shot:state.shot,dx,dy,speed,cx,cy});
   display();
  }catch(e){activeShot=false;shotStarted=0;notify(e.message);await refresh()}
 }
