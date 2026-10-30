@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#003226">
+<meta name="robots" content="noindex,nofollow">
+<title>Bilardo · OynaBak</title>
+<link rel="stylesheet" href="./bilardo.css?v=20261030-portrait1">
+<script src="../assets/supabase-client.bundle.js"></script>
+<script defer src="./bilardo.js?v=20261030-portrait1"></script>
+</head>
+<body>
+<main>
+<section id="lobby" class="lobby">
+ <div id="welcome" class="welcome">
+  <header class="brand-head"><strong>O Y N A B A K</strong><span id="network">Bağlanıyor</span></header>
+  <div class="welcome-center">
+   <div class="cover-art" aria-hidden="true">
+    <div class="cover-table"><span class="cover-pocket tl"></span><span class="cover-pocket tr"></span><span class="cover-pocket bl"></span><span class="cover-pocket br"></span><span class="cover-pocket ml"></span><span class="cover-pocket mr"></span>
+     <div class="cover-rack">
+      <span class="cover-ball yellow"></span><span class="cover-ball blue"></span><span class="cover-ball red"></span><span class="cover-ball black"></span><span class="cover-ball orange"></span><span class="cover-ball purple"></span><span class="cover-ball yellow"></span><span class="cover-ball green"></span><span class="cover-ball red"></span><span class="cover-ball blue"></span>
+     </div>
+     <span class="cover-cueball"></span><span class="cover-stick"></span>
+    </div>
+   </div>
+   <h1>Bilardo</h1><p>İki telefonda, aynı masada.</p>
+  </div>
+  <div class="welcome-bottom">
+   <div class="actions">
+    <button id="createChoose" class="cta primary" type="button"><span class="cta-icon">+</span><strong>Oda Oluştur</strong><span class="cta-arrow">›</span></button>
+    <button id="joinChoose" class="cta outlined" type="button"><span class="players-mark" aria-hidden="true"><i></i><i></i></span><strong>Kodla Katıl</strong><span class="cta-arrow">›</span></button>
+   </div>
+   <button id="resume" class="resume" type="button" hidden>Son masama dön</button>
+   <footer><a id="back" href="../#play" aria-label="Oyun listesine geri dön">‹</a><button id="rulesOpen" type="button"><span class="help-dot">?</span> Nasıl Oynanır?</button></footer>
+  </div>
+ </div>
+ <div id="setup" class="setup" hidden>
+  <header><button id="setupBack" aria-label="Geri dön" type="button">‹</button><strong>OYNABAK / BİLARDO</strong><small>2 KİŞİ</small></header>
+  <div class="setup-heading"><div class="setup-ball" aria-hidden="true">8</div><span>CANLI BİLARDO</span><h2 id="setupTitle">Yeni masa oluştur</h2><p id="setupDesc">Masanı oluştur, 4 haneli kodunu arkadaşına gönder.</p></div>
+  <div class="setup-card">
+   <label for="name">OYUNCU ADIN</label><input id="name" type="text" minlength="2" maxlength="18" placeholder="Adını yaz" autocomplete="nickname">
+   <form id="createForm"><p>Bir kişi kırmızı, diğeri mavi toplarla oynar.</p><button type="submit">Oda Oluştur <span>→</span></button></form>
+   <form id="joinForm" hidden><label for="code">4 HANELİ ODA KODU</label><input id="code" type="text" maxlength="4" inputmode="numeric" pattern="[0-9]{4}" placeholder="0000" autocomplete="one-time-code"><p>Arkadaşından aldığın kodu yaz.</p><button type="submit">Masaya Katıl <span>→</span></button></form>
+  </div><p class="setup-small">Telefonu çevirmeden, dikey ekranda oyna.</p>
+ </div>
+</section>
+<section id="game" class="game" hidden>
+ <div class="game-header">
+  <button id="copy" type="button" class="room"><small>ODA KODU</small><strong id="roomLabel">----</strong></button>
+  <div class="game-status"><strong id="status">Rakip bekleniyor</strong><small id="presence">Rakip bekleniyor</small></div>
+  <button id="leave" class="exit" type="button">Çıkış</button>
+ </div>
+ <div class="players">
+  <div class="person opp"><span class="colour-dot blue"></span><span><small>RAKİP</small><strong id="oppName">Bekleniyor</strong></span><b id="oppScore">7</b></div>
+  <div class="person me"><span class="colour-dot red"></span><span><small>SEN</small><strong id="myName">Oyuncu</strong></span><b id="myScore">7</b></div>
+ </div>
+ <div class="table-wrap"><canvas id="table" aria-label="Dikey bilardo masası; beyaz topu geriye çekip bırakarak vur"></canvas>
+  <div id="waiting" class="table-wait"><strong>İkinci oyuncu bekleniyor</strong><p>Oda kodunu arkadaşınla paylaş.</p></div>
+  <div id="ballHint" class="ball-hint" hidden>Beyaz topu yerleştirmek için masaya dokun.</div>
+ </div>
+ <div class="controls"><div class="control-copy"><strong id="turnLabel">Rakip bekleniyor</strong><span id="actionHint">İki oyuncu katılınca başlayacak.</span></div><div class="power"><span>VURUŞ GÜCÜ</span><div class="track"><div id="powerFill"></div></div></div></div>
+</section>
+</main>
+<div id="toast" class="toast" role="alert" hidden></div>
+<div id="rulesModal" class="rules-overlay" hidden><div class="rules-box" role="dialog" aria-modal="true" aria-labelledby="rulesTitle">
+ <div class="rules-head"><span>BİLARDO · OYNABAK</span><button id="rulesClose" type="button" aria-label="Kapat">×</button></div>
+ <h2 id="rulesTitle">Nasıl Oynanır?</h2>
+ <p>İki telefonla karşılıklı Bilardo oynayın. Sırası gelen oyuncu beyaz topa dokunup geriye çekerek vuruşunu yapar.</p>
+ <ol><li>Bir oyuncu kırmızı, diğeri mavi topları toplar.</li><li>Kendi rengindeki tüm topları bitirince siyah 8 numaralı topu sokarak kazanırsın.</li><li>Yanlış topa ilk temas veya beyaz topun deliğe girmesi fauldür; rakibe sıra geçer.</li><li>Toplar hareket hâlindeyken yeni vuruş yapılamaz. Masa iki telefonda eşitlenir.</li></ol>
+ <button id="rulesDone" type="button">Anladım</button>
+ </div></div>
+<div id="winnerModal" class="winner-overlay" hidden><div class="winner-box"><div class="winner-ball">8</div><h2 id="winnerTitle">Maç tamamlandı</h2><p id="winnerText"></p><button id="winnerExit" type="button">Oyunlara dön</button></div></div>
+</body>
+</html>
