@@ -10,7 +10,7 @@ const R=29,BR=17;
 let db=null,room=null,session=null,channel=null,channelReady=false,board=[],pitchBall=null;
 let pollTimer=null,pingTimer=null,polling=false,activeShot=false,remoteAnimating=false,lastSeenShot=0;
 let previous=0,lastDraw=0,started=0,selected=-1,drag=null,aiming=false,lastVersion=-1,finishing=false;
-let scored=null,finishShown=false,announced='',annTimer=null;
+let scored=null,finishShown=false,announced='',annTimer=null,shotAuthorizing=false;
 const canvas=$('pitch'),ctx=canvas.getContext('2d');
 let sx=1,sy=1,dpr=1;
 function object(x,y,team,id,r=R){return{id,team,x,y,vx:0,vy:0,r,potted:false}}
@@ -41,10 +41,10 @@ function lobby(){document.body.classList.remove('playing');$('lobby').hidden=fal
  $('resume').hidden=!stored();$('resume').textContent=stored()?'Son maça dön: '+stored().room:'Son maça dön';
 }
 function stop(){clearInterval(pollTimer);clearInterval(pingTimer);pollTimer=pingTimer=null;const old=channel;channel=null;channelReady=false;if(old&&db?.removeChannel)db.removeChannel(old).catch?.(()=>{})}
-function leave(){stop();room=null;session=null;activeShot=false;remoteAnimating=false;selected=-1;aiming=false;lastVersion=-1;finishing=false;announced='';finishShown=false;clear();lobby()}
+function leave(){stop();room=null;session=null;activeShot=false;remoteAnimating=false;shotAuthorizing=false;selected=-1;aiming=false;lastVersion=-1;finishing=false;announced='';finishShown=false;clear();lobby()}
 function myTeam(){return room?.team||'blue'}
 function activeTeam(){return room?.turn===room?.blue_seat?'blue':'red'}
-function canPlay(){return room?.status==='playing'&&room.turn===room.seat&&!room.active&&!activeShot&&!remoteAnimating&&!finishing}
+function canPlay(){return room?.status==='playing'&&room.turn===room.seat&&!room.active&&!activeShot&&!remoteAnimating&&!finishing&&!shotAuthorizing}
 function teamSeat(t){return t==='blue'?room.blue_seat:1-room.blue_seat}
 function nameFor(t){return room?.players?.[teamSeat(t)]?.name||'Bekleniyor'}
 function appliedSnapshot(v){
@@ -70,7 +70,7 @@ function display(){
  $('turnDot').style.background=turn==='blue'?'#15a9fb':'#ed5c65';
  $('gameStatus').textContent=room.status==='waiting'?'Rakip bekleniyor':room.status==='finished'?'Maç tamamlandı':mine?'Sıra sende':'Sıra onda';
  $('turnText').textContent=room.status==='waiting'?'Rakip bekleniyor':room.status==='finished'?'Maç bitti':mine?'Sıra sende':'Sıra onda';
- $('turnHint').textContent=room.status==='playing'?(turn==='blue'?'Mavi takım':'Kırmızı takım'):'Oda kodunu paylaş';
+ $('turnHint').textContent=room.status!=='playing'?'Oda kodunu paylaş':room.active?'Şut devam ediyor':mine?(selected>=0?'Seçili futbolcudan geriye çek':'Futbolcuna dokun ve geriye çek'):'Rakibin şutunu bekle';
  document.body.classList.toggle('turn-blue',room.status==='playing'&&turn==='blue');
  document.body.classList.toggle('turn-red',room.status==='playing'&&turn==='red');
  if(room.status==='finished')showFinish();else announce();
@@ -91,9 +91,24 @@ function showFinish(){
  $('finishModal').hidden=false;
 }
 function resize(){
- const r=canvas.getBoundingClientRect();dpr=Math.min(window.innerWidth<720?1.25:1.5,devicePixelRatio||1);
- canvas.width=Math.max(1,Math.round(r.width*dpr));canvas.height=Math.max(1,Math.round(r.height*dpr));
+ const field=document.querySelector('.pitch-wrap');
+ const inner=document.querySelector('.game-inner');
+ const game=$('game');
+ const header=game.querySelector('.game-bar');
+ const elements=[header,document.querySelector('.score-panel'),document.querySelector('.turn-bar'),document.querySelector('.game-tools')];
+ // A measured viewport budget avoids invalid CSS calc() widths and zero-height
+ // canvas on iOS Safari. The pitch takes all available space after controls.
+ const availableH=(game.clientHeight||window.innerHeight)-elements.reduce((a,e)=>a+(e?.offsetHeight||0),0)-53;
+ const availableW=Math.min((inner?.clientWidth||window.innerWidth)-6,window.innerWidth-10,570);
+ const height=Math.max(210,Math.min(availableH,availableW*H/W));
+ const width=height*W/H;
+ field.style.width=Math.round(width)+'px';
+ field.style.height=Math.round(height)+'px';
+ dpr=Math.min(window.innerWidth<720?1.25:1.5,window.devicePixelRatio||1);
+ canvas.width=Math.max(1,Math.round(width*dpr));
+ canvas.height=Math.max(1,Math.round(height*dpr));
  sx=canvas.width/W;sy=canvas.height/H;
+ draw();
 }
 function visualPoint(x,y){return myTeam()==='red'?{x:W-x,y:H-y}:{x,y}}
 function screenPoint(e){
@@ -130,6 +145,9 @@ function draw(){
   else{grad.addColorStop(0,'#fff');grad.addColorStop(.8,'#edf3ee');grad.addColorStop(1,'#95a19b')}
   c.fillStyle=grad;c.beginPath();c.arc(p.x,p.y,p.r,0,Math.PI*2);c.fill();
   c.strokeStyle='#ffffffba';c.lineWidth=3;c.stroke();
+  if(p.id===selected&&p.team===myTeam()){
+   c.beginPath();c.arc(p.x,p.y,p.r+7,0,Math.PI*2);c.lineWidth=5;c.strokeStyle='#fff6b6';c.stroke();
+  }
   if(p.team==='ball'){
    c.fillStyle='#1c2522';c.beginPath();c.arc(p.x,p.y,8,0,Math.PI*2);c.fill();
   }else{
@@ -213,14 +231,22 @@ async function refresh(){
 }
 async function beginShot(index,vx,vy){
  if(!canPlay())return;
- activeShot=true;scored=null;
+ // Do not start the physics loop until the server has accepted the shot.
+ // Previously activeShot became true before the RPC returned and animation
+ // tried to "finish" a shot that had not yet been started on the server.
+ shotAuthorizing=true;scored=null;
+ const expectedRoom=session.room;
  try{
-  const next=await api('ob_goal_act',{p_code:session.room,p_token:session.token,p_action:'shot',p_payload:{player:index,vx,vy,version:room.version}});
+  const next=await api('ob_goal_act',{p_code:expectedRoom,p_token:session.token,p_action:'shot',p_payload:{player:index,vx,vy,version:room.version}});
+  if(!session||session.room!==expectedRoom)return;
   room=next;lastVersion=next.version;lastSeenShot=next.shot;
-  board[index].vx=vx;board[index].vy=vy;started=performance.now();
+  board[index].vx=vx;board[index].vy=vy;
+  started=performance.now();
+  activeShot=true;
   broadcast('shot',{shot:next.shot,player:index,vx,vy});
   display();
- }catch(e){activeShot=false;notify(e.message);refresh()}
+ }catch(e){notify(e.message);refresh()}
+ finally{shotAuthorizing=false}
 }
 async function finishShot(){
  if(!session||finishing)return;
@@ -243,7 +269,7 @@ function animate(t){
  if(!document.body.classList.contains('playing')||document.hidden){previous=t;return}
  if(t-lastDraw<32)return;
  const dt=previous?Math.min(44,t-previous):32;previous=t;lastDraw=t;
- if(activeShot||remoteAnimating){
+ if((activeShot&&started>0)||remoteAnimating){
   if(dt>24){physics(dt/2);physics(dt/2)}else physics(dt);
   if(scored&&remoteAnimating){setBoard(starting())}
   const moving=board.some(p=>Math.hypot(p.vx,p.vy)>.18);
@@ -255,19 +281,36 @@ function animate(t){
  draw();
 }
 function pointDown(e){
- if(!canPlay())return;e.preventDefault();const p=screenPoint(e);
- const team=myTeam();const idx=board.findIndex(o=>o.team===team&&Math.hypot(o.x-p.x,o.y-p.y)<o.r+24);
- if(idx<0){selected=-1;return}
- selected=idx;drag=p;aiming=true;try{canvas.setPointerCapture(e.pointerId)}catch(_){}
+ if(!canPlay()){
+  if(room?.status==='waiting')notify('İkinci oyuncunun katılmasını bekle');
+  else if(room?.status==='playing'&&room.turn!==room.seat)notify('Şimdi sıra rakibinde');
+  return;
+ }
+ e.preventDefault();
+ const p=screenPoint(e),team=myTeam();
+ const i=board.findIndex(o=>o.team===team&&Math.hypot(o.x-p.x,o.y-p.y)<o.r+42);
+ if(i>=0)selected=i;
+ else if(selected<0){notify('Önce kendi futbolcuna dokun');return}
+ drag=p;aiming=true;
+ display();
+ try{canvas.setPointerCapture(e.pointerId)}catch(_){}
 }
-function pointMove(e){if(!aiming)return;drag=screenPoint(e)}
+function pointMove(e){if(!aiming)return;e.preventDefault();drag=screenPoint(e)}
 function pointUp(e){
- if(!aiming||selected<0)return;e.preventDefault();const p=screenPoint(e),player=board[selected];
- let dx=player.x-p.x,dy=player.y-p.y;const distance=Math.hypot(dx,dy),index=selected;
- aiming=false;selected=-1;drag=null;
- if(distance<14)return;
- const speed=4+Math.min(distance/145,1)*22;
- beginShot(index,dx/distance*speed,dy/distance*speed);
+ if(!aiming||selected<0)return;
+ e.preventDefault();
+ const p=screenPoint(e),player=board[selected];
+ const dx=player.x-p.x,dy=player.y-p.y,dist=Math.hypot(dx,dy),index=selected;
+ aiming=false;drag=null;
+ if(dist<15){
+  // First tap selects and highlights the disk. Next gesture can start anywhere
+  // on the pitch, not only from inside its tiny on-screen circle.
+  notify('Oyuncu seçildi · geriye çekip bırak');
+  display();return;
+ }
+ selected=-1;
+ const speed=4+Math.min(dist/145,1)*22;
+ beginShot(index,dx/dist*speed,dy/dist*speed);
 }
 async function openRoom(code=null,token=null,nm=null){
  if(!db)throw Error('Sunucu bağlantısı yok');
@@ -277,7 +320,7 @@ async function openRoom(code=null,token=null,nm=null){
  const data=await api('ob_goal_open',{p_venue_id:VENUE,p_name:name,p_code:code,p_token:token,p_goal_target:target});
  if(data.venue!==VENUE)throw Error('İşletme doğrulanamadı');
  session={room:data.room,token:data.token,name};save();
- room=data;lastVersion=data.version;lastSeenShot=data.shot;activeShot=false;remoteAnimating=false;finishShown=false;scored=null;announced='';
+ room=data;lastVersion=data.version;lastSeenShot=data.shot;activeShot=false;remoteAnimating=false;shotAuthorizing=false;finishShown=false;scored=null;announced='';selected=-1;
  setBoard(starting());appliedSnapshot(data.snapshot);
  $('lobby').hidden=true;$('game').hidden=false;document.body.classList.add('playing');
  resize();display();stop();connect();
