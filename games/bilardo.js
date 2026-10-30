@@ -10,8 +10,9 @@ const POCKET_CAPTURE_RADIUS=28,POCKET_GUIDE_RADIUS=38;
 const pockets=[{x:40,y:81},{x:360,y:81},{x:40,y:430},{x:360,y:430},{x:40,y:779},{x:360,y:779}];
 const colors={red:'#dd433c',blue:'#307cd2',black:'#191d1d',cue:'#f4f4ec'};
 let db,session=null,state=null,balls=makeBalls(),pollTimer=null,heartbeat=null;
-let activeShot=false,lastFrame=-1,aiming=false,drag=null,previous=0,lastFrameSent=0,shotStarted=0;
-let firstHit=null,ownPocket=false,whitePocket=false,blackPocket=false,localWinner=null,placing=false,finishedUi=false,polling=false,joinMode=false,framePending=null;
+let activeShot=false,lastFrame=-1,aiming=false,drag=null,previous=0,shotStarted=0;
+let remoteAnimating=false,remoteShotNo=0,channel=null,channelReady=false,lastPaint=0;
+let firstHit=null,ownPocket=false,whitePocket=false,blackPocket=false,localWinner=null,placing=false,finishedUi=false,polling=false,joinMode=false;
 let announcedTurn=null,turnToastTimer=null;
 const canvas=$('table'),ctx=canvas.getContext('2d');
 let sx=1,sy=1,scale=1,dpr=1;
@@ -35,7 +36,7 @@ function makeBalls(){
  return a;
 }
 function remaining(type){return balls.filter(b=>b.type===type&&!b.potted).length}
-function isMyTurn(){return state?.status==='playing'&&state.turn===state.seat&&!state.active&&!activeShot}
+function isMyTurn(){return state?.status==='playing'&&state.turn===state.seat&&!state.active&&!activeShot&&!remoteAnimating}
 function myColor(){return state?.seat===0?'red':'blue'}
 function otherColor(){return state?.seat===0?'blue':'red'}
 function seatName(n){return state?.players?.[n]?.name||'Bekleniyor'}
@@ -91,7 +92,7 @@ async function openRoom(code=null,token=null,override=null){
  const data=await rpc('ob_bilardo_open',{p_venue_id:VENUE,p_name:name,p_code:code,p_token:token});
  if(data.venue!==VENUE)throw Error('İşletme doğrulanamadı');
  session={room:data.room,token:data.token,name};
- persist();state=data;activeShot=false;lastFrame=-1;finishedUi=false;placing=false;announcedTurn=null;
+ persist();state=data;activeShot=false;remoteAnimating=false;remoteShotNo=0;lastFrame=-1;finishedUi=false;placing=false;announcedTurn=null;
  balls=makeBalls();applySnapshot(state.snapshot);
  enterGame();
 }
@@ -99,13 +100,14 @@ function enterGame(){
  $('lobby').hidden=true;$('game').hidden=false;document.body.classList.add('playing');
  document.querySelector('meta[name="theme-color"]')?.setAttribute('content','#f49b7e');
  resize();display();clearInterval(pollTimer);clearInterval(heartbeat);
- pollTimer=setInterval(refresh,480);
+ pollTimer=setInterval(refresh,400);
+ connectLiveRoom();
  heartbeat=setInterval(()=>{if(session&&!document.hidden&&!activeShot)rpc('ob_bilardo_act',{p_code:session.room,p_token:session.token,p_action:'ping'}).catch(()=>{})},7000);
  refresh();
 }
 function exitGame(){
  clearInterval(pollTimer);clearInterval(heartbeat);pollTimer=null;heartbeat=null;
- activeShot=false;aiming=false;session=null;state=null;placing=false;clearSession();showWelcome();
+ disconnectLiveRoom();activeShot=false;remoteAnimating=false;aiming=false;session=null;state=null;placing=false;clearSession();showWelcome();
 }
 function display(){
  if(!state)return;
@@ -129,7 +131,7 @@ function display(){
   $('status').textContent='Maç tamamlandı';$('turnLabel').textContent='Oyun sona erdi';
   $('actionHint').textContent='Kazanan belli oldu.';
   showWinner();
- }else if(activeShot||state.active){
+ }else if(activeShot||remoteAnimating||state.active){
   $('status').textContent='Toplar hareket ediyor';$('turnLabel').textContent='Vuruş sürüyor';
   $('actionHint').textContent='Masa iki telefonda güncelleniyor.';
  }else if(state.turn===state.seat){
@@ -163,25 +165,85 @@ function applySnapshot(data){
  placing=Boolean(data.placing);
  display();
 }
+// Realtime broadcasts are only an early visual hint. The RPC remains authoritative.
+function connectLiveRoom(){
+ disconnectLiveRoom();
+ if(!db?.channel||!session)return;
+ try{
+  channel=db.channel('ob-bilardo-2:'+VENUE+':'+session.room,{config:{broadcast:{self:false}}});
+  channel.on('broadcast',{event:'shot'},({payload})=>{
+   if(!session||!payload)return;
+   if(state?.status==='playing'&&state.turn!==state.seat&&Number(payload.shot)===(state.shot||0)+1){
+    startRemoteAnimation(payload);
+   }
+   refresh();
+  });
+  channel.on('broadcast',{event:'finish'},()=>refresh());
+  channel.subscribe(status=>{channelReady=status==='SUBSCRIBED'});
+ }catch(e){channel=null;channelReady=false}
+}
+function disconnectLiveRoom(){
+ channelReady=false;
+ const old=channel;channel=null;
+ if(old&&db?.removeChannel)db.removeChannel(old).catch?.(()=>{});
+}
+function broadcast(event,payload){
+ if(!channelReady||!channel)return;
+ try{
+  Promise.resolve(channel.send({type:'broadcast',event,payload})).catch(()=>{});
+ }catch(e){}
+}
+function validShotAction(action){
+ const dx=Number(action?.dx),dy=Number(action?.dy),speed=Number(action?.speed),shot=Number(action?.shot);
+ return action?.type==='shot'&&Number.isInteger(shot)&&shot>=1&&Number.isFinite(dx)&&Number.isFinite(dy)
+   &&Math.abs(dx)<=1.01&&Math.abs(dy)<=1.01&&Math.hypot(dx,dy)>.9
+   &&Number.isFinite(speed)&&speed>=4&&speed<=36;
+}
+function startRemoteAnimation(action){
+ if(!session||!state||!validShotAction(action)||activeShot)return;
+ const shotNo=Number(action.shot);
+ if(state.turn===state.seat||remoteShotNo>=shotNo)return;
+ // A fresh shot starts from the last completed, server-persisted board.
+ // Never overwrite running motion with stale frame snapshots.
+ if(state.snapshot)applySnapshot(state.snapshot);
+ const cue=balls[0];
+ if(cue.potted)return;
+ remoteAnimating=true;remoteShotNo=shotNo;
+ cue.vx=Number(action.dx)*Number(action.speed);
+ cue.vy=Number(action.dy)*Number(action.speed);
+ balls.forEach(b=>{if(b.id!==0){b.vx=0;b.vy=0}});
+ display();
+}
 async function refresh(){
  if(!session||polling||document.hidden)return;
  polling=true;
+ const requestRoom=session.room;
  try{
   const next=await rpc('ob_bilardo_state',{p_code:session.room,p_token:session.token});
-  if(!session||next.room!==session.room)return;
-  if(!activeShot&&next.frame!==lastFrame){
-   lastFrame=next.frame;
-   applySnapshot(next.snapshot);
+  if(!session||next.room!==requestRoom)return;
+  if(activeShot){
+   // Shooter owns the local physics until the finish RPC succeeds.
+   state={...state,opponent_online:next.opponent_online};
+  }else{
+   const completed=remoteAnimating&&(!next.active||next.shot>remoteShotNo||next.status==='finished');
+   if(completed)remoteAnimating=false;
+   const changed=next.frame!==lastFrame;
+   state=next;
+   if((changed||completed)&&!remoteAnimating){
+    lastFrame=next.frame;
+    applySnapshot(next.snapshot);
+   }
+   if(next.status==='playing'&&next.active&&next.last_action?.type==='shot'){
+    startRemoteAnimation(next.last_action);
+   }
   }
-  if(!activeShot)state=next;
-  else state={...state,opponent_online:next.opponent_online};
   display();
  }catch(e){$('presence').textContent='Bağlantı yenileniyor';}
  finally{polling=false}
 }
 function resize(){
  const r=canvas.getBoundingClientRect();
- dpr=Math.min(2,window.devicePixelRatio||1);
+ dpr=Math.min(window.innerWidth<720?1.25:1.5,window.devicePixelRatio||1);
  canvas.width=Math.max(1,Math.floor(r.width*dpr));
  canvas.height=Math.max(1,Math.floor(r.height*dpr));
  sx=canvas.width/W;sy=canvas.height/H;scale=Math.min(sx,sy);
@@ -319,7 +381,9 @@ async function shot(dx,dy,speed){
   const snapshot=await rpc('ob_bilardo_act',{p_code:session.room,p_token:session.token,p_action:'shot',p_payload:{dx,dy,speed}});
   state=snapshot;firstHit=null;ownPocket=false;whitePocket=false;blackPocket=false;localWinner=null;
   const cue=balls[0];cue.vx=dx*speed;cue.vy=dy*speed;
-  shotStarted=performance.now();lastFrameSent=0;display();
+  shotStarted=performance.now();
+  broadcast('shot',{shot:state.shot,dx,dy,speed});
+  display();
  }catch(e){activeShot=false;shotStarted=0;notify(e.message);await refresh()}
 }
 async function sendFrame(action,next=null,winner=null){
@@ -344,36 +408,41 @@ async function finishShot(){
  }
  try{
   await sendFrame('finish',next,winner);
+  broadcast('finish',{shot:state.shot});
  }catch(e){notify('Vuruş kaydedilemedi: '+e.message)}
  activeShot=false;display();
 }
+// Limit costly full-table canvas redraws to 30fps on phones.
+// Both clients simulate the same authorized impulse; only the shooter submits
+// one final authoritative snapshot, instead of sending 5 full frames/second.
 function animate(t){
- const dt=previous?Math.min(33,t-previous):16;previous=t;
- if(activeShot&&shotStarted>0){
-  physics(dt);
+ requestAnimationFrame(animate);
+ if(document.hidden||!document.body.classList.contains('playing')){previous=t;return}
+ if(t-lastPaint<32)return;
+ const dt=previous?Math.min(40,t-previous):32;
+ previous=t;lastPaint=t;
+ if((activeShot&&shotStarted>0)||remoteAnimating){
+  if(dt>23){physics(dt/2);physics(dt/2)}else physics(dt);
   const moving=balls.some(b=>!b.potted&&Math.hypot(b.vx,b.vy)>.12);
-  if(t-lastFrameSent>200&&!framePending){
-   lastFrameSent=t;
-   framePending=sendFrame('frame').catch(()=>{}).finally(()=>{framePending=null});
-  }
-  if(!moving&&t-shotStarted>160){
-   activeShot=false;
-   finishShotFromLoop();
-  }else if(t-shotStarted>24000){
-   balls.forEach(b=>{b.vx=b.vy=0});
-   activeShot=false;finishShotFromLoop();
+  if(activeShot){
+   if(!moving&&t-shotStarted>180){
+    activeShot=false;
+    finishShotFromLoop();
+   }else if(t-shotStarted>24000){
+    balls.forEach(b=>{b.vx=b.vy=0});
+    activeShot=false;finishShotFromLoop();
+   }
+  }else if(!moving){
+   remoteAnimating=false; // still wait for the server's authoritative finish.
   }
  }
- draw();requestAnimationFrame(animate);
+ draw();
 }
 let finalizing=false;
 async function finishShotFromLoop(){
  if(finalizing||!session)return;
  finalizing=true;activeShot=true;
- try{
-  if(framePending)await framePending.catch(()=>{});
-  await finishShot();
- }finally{activeShot=false;shotStarted=0;finalizing=false}
+ try{await finishShot()}finally{activeShot=false;shotStarted=0;finalizing=false}
 }
 function pointerDown(e){
  if(!isMyTurn())return;
