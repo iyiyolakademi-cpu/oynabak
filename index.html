@@ -7013,6 +7013,11 @@ function menuPublicHtml(menu=venue?.menu){
     });
   });
 
+  // Kahvaltı 11:00-15:00, yatay müşteri menüsünde ilk kategori olarak görünür.
+  // İşletmenin kayıtlı kategori ve ürün sıralamasını değiştirmez.
+  const breakfastIndex=cats.findIndex(c=>/^kahvaltı\s*(?:\(\s*)?11[:.]00\s*[-–—]\s*15[:.]00/.test(c.name.trim().toLocaleLowerCase('tr-TR')));
+  if(breakfastIndex>0)cats.unshift(cats.splice(breakfastIndex,1)[0]);
+
   if(!cats.length)return `<div class="menu-screen">
     <div class="menu-restaurant-hero">
       <div class="menu-restaurant-brand">OynaBak Menü</div>
