@@ -14,6 +14,7 @@ let activeShot=false,lastFrame=-1,aiming=false,drag=null,previous=0,shotStarted=
 let remoteAnimating=false,remoteShotNo=0,channel=null,channelReady=false,lastPaint=0;
 let firstHit=null,ownPocket=false,whitePocket=false,blackPocket=false,localWinner=null,placing=false,finishedUi=false,polling=false,joinMode=false;
 let announcedTurn=null,turnToastTimer=null,lastRenderedColor=null;
+let pocketedAny=false,railAfterHit=false,ownBallsBeforeShot=7,shotResult=null;
 const canvas=$('table'),ctx=canvas.getContext('2d');
 let sx=1,sy=1,scale=1,dpr=1;
 function ball(id,type,x,y){return{id,type,x,y,vx:0,vy:0,potted:false}}
@@ -79,7 +80,9 @@ function updateTurnPresentation(){
  if(newKey===announcedTurn)return;
  announcedTurn=newKey;
  const announcement=$('turnAnnouncement');
- announcement.textContent=color==='blue'?"Sıra Mavi'de":"Sıra Kırmızı'da";
+ const mine=state.turn===state.seat;
+ $('turnAnnouncementText').textContent=mine?'Sıra sende':'Sıra rakipte';
+ $('turnAnnouncementColor').textContent=color==='blue'?'MAVİ OYNUYOR':'KIRMIZI OYNUYOR';
  announcement.classList.remove('show','turn-blue','turn-red');
  announcement.classList.add('turn-'+color);
  announcement.hidden=false;
@@ -128,22 +131,30 @@ function display(){
  document.querySelector('.person.opp .colour-dot').className='colour-dot '+otherC;
  $('waiting').hidden=state.status!=='waiting';
  $('presence').textContent=state.players.length<2?'Rakip bekleniyor':state.opponent_online?'● Rakip bağlı':'○ Rakip çevrimdışı';
+ const myTurn=state.turn===state.seat;
+ const color=currentTurnColor()==='blue'?'Mavi':'Kırmızı';
+ const result=state.snapshot?.result;
  if(state.status==='waiting'){
   $('status').textContent='Rakip bekleniyor';$('turnLabel').textContent='Oda hazır';
-  $('actionHint').textContent='Kodunu paylaş ve arkadaşını bekle.';
+  $('actionHint').textContent='Oda kodunu paylaş ve arkadaşını bekle.';
  }else if(state.status==='finished'){
   $('status').textContent='Maç tamamlandı';$('turnLabel').textContent='Oyun sona erdi';
-  $('actionHint').textContent='Kazanan belli oldu.';
+  $('actionHint').textContent=result?.reason||'Kazanan belli oldu.';
   showWinner();
  }else if(activeShot||remoteAnimating||state.active){
-  $('status').textContent=(currentTurnColor()==='blue'?'Mavi':'Kırmızı')+' oynuyor';$('turnLabel').textContent='Vuruş sürüyor';
-  $('actionHint').textContent='Masa iki telefonda güncelleniyor.';
- }else if(state.turn===state.seat){
-  $('status').textContent=currentTurnColor()==='blue'?"Sıra Mavi'de":"Sıra Kırmızı'da";$('turnLabel').textContent=placing?'Beyaz topu yerleştir':'Vuruşunu yap';
-  $('actionHint').textContent=placing?'Boş bir noktaya dokun.':'Beyaz topu geriye çekip bırak.';
+  $('status').textContent=(myTurn?'Sen oynuyorsun':'Rakip oynuyor')+' · '+color;
+  $('turnLabel').textContent='Vuruş sürüyor';
+  $('actionHint').textContent='Toplar hareket ediyor.';
+ }else if(myTurn){
+  $('status').textContent='Sıra sende';
+  $('turnLabel').textContent=placing?'Beyaz topu yerleştir':color+' · Vuruşunu yap';
+  $('actionHint').textContent=placing
+   ?(result?.foul?'Rakibin faul yaptı. Beyaz topu boş bir yere koy.':'Beyaz topu boş bir yere koy.')
+   :(result?.reason||'Beyaz topu geriye çekip bırak.');
  }else{
-  $('status').textContent=currentTurnColor()==='blue'?"Sıra Mavi'de":"Sıra Kırmızı'da";$('turnLabel').textContent='Rakibin oynuyor';
-  $('actionHint').textContent='Rakibin vuruşunu bekle.';
+  $('status').textContent='Sıra rakipte';
+  $('turnLabel').textContent=color+' oynuyor';
+  $('actionHint').textContent=result?.reason||'Rakibin vuruşunu bekle.';
  }
  $('ballHint').hidden=!(placing&&isMyTurn());
  updateTurnPresentation();
@@ -167,7 +178,6 @@ function applySnapshot(data){
  });
  balls=reconstructed;
  placing=Boolean(data.placing);
- display();
 }
 // Realtime broadcasts are only an early visual hint. The RPC remains authoritative.
 function connectLiveRoom(){
@@ -334,7 +344,7 @@ function draw(){
  }
 }
 function serialize(next=null,winner=null){
- return{balls:balls.map(b=>({id:b.id,type:b.type,x:Math.round(b.x*100)/100,y:Math.round(b.y*100)/100,potted:!!b.potted})),placing:placing,shot:state.shot,next,winner};
+ return{balls:balls.map(b=>({id:b.id,type:b.type,x:Math.round(b.x*100)/100,y:Math.round(b.y*100)/100,potted:!!b.potted})),placing,shot:state.shot,next,winner,result:shotResult};
 }
 function ballCollision(a,b){
  if(a.potted||b.potted)return;
@@ -362,7 +372,7 @@ function physics(dt){
    const dx=p.x-b.x,dy=p.y-b.y,dist=Math.hypot(dx,dy);
    // An approach inside the mouth should be accepted before the cushion bounces.
    if(dist<POCKET_CAPTURE_RADIUS){
-    b.potted=true;b.vx=b.vy=0;
+    b.potted=true;b.vx=b.vy=0;pocketedAny=true;
     if(b.type==='cue')whitePocket=true;
     else if(b.type==='black')blackPocket=true;
     else if(b.type===myColor())ownPocket=true;
@@ -378,10 +388,10 @@ function physics(dt){
    }
   }
   if(b.potted)continue;
-  if(b.x-RADIUS<LEFT){b.x=LEFT+RADIUS;b.vx=Math.abs(b.vx)*.87}
-  if(b.x+RADIUS>RIGHT){b.x=RIGHT-RADIUS;b.vx=-Math.abs(b.vx)*.87}
-  if(b.y-RADIUS<TOP){b.y=TOP+RADIUS;b.vy=Math.abs(b.vy)*.87}
-  if(b.y+RADIUS>BOTTOM){b.y=BOTTOM-RADIUS;b.vy=-Math.abs(b.vy)*.87}
+  if(b.x-RADIUS<LEFT){b.x=LEFT+RADIUS;b.vx=Math.abs(b.vx)*.87;if(firstHit!==null)railAfterHit=true}
+  if(b.x+RADIUS>RIGHT){b.x=RIGHT-RADIUS;b.vx=-Math.abs(b.vx)*.87;if(firstHit!==null)railAfterHit=true}
+  if(b.y-RADIUS<TOP){b.y=TOP+RADIUS;b.vy=Math.abs(b.vy)*.87;if(firstHit!==null)railAfterHit=true}
+  if(b.y+RADIUS>BOTTOM){b.y=BOTTOM-RADIUS;b.vy=-Math.abs(b.vy)*.87;if(firstHit!==null)railAfterHit=true}
  }
  for(let i=0;i<balls.length;i++)for(let j=i+1;j<balls.length;j++)ballCollision(balls[i],balls[j]);
 }
@@ -402,6 +412,7 @@ async function shot(dx,dy,speed){
  try{
   const snapshot=await rpc('ob_bilardo_act',{p_code:session.room,p_token:session.token,p_action:'shot',p_payload:{dx,dy,speed,cx,cy}});
   state=snapshot;firstHit=null;ownPocket=false;whitePocket=false;blackPocket=false;localWinner=null;
+  pocketedAny=false;railAfterHit=false;ownBallsBeforeShot=remaining(myColor());shotResult=null;
   const cue=balls[0];cue.vx=dx*speed;cue.vy=dy*speed;
   shotStarted=performance.now();
   broadcast('shot',{shot:state.shot,dx,dy,speed,cx,cy});
@@ -416,20 +427,53 @@ async function sendFrame(action,next=null,winner=null){
  if(!session)return;
  state=response;lastFrame=state.frame;
 }
+// Mobile 8-ball rules: fixed blue/red groups, first hit, post-contact rail,
+// cue-ball-in-hand on any foul, and legal 8-ball only after clearing the group.
+function evaluateEightBallShot(details){
+ const {seat,firstHit,ownBefore,ownPocket,pocketedAny,railAfterHit,whitePocket,blackPocket,isBreak}=details;
+ const other=1-seat;
+ let foulReason='';
+ if(whitePocket)foulReason='Beyaz top cebe girdi';
+ else if(firstHit===null)foulReason='Hiçbir topa temas edilmedi';
+ else if(firstHit==='black'&&(isBreak||ownBefore>0))foulReason='Siyah 8’e erken temas edildi';
+ else if(!isBreak&&ownBefore>0&&firstHit!==(seat===0?'red':'blue'))foulReason='Önce rakibin topuna vuruldu';
+ else if(!isBreak&&ownBefore===0&&firstHit!=='black')foulReason='Önce siyah 8’e vurulmalı';
+ else if(!pocketedAny&&!railAfterHit)foulReason='Temastan sonra cep veya bant yok';
+ const foul=Boolean(foulReason);
+ if(blackPocket){
+  const legal=!isBreak&&ownBefore===0&&!foul;
+  return{next:other,winner:legal?seat:other,foul:!legal,placing:false,
+   reason:legal?'Siyah 8 ile kazandı':'Siyah 8 kural dışı sokuldu'};
+ }
+ if(foul)return{next:other,winner:null,foul:true,placing:true,reason:'Faul: '+foulReason};
+ if(ownPocket||(isBreak&&pocketedAny)){
+  return{next:seat,winner:null,foul:false,placing:false,reason:'Geçerli sayı · bir vuruş daha'};
+ }
+ return{next:other,winner:null,foul:false,placing:false,reason:'Sıra rakibe geçti'};
+}
+function resetCueToSafeSpot(){
+ const cue=balls[0];
+ cue.potted=false;cue.vx=0;cue.vy=0;
+ // Cue placement now belongs to the NEXT player, not to the player who fouled.
+ if(validWhiteLocation(cue.x,cue.y))return;
+ const spots=[[200,612],[200,680],[200,510],[180,600],[260,585],[135,605],[240,690]];
+ for(const [x,y] of spots){if(validWhiteLocation(x,y)){cue.x=x;cue.y=y;return}}
+ for(let y=625;y>120;y-=38)for(let x=100;x<310;x+=37){
+  if(validWhiteLocation(x,y)){cue.x=x;cue.y=y;return}
+ }
+ cue.x=200;cue.y=600;
+}
 async function finishShot(){
  if(!activeShot||!session)return;
- const seat=state.seat,opponent=1-seat;
- const foul=whitePocket||(firstHit!==myColor()&&!(firstHit==='black'&&remaining(myColor())===0));
- let winner=null,next=opponent;
- if(blackPocket){winner=remaining(myColor())===0&&!foul?seat:opponent;}
- else if(!foul&&ownPocket){next=seat;}
- if(whitePocket){
-  const cue=balls[0];cue.potted=false;cue.x=W/2;cue.y=H*.8;
-  if(!validWhiteLocation(cue.x,cue.y))cue.y=H*.67;
-  placing=true;
- }
+ const result=evaluateEightBallShot({
+  seat:state.seat,firstHit,ownBefore:ownBallsBeforeShot,ownPocket,pocketedAny,railAfterHit,
+  whitePocket,blackPocket,isBreak:state.shot===1
+ });
+ shotResult={foul:result.foul,reason:result.reason};
+ placing=result.placing;
+ if(result.placing)resetCueToSafeSpot();
  try{
-  await sendFrame('finish',next,winner);
+  await sendFrame('finish',result.next,result.winner);
   broadcast('finish',{shot:state.shot});
  }catch(e){notify('Vuruş kaydedilemedi: '+e.message)}
  activeShot=false;display();
