@@ -13,3 +13,136 @@
 @media(max-width:390px){.felt{min-height:260px}.game{min-height:calc(100dvh - 59px)}.score-person strong{font-size:22px}.game-topline .mini-action{padding:6px}.room-box small{font-size:8px}.hand{min-height:86px}.hand .card{height:92px}.hand .card .big-suit{font-size:27px}.help-line span:last-child{display:none}}
 @media(max-height:680px) and (max-width:550px){.site-header{height:44px}.game{gap:4px}.felt{min-height:200px}.my-rack{padding:5px 10px}.hand{min-height:75px;padding:5px 0}.hand .card{height:80px}.opponent-area{top:4px}.player-area{bottom:4px}.score-person strong{font-size:21px}}
 @media(prefers-reduced-motion:reduce){.hand button{transition:none}}
+
+
+/* Pişti mobile v2 · premium lobby with a custom card mark */
+body:not(.pisti-playing){background:#171d1c;color:#f7f1e6;background-image:radial-gradient(ellipse at 8% 0%,#44625180,transparent 40%),radial-gradient(circle at 92% 83%,#5f503541,transparent 36%),linear-gradient(145deg,#263a33,#151b1a 85%)}
+body:not(.pisti-playing) .site-header{max-width:530px;margin:0 auto;height:54px;border:0;padding:0 17px}
+body:not(.pisti-playing) .site-header .branding{font-size:13px}
+body:not(.pisti-playing) main{max-width:530px;padding:0 15px 25px}
+body:not(.pisti-playing) .lobby{max-width:480px;margin:0 auto;text-align:center}
+.pisti-identity{display:flex;align-items:center;justify-content:center;gap:8px;margin:5px auto 21px;color:#d3dfd0;font-size:9px;letter-spacing:1.1px;font-weight:900;white-space:nowrap}
+.pisti-identity em{font-style:normal;color:#9fba9b;padding:0 3px}
+.pisti-mark{display:grid;grid-template-columns:repeat(2,1fr);gap:3px;border:1px solid #adba9b;border-radius:4px;padding:4px;width:18px;height:18px;transform:rotate(-12deg)}
+.pisti-mark i{background:#cbddc3;border-radius:1px}.pisti-mark i:last-child{opacity:.4}
+.pisti-person-tag{display:flex;gap:6px;align-items:center;font-size:8px;border:1px solid #5b7864;padding:5px 8px;border-radius:99px;color:#ced8c5;letter-spacing:.55px}
+.pisti-person-tag i,.lobby-online-dot{display:inline-block;width:6px;height:6px;flex:0 0 6px;border-radius:50%;background:#a8d2ad;box-shadow:0 0 0 3px #a8d2ad22}
+.pisti-hero{text-align:center}
+.pisti-emblem{position:relative;width:112px;height:86px;margin:0 auto 10px}
+.pisti-emblem-card{position:absolute;top:5px;left:20px;width:61px;height:79px;border:3px solid #e7e6db;border-radius:9px;box-shadow:0 8px 22px #0008;display:flex;flex-direction:column;justify-content:space-between;padding:7px 8px;font:800 15px Georgia,serif}
+.pisti-emblem-card.back{background:repeating-linear-gradient(45deg,#1f394e 0 5px,#3a566a 5px 9px);transform:rotate(-16deg) translateX(-10px);color:#f1e8c3;align-items:center;justify-content:center}
+.pisti-emblem-card.back:after{content:'';position:absolute;inset:7px;border:1px solid #fff7d992;border-radius:4px}
+.emblem-card-mark{font:900 25px Georgia,serif;z-index:1}
+.pisti-emblem-card.front{background:linear-gradient(145deg,#fffdf7,#f5eddc);color:#232c33;transform:rotate(12deg) translateX(17px);text-align:left}
+.pisti-emblem-card .emblem-suit{font-size:32px;line-height:1;align-self:center}
+.pisti-emblem-card .emblem-bottom{transform:rotate(180deg);align-self:flex-end}
+.pisti-eyebrow{font-size:10px;color:#c3d9ad;letter-spacing:2px;font-weight:850;margin:8px auto 9px}
+body:not(.pisti-playing) .lobby h1{color:#fffdf3;font-size:clamp(35px,8vw,48px);line-height:1.07;letter-spacing:-1.6px;font-weight:900;margin:0 0 11px}
+body:not(.pisti-playing) .lobby h1 span{color:#e3c588}
+body:not(.pisti-playing) .lobby .subtitle{font-size:13px;line-height:1.6;color:#b9cbc0;max-width:360px;margin:0 auto 23px}
+body:not(.pisti-playing) .lobby-card{padding:clamp(18px,5vw,25px);border:1px solid #e3e5d9;border-radius:22px;background:#fbf9f2;color:#2d3229;box-shadow:0 20px 46px #0007;text-align:left}
+.pisti-panel-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:17px}
+.pisti-panel-head>div:first-child>span{font-size:9px;font-weight:900;letter-spacing:1.4px;color:#78917d}
+.pisti-panel-head h2{font-size:20px;line-height:1.1;font-weight:900;margin:4px 0 0;letter-spacing:-.5px;color:#26362c}
+.pisti-target{flex:none;background:#e5eee3;display:flex;flex-direction:column;text-align:center;border-radius:12px;padding:7px 9px;color:#315b46;min-width:57px}
+.pisti-target strong{font-size:20px;line-height:1;font-weight:900}
+.pisti-target small{font-size:7px;letter-spacing:.65px;margin-top:4px;font-weight:850}
+body:not(.pisti-playing) .choice-group{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin:0 0 19px;padding:5px;border-radius:13px;background:#e7ede5}
+body:not(.pisti-playing) .choice{display:flex;flex-direction:row;align-items:center;justify-content:center;gap:7px;border:0;background:transparent;border-radius:9px;min-height:43px;padding:9px 5px;color:#66816d;text-align:center}
+body:not(.pisti-playing) .choice.active{padding:9px 5px;background:white;color:#233b2c;box-shadow:0 2px 6px #29352a19}
+body:not(.pisti-playing) .choice strong{font-size:12px;font-weight:900}
+body:not(.pisti-playing) .choice small{font-size:10px;color:inherit;opacity:.6;font-weight:900}
+body:not(.pisti-playing) .lobby-card label{display:flex;justify-content:space-between;gap:8px;color:#54705d;font-size:10px;letter-spacing:.8px;font-weight:900;margin-bottom:8px}
+body:not(.pisti-playing) .lobby-card label span{color:#8da48e;font-size:9px}
+body:not(.pisti-playing) .lobby-card input{width:100%;height:50px;border:1px solid #d3dfd2;border-radius:11px;background:#fff;color:#263c30;font-size:16px;font-weight:650;padding:11px 14px;outline:none}
+body:not(.pisti-playing) .lobby-card input::placeholder{color:#9aa99c}
+body:not(.pisti-playing) .lobby-card input:focus{border-color:#6e986f;box-shadow:0 0 0 3px #759d7030}
+body:not(.pisti-playing) .lobby-card #joinCode{font-size:25px;letter-spacing:10px;text-align:center;font-variant-numeric:tabular-nums;font-weight:900}
+body:not(.pisti-playing) .lobby-card #joinForm label{margin-top:17px}
+body:not(.pisti-playing) .form-help{font-size:12px;color:#849286;line-height:1.5;margin:13px 0}
+body:not(.pisti-playing) .start-button{display:flex;align-items:center;justify-content:space-between;gap:10px;border:0;background:#244a38;color:#fff;border-radius:11px;font-size:14px;font-weight:900;padding:12px 17px;min-height:52px}
+body:not(.pisti-playing) .start-button>span{float:none}
+body:not(.pisti-playing) .start-button span:last-child{font-size:20px}
+body:not(.pisti-playing) .resume{background:#324c3b;color:#eaf4d7;border:1px solid #6e896f;border-radius:12px;padding:12px 15px;font-size:12px;margin:15px auto}
+body:not(.pisti-playing) .lobby-footer{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:8px;color:#a5c2ac;font-size:10px;margin:18px auto}
+body:not(.pisti-playing) .lobby-footer>span:not(.lobby-online-dot){color:#708e76}
+
+/* A compact phone-native game canvas without the website header */
+body.pisti-playing{overflow:hidden;background:#10221c;overscroll-behavior:none}
+body.pisti-playing .site-header{display:none!important}
+body.pisti-playing main{box-sizing:border-box;height:100vh;height:100dvh;max-width:900px;width:100%;margin:auto;padding:max(5px,env(safe-area-inset-top)) max(6px,env(safe-area-inset-right)) max(5px,env(safe-area-inset-bottom)) max(6px,env(safe-area-inset-left));overflow:hidden}
+body.pisti-playing .game{height:100%;min-height:0;max-height:100%;display:flex;flex-direction:column;gap:6px}
+body.pisti-playing .game-topline{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:6px;flex:0 0 auto;min-height:45px;padding:5px 7px;border-radius:12px;background:#f7f6ed;color:#234331}
+body.pisti-playing .room-box{min-width:0;margin:0;display:flex;flex-direction:column;align-items:flex-start}
+body.pisti-playing .room-box small{color:#8b9a88;font-size:8px;letter-spacing:.8px}
+body.pisti-playing .room-box button{background:#e9eee4;color:#315641;border-radius:7px;padding:2px 7px;min-height:24px;display:flex;align-items:center;gap:5px;font-size:17px;letter-spacing:.7px}
+body.pisti-playing .room-box button span:last-child{font-size:11px}
+body.pisti-playing .turn-pill{min-width:0;max-width:100%;border:0;background:none;color:#38694a;padding:4px;font-size:clamp(10px,2.7vw,12px);font-weight:900;line-height:1.2}
+body.pisti-playing .mini-action{border:0;background:#e8ede6;color:#31543e;white-space:nowrap;border-radius:8px;min-height:36px;padding:6px 9px;font-size:11px}
+body.pisti-playing .exit-action{background:#233d2d;color:#fff}
+body.pisti-playing .scoreboard{display:grid;grid-template-columns:minmax(0,1fr) 56px minmax(0,1fr);gap:5px;flex:0 0 auto}
+body.pisti-playing .score-person,body.pisti-playing .score-center{border:1px solid #3b6852;background:#1b3f32;border-radius:10px;min-width:0;min-height:59px;padding:6px 7px}
+body.pisti-playing .score-center{background:#172f27}
+body.pisti-playing .score-person span{font-size:11px;color:#f2f8eb}
+body.pisti-playing .score-person strong{font-size:24px;color:#f0cb84}
+body.pisti-playing .score-person small{font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#bdd0be}
+body.pisti-playing .score-center strong{font-size:19px}
+body.pisti-playing .score-center span,body.pisti-playing .score-center small{font-size:8px}
+body.pisti-playing .felt{position:relative;width:100%;min-width:0;min-height:0;max-height:none;flex:1 1 auto;overflow:hidden;border-radius:27px;border:6px solid #997344;background:radial-gradient(ellipse at 50% 45%,#166e53 0%,#0e5c46 60%,#09392f 100%);box-shadow:inset 0 0 0 2px #d5ac6c,inset 0 0 40px #032820,0 5px 10px #0006}
+body.pisti-playing .felt-pattern{border-radius:19px;inset:10px}
+body.pisti-playing .felt::before{font-size:clamp(20px,6vw,46px);letter-spacing:clamp(3px,1.7vw,10px)}
+body.pisti-playing .opponent-area{top:8px;gap:2px}
+body.pisti-playing .opponent-hand{margin:2px 0}
+body.pisti-playing .opponent-hand .card-back{height:clamp(28px,7vh,41px);width:clamp(20px,5vw,27px)}
+body.pisti-playing .opponent-hand .card-back::after{font-size:13px}
+body.pisti-playing .play-area{min-width:0;min-height:0;gap:clamp(9px,5vw,29px);top:54%}
+body.pisti-playing .stock-pile,body.pisti-playing .center-pile{min-width:64px;gap:4px}
+body.pisti-playing .stock-pile>.card-back{width:clamp(46px,13vw,68px);height:clamp(64px,19vw,99px)}
+body.pisti-playing .center-pile .card,body.pisti-playing .center-pile .empty-pile{width:clamp(46px,13vw,68px);height:clamp(64px,19vw,99px)}
+body.pisti-playing .card-back::after{font-size:19px}
+body.pisti-playing .player-area{bottom:7px}
+body.pisti-playing .player-area span{font-size:11px}
+body.pisti-playing .my-rack{flex:0 0 auto;min-width:0;padding:8px 10px 6px;border-radius:13px;border:1px solid #315744;background:#183c30}
+body.pisti-playing .rack-caption{font-size:9px}
+body.pisti-playing .hand{min-height:0;padding:6px 0;gap:clamp(4px,1.2vw,11px)}
+body.pisti-playing .hand-card{display:block;min-width:0;padding:0;margin:0;border:0;background:none}
+body.pisti-playing .hand .card{width:clamp(54px,20vw,78px);height:clamp(76px,28vw,108px);padding:5px;border-radius:8px}
+body.pisti-playing .hand .card .corner{font-size:15px}
+body.pisti-playing .hand .card .corner small{font-size:11px}
+body.pisti-playing .hand .card .big-suit{font-size:clamp(23px,8vw,38px)}
+body.pisti-playing .help-line{font-size:10px;line-height:1.3}
+body.pisti-playing .help-line span:last-child{display:none}
+body.pisti-playing .first-turn-banner{min-height:34px;flex:0 0 auto;display:flex;align-items:center;gap:9px;padding:6px 10px;border:1px solid #7e926a;border-radius:9px;background:#e7ecdc;color:#36553b;font-size:11px;font-weight:900;line-height:1.2}
+.first-turn-banner .banner-mark{display:inline-grid;place-items:center;width:20px;height:20px;flex:none;background:#bdd2b0;border-radius:6px;color:#2d4d35;font-size:10px}
+body.pisti-playing .first-turn-banner.my-first-turn{background:#ecdfb8;border-color:#bcb078;color:#4b4524}
+body.pisti-playing .first-turn-banner.my-first-turn .banner-mark{background:#e2cb86}
+@media(max-width:390px){
+ body.pisti-playing .game-topline{gap:4px;padding:4px 6px}
+ body.pisti-playing .mini-action{padding:6px}
+ body.pisti-playing .room-box button{font-size:15px;padding:2px 5px}
+ body.pisti-playing .scoreboard{grid-template-columns:minmax(0,1fr) 49px minmax(0,1fr)}
+ body.pisti-playing .hand .card{width:clamp(49px,19.8vw,70px);height:clamp(69px,27vw,97px)}
+ body.pisti-playing .help-line{font-size:9px}
+}
+@media(max-height:670px){
+ body.pisti-playing .game{gap:4px}
+ body.pisti-playing .game-topline{min-height:39px}
+ body.pisti-playing .score-person,body.pisti-playing .score-center{min-height:47px;padding:3px 6px}
+ body.pisti-playing .score-person strong{font-size:19px}
+ body.pisti-playing .score-person small{font-size:8px}
+ body.pisti-playing .felt{border-width:4px}
+ body.pisti-playing .opponent-area{top:3px}
+ body.pisti-playing .player-area{bottom:3px}
+ body.pisti-playing .my-rack{padding:5px 8px}
+ body.pisti-playing .hand .card{height:clamp(58px,18vh,85px)}
+ body.pisti-playing .first-turn-banner{min-height:29px;padding:4px 8px}
+}
+@media(orientation:landscape) and (max-height:510px){
+ body.pisti-playing .scoreboard{grid-template-columns:1fr 55px 1fr}
+ body.pisti-playing .felt{border-radius:18px}
+ body.pisti-playing .opponent-area{top:2px}
+ body.pisti-playing .opponent-area .player-avatar{display:none}
+ body.pisti-playing .player-area{bottom:1px}
+ body.pisti-playing .hand .card{height:clamp(48px,22vh,75px);width:clamp(42px,15vh,56px)}
+ body.pisti-playing .my-rack{padding:4px 7px}
+}
