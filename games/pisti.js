@@ -38,14 +38,22 @@ function chooseMatchMode(mode){
   button.setAttribute('aria-pressed',String(active));
  });
 }
+function showWelcome(){
+ $('lobbyHome').hidden=false;$('lobbySetup').hidden=true;
+ $('chooseCreate').classList.remove('active');$('chooseJoin').classList.remove('active');
+}
 function chooseMode(mode){
  const join=mode==='join';
+ $('lobbyHome').hidden=true;$('lobbySetup').hidden=false;
  $('createForm').hidden=join;$('joinForm').hidden=!join;
  $('chooseCreate').classList.toggle('active',!join);$('chooseJoin').classList.toggle('active',join);
  $('chooseCreate').setAttribute('aria-selected',String(!join));
  $('chooseJoin').setAttribute('aria-selected',String(join));
  $('pistiFormTitle').textContent=join?'Arkadaşının masasına katıl':'Yeni oyun oluştur';
- if(join)$('joinCode').focus();
+ $('setupDescription').textContent=join
+  ?'Arkadaşının dört haneli oda kodunu gir, aynı oyuna bağlan.'
+  :'Oda oluştur, modunu seç ve dört haneli kodunu arkadaşınla paylaş.';
+ if(join)$('joinCode').focus();else $('playerName').focus();
 }
 function username(){
  const name=$('playerName').value.trim();
@@ -190,6 +198,7 @@ async function ready(){
 function showLobby(){
  document.body.classList.remove('pisti-playing');
  $('game').hidden=true;$('resultModal').hidden=true;$('lobby').hidden=false;
+ showWelcome();
  if(poll){clearInterval(poll);poll=null}
  if(session){$('resume').hidden=false;$('resume').textContent='Son masama dön: '+session.room}
 }
@@ -263,6 +272,22 @@ function wire(){
  try{$('playerName').value=localStorage.getItem(nameKey)||''}catch(_){}
  $('chooseCreate').addEventListener('click',()=>chooseMode('create'));
  $('chooseJoin').addEventListener('click',()=>chooseMode('join'));
+ $('setupBack').addEventListener('click',showWelcome);
+ const rulesModal=$('rulesModal');
+ const closeRules=()=>{
+  rulesModal.hidden=true;
+  $('rulesOpen').focus();
+ };
+ $('rulesOpen').addEventListener('click',()=>{
+  rulesModal.hidden=false;
+  $('rulesClose').focus();
+ });
+ $('rulesClose').addEventListener('click',closeRules);
+ $('rulesDone').addEventListener('click',closeRules);
+ rulesModal.addEventListener('click',event=>{if(event.target===rulesModal)closeRules()});
+ document.addEventListener('keydown',event=>{
+  if(event.key==='Escape'&&!rulesModal.hidden)closeRules();
+ });
  document.querySelectorAll('#matchModes button[data-mode]').forEach(btn=>{
   btn.addEventListener('click',()=>chooseMatchMode(btn.dataset.mode));
  });
