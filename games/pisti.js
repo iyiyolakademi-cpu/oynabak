@@ -1,11 +1,12 @@
 (() => {
 'use strict';
-const VENUE='70abef21-053c-4026-b402-e18311f758d5';
+const VENUE=new URL(location.href).searchParams.get('isletme')||'';
+const PILOT_VENUE='70abef21-053c-4026-b402-e18311f758d5';
 const PROJECT='https://qacmubkcierbpxmdtsph.supabase.co';
 const KEY='sb_publishable_RU5vtZxlqK2dMD-LWuwUaA_Eak6b9cj';
 const $=id=>document.getElementById(id);
 const suits=['♠','♥','♣','♦'],suitNames=['Maça','Kupa','Sinek','Karo'];
-const nameKey='ob-pisti:name',sessionKey='ob-pisti:session';
+const nameKey='ob-pisti:name',sessionKey=VENUE===PILOT_VENUE?'ob-pisti:session':'ob-pisti:session:'+VENUE;
 let db,game=null,session=null,busy=false,poll=null,toastTimer=null,shownResult='',gesture=null,ghost=null,selectedMode='classic';
 const modeNames={quick:'Hızlı Maç',classic:'Klasik Maç',long:'Uzun Maç',single:'Tek El'};
 const esc=text=>String(text??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -261,10 +262,21 @@ function installTouch(){
   if(event.detail===0||event.pointerType==='mouse')play(Number(b.dataset.card));
  });
 }
-function wire(){
+async function wire(){
  const search=new URL(location.href).searchParams;
- if(search.get('isletme')!==VENUE){
-  $('lobby').innerHTML='<div class="lobby-card">Pişti şu anda yalnızca İyi Yol Akademi işletmesinde kullanılabilir.</div>';
+ if(!/^[0-9a-f-]{36}$/i.test(VENUE)){
+  $('lobby').innerHTML='<div class="lobby-card">Pişti oynamak için işletmenin QR bağlantısını kullan.</div>';
+  return;
+ }
+ try{
+  const features=await rpc('ob_features_get',{vid:VENUE});
+  if(features?.pisti!==true||features?.games===false){
+   $('lobby').innerHTML='<div class="lobby-card">Pişti bu işletmede henüz aktif değil.</div>';
+   return;
+  }
+ }catch(err){
+  $('lobby').innerHTML='<div class="lobby-card">Oyun erişimi kontrol edilemedi. İnternet bağlantını kontrol edip sayfayı yenile.</div>';
+  connection('● Bağlantı sorunu',true);
   return;
  }
  $('back').href='../?isletme='+encodeURIComponent(VENUE)+'#play';
@@ -325,7 +337,7 @@ function wire(){
 function init(){
  if(!window.supabase){connection('● Bağlantı yok',true);toast('Oyun altyapısı yüklenemedi');return}
  db=window.supabase.createClient(PROJECT,KEY);
- connection('● Hazır');wire();
+ connection('● Hazır');wire().catch(err=>{console.warn('Pişti bağlantı kontrolü:',err);toast('Pişti ekranı açılamadı.')});
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
