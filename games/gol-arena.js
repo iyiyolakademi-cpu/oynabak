@@ -11,6 +11,7 @@ let db=null,room=null,session=null,channel=null,channelReady=false,board=[],pitc
 let pollTimer=null,pingTimer=null,polling=false,activeShot=false,remoteAnimating=false,lastSeenShot=0;
 let previous=0,lastDraw=0,started=0,selected=-1,drag=null,aiming=false,lastVersion=-1,finishing=false;
 let scored=null,finishShown=false,announced='',annTimer=null,shotAuthorizing=false;
+let deferredFinal=null;
 const canvas=$('pitch'),ctx=canvas.getContext('2d');
 let sx=1,sy=1,dpr=1;
 function object(x,y,team,id,r=R){return{id,team,x,y,vx:0,vy:0,r,potted:false}}
@@ -41,10 +42,10 @@ function lobby(){document.body.classList.remove('playing');$('lobby').hidden=fal
  $('resume').hidden=!stored();$('resume').textContent=stored()?'Son maça dön: '+stored().room:'Son maça dön';
 }
 function stop(){clearInterval(pollTimer);clearInterval(pingTimer);pollTimer=pingTimer=null;const old=channel;channel=null;channelReady=false;if(old&&db?.removeChannel)db.removeChannel(old).catch?.(()=>{})}
-function leave(){stop();room=null;session=null;activeShot=false;remoteAnimating=false;shotAuthorizing=false;selected=-1;aiming=false;lastVersion=-1;finishing=false;announced='';finishShown=false;clear();lobby()}
+function leave(){stop();room=null;session=null;activeShot=false;remoteAnimating=false;shotAuthorizing=false;deferredFinal=null;selected=-1;aiming=false;lastVersion=-1;finishing=false;announced='';finishShown=false;hideTurnAnnouncement();clear();lobby()}
 function myTeam(){return room?.team||'blue'}
 function activeTeam(){return room?.turn===room?.blue_seat?'blue':'red'}
-function canPlay(){return room?.status==='playing'&&room.turn===room.seat&&!room.active&&!activeShot&&!remoteAnimating&&!finishing&&!shotAuthorizing}
+function canPlay(){return room?.status==='playing'&&room.turn===room.seat&&!room.active&&!activeShot&&!remoteAnimating&&!finishing&&!shotAuthorizing&&!deferredFinal}
 function teamSeat(t){return t==='blue'?room.blue_seat:1-room.blue_seat}
 function nameFor(t){return room?.players?.[teamSeat(t)]?.name||'Bekleniyor'}
 function appliedSnapshot(v){
@@ -66,22 +67,35 @@ function display(){
  $('waiting').hidden=room.status!=='waiting';
  $('presence').textContent=room.players.length<2?'Rakip bekleniyor':room.opponent_online?'● Rakip bağlı':'○ Rakip çevrimdışı';
  const turn=activeTeam(),mine=room.turn===room.seat;
+ const shotRunning=Boolean(room.active||activeShot||remoteAnimating||shotAuthorizing||finishing||deferredFinal);
  $('turnDot').classList.toggle('black',turn==='red');
  $('turnDot').style.background=turn==='blue'?'#15a9fb':'#ed5c65';
- $('gameStatus').textContent=room.status==='waiting'?'Rakip bekleniyor':room.status==='finished'?'Maç tamamlandı':mine?'Sıra sende':'Sıra onda';
- $('turnText').textContent=room.status==='waiting'?'Rakip bekleniyor':room.status==='finished'?'Maç bitti':mine?'Sıra sende':'Sıra onda';
- $('turnHint').textContent=room.status!=='playing'?'Oda kodunu paylaş':room.active?'Şut devam ediyor':mine?(selected>=0?'Seçili futbolcudan geriye çek':'Futbolcuna dokun ve geriye çek'):'Rakibin şutunu bekle';
+ $('gameStatus').textContent=room.status==='waiting'?'Rakip bekleniyor':room.status==='finished'?'Maç tamamlandı':shotRunning?'Şut devam ediyor':mine?'Sıra sende':'Sıra onda';
+ $('turnText').textContent=room.status==='waiting'?'Rakip bekleniyor':room.status==='finished'?'Maç bitti':shotRunning?'Top hareket ediyor':mine?'Sıra sende':'Sıra onda';
+ $('turnHint').textContent=room.status!=='playing'?'Oda kodunu paylaş':shotRunning?'Önce şutun sonucunu görelim':mine?(selected>=0?'Seçili futbolcudan geriye çek':'Futbolcuna dokun ve geriye çek'):'Rakibin şutunu bekle';
  document.body.classList.toggle('turn-blue',room.status==='playing'&&turn==='blue');
  document.body.classList.toggle('turn-red',room.status==='playing'&&turn==='red');
  if(room.status==='finished')showFinish();else announce();
 }
+function hideTurnAnnouncement(){
+ clearTimeout(annTimer);
+ const e=$('turnAnnouncement');e.hidden=true;e.classList.remove('show');
+}
 function announce(){
  if(!room||room.status!=='playing')return;
- const k=room.room+':'+room.turn+':'+room.shot;if(k===announced)return;announced=k;
+ // Wait for the server-confirmed outcome AND the ball's motion to finish.
+ if(room.active||activeShot||remoteAnimating||shotAuthorizing||finishing||deferredFinal){
+  hideTurnAnnouncement();
+  return;
+ }
+ const k=room.room+':'+room.turn;
+ if(k===announced)return;
+ announced=k;
  $('announcementTitle').textContent=room.turn===room.seat?'Sıra sende':'Sıra onda';
  $('announcementSubtitle').textContent=(activeTeam()==='blue'?'MAVİ':'KIRMIZI')+' OYNUYOR';
  const e=$('turnAnnouncement');e.hidden=false;e.classList.remove('show');void e.offsetWidth;e.classList.add('show');
- clearTimeout(annTimer);annTimer=setTimeout(()=>{e.hidden=true;e.classList.remove('show')},1500);
+ clearTimeout(annTimer);
+ annTimer=setTimeout(()=>{e.hidden=true;e.classList.remove('show')},1300);
 }
 function showFinish(){
  if(finishShown)return;finishShown=true;
@@ -212,7 +226,8 @@ function startRemote(action){
  if(!Number.isFinite(action.vx)||!Number.isFinite(action.vy)||Math.hypot(action.vx,action.vy)>35)return;
  if(room.snapshot)appliedSnapshot(room.snapshot);
  board[action.player].vx=action.vx;board[action.player].vy=action.vy;
- lastSeenShot=action.shot;remoteAnimating=true;scored=null;started=performance.now();
+ lastSeenShot=action.shot;remoteAnimating=true;deferredFinal=null;scored=null;started=performance.now();
+ hideTurnAnnouncement();
  display();
 }
 async function refresh(){
@@ -221,15 +236,35 @@ async function refresh(){
  try{
   const result=await api('ob_goal_state',{p_code:current,p_token:session.token});
   if(!session||result.room!==current)return;
-  if(activeShot){room={...room,opponent_online:result.opponent_online};return}
-  if(remoteAnimating&&result.shot<lastSeenShot)return;
-  if(remoteAnimating&&(!result.active||result.status==='finished'))remoteAnimating=false;
-  if(result.version!==lastVersion&&!remoteAnimating){
+  if(activeShot||shotAuthorizing||finishing){room={...room,opponent_online:result.opponent_online};return}
+  if(remoteAnimating){
+   if(result.shot<lastSeenShot)return;
+   // The network may finish before the other phone has shown the physical shot.
+   // Keep its animation and score frozen until motion / goal is actually visible.
+   if(!result.active||result.status==='finished'){
+    deferredFinal=result;
+    settleRemoteShot(performance.now());
+   }
+   return;
+  }
+  if(result.version!==lastVersion){
    lastVersion=result.version;room=result;appliedSnapshot(result.snapshot);
-  }else if(!remoteAnimating)room=result;
-  if(result.active&&result.last_action?.type==='shot'&&!remoteAnimating)startRemote(result.last_action);
+  }else room={...room,opponent_online:result.opponent_online};
+  if(result.active&&result.last_action?.type==='shot')startRemote(result.last_action);
   display();
- }catch(e){$('presence').textContent='Bağlantı kontrol ediliyor'}finally{polling=false}
+ }catch(e){$('presence').textContent='Bağlantı kontrol ediliyor'}
+ finally{polling=false}
+}
+function settleRemoteShot(t){
+ if(!remoteAnimating||!deferredFinal)return;
+ const moving=board.some(p=>Math.hypot(p.vx,p.vy)>.18);
+ if(moving&&!scored&&t-started<13000)return;
+ const next=deferredFinal;deferredFinal=null;
+ remoteAnimating=false;scored=null;
+ board.forEach(p=>{p.vx=0;p.vy=0});
+ room=next;lastVersion=next.version;
+ appliedSnapshot(next.snapshot);
+ display();
 }
 async function beginShot(index,vx,vy){
  if(!canPlay())return;
@@ -237,6 +272,7 @@ async function beginShot(index,vx,vy){
  // Previously activeShot became true before the RPC returned and animation
  // tried to "finish" a shot that had not yet been started on the server.
  shotAuthorizing=true;scored=null;
+ hideTurnAnnouncement();
  const expectedRoom=session.room;
  try{
   const next=await api('ob_goal_act',{p_code:expectedRoom,p_token:session.token,p_action:'shot',p_payload:{player:index,vx,vy,version:room.version}});
@@ -272,8 +308,8 @@ function animate(t){
  if(t-lastDraw<32)return;
  const dt=previous?Math.min(44,t-previous):32;previous=t;lastDraw=t;
  if((activeShot&&started>0)||remoteAnimating){
-  if(dt>24){physics(dt/2);physics(dt/2)}else physics(dt);
-  if(scored&&remoteAnimating){setBoard(starting())}
+  if(!scored){if(dt>24){physics(dt/2);physics(dt/2)}else physics(dt)}
+  if(remoteAnimating&&deferredFinal)settleRemoteShot(t);
   const moving=board.some(p=>Math.hypot(p.vx,p.vy)>.18);
   if(activeShot&&(!moving||Boolean(scored))&&t-started>250){
    // Lock the local turn until the final state has been accepted by the server.
@@ -322,7 +358,7 @@ async function openRoom(code=null,token=null,nm=null){
  const data=await api('ob_goal_open',{p_venue_id:VENUE,p_name:name,p_code:code,p_token:token,p_goal_target:target});
  if(data.venue!==VENUE)throw Error('İşletme doğrulanamadı');
  session={room:data.room,token:data.token,name};save();
- room=data;lastVersion=data.version;lastSeenShot=data.shot;activeShot=false;remoteAnimating=false;shotAuthorizing=false;finishShown=false;scored=null;announced='';selected=-1;
+ room=data;lastVersion=data.version;lastSeenShot=data.shot;activeShot=false;remoteAnimating=false;shotAuthorizing=false;deferredFinal=null;finishShown=false;scored=null;announced='';selected=-1;hideTurnAnnouncement();
  setBoard(starting());appliedSnapshot(data.snapshot);
  $('lobby').hidden=true;$('game').hidden=false;document.body.classList.add('playing');
  resize();display();stop();connect();
