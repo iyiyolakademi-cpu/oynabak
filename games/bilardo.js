@@ -415,7 +415,7 @@ async function shot(dx,dy,speed){
   pocketedAny=false;railAfterHit=false;ownBallsBeforeShot=remaining(myColor());shotResult=null;
   const cue=balls[0];cue.vx=dx*speed;cue.vy=dy*speed;
   shotStarted=performance.now();
-  broadcast('shot',{shot:state.shot,dx,dy,speed,cx,cy});
+  broadcast('shot',{type:'shot',shot:state.shot,dx,dy,speed,cx,cy});
   display();
  }catch(e){activeShot=false;shotStarted=0;notify(e.message);await refresh()}
 }
