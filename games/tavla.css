@@ -342,3 +342,75 @@ body.in-game .choices{
  body.in-game .board>.point .checker{width:min(75%,23px)}
  body.in-game .board>.point .triangle{height:86%}
 }
+
+
+/* OynaBak Tavla · distinctive premium mobile lobby */
+body:not(.in-game){background:#231b16;color:#f7f1e6;min-height:100dvh;background-image:radial-gradient(circle at 8% 0%,#79523773,transparent 35%),radial-gradient(circle at 100% 80%,#82522c42,transparent 36%),linear-gradient(155deg,#342419,#171411 90%)}
+body:not(.in-game) .top{background:transparent;border:0;color:#f5ecdc;max-width:540px;margin:0 auto;padding:22px 20px 8px}
+body:not(.in-game) .top>a{color:#e9ddcd;font-size:13px}
+body:not(.in-game) .top>b{font-size:12px;letter-spacing:3px;font-weight:850}
+body:not(.in-game) .top>b small{color:#a79582;font-size:8px}
+body:not(.in-game) .top #network{font-size:10px;color:#bcceaf}
+body:not(.in-game) main{padding:4px 16px max(20px,env(safe-area-inset-bottom));max-width:540px;margin:0 auto;min-height:0}
+body:not(.in-game) .lobby{max-width:480px;margin:0 auto;text-align:center}
+.lobby-identity{display:flex;align-items:center;justify-content:center;gap:9px;margin:10px 0 25px;font-size:9px;letter-spacing:1.35px;font-weight:850;color:#ded0bd;white-space:nowrap}
+.lobby-identity em{color:#b39a79;font-style:normal;padding:0 2px}
+.identity-mark{width:18px;height:18px;border:1px solid #d9b78a;border-radius:4px;display:grid;grid-template-columns:repeat(2,1fr);gap:2px;padding:3px;transform:rotate(-10deg);flex:none}
+.identity-mark i{background:#d8b994;border-radius:1px}.identity-mark i:nth-child(2),.identity-mark i:nth-child(3){opacity:.4}
+.lobby-online{display:inline-flex;align-items:center;gap:6px;padding:6px 9px;border:1px solid #735946;border-radius:20px;color:#ccbda8;letter-spacing:.65px;font-size:8px}
+.lobby-online i,.footnote-dot{display:inline-block;width:6px;height:6px;flex:none;border-radius:50%;background:#8fbd95;box-shadow:0 0 0 3px #8fbd9520}
+.lobby-hero{text-align:center;padding:0 4px}
+.lobby-board-emblem{margin:0 auto 18px;display:flex;align-items:stretch;justify-content:center;gap:0;width:134px;height:72px;border-radius:10px;border:4px solid #9b6a3d;background:#d6a56c;box-shadow:0 12px 35px #0005,0 0 0 1px #c99c67;overflow:hidden;transform:perspective(500px) rotateX(8deg)}
+.emblem-half{display:flex;width:calc((100% - 6px)/2);height:100%;position:relative;overflow:hidden}
+.emblem-half>i{flex:1;height:70%;background:#643c2c;clip-path:polygon(0 0,100% 0,50% 100%)}
+.emblem-half>i:nth-child(even){background:#f7dfb7}
+.emblem-spine{width:6px;background:linear-gradient(90deg,#714322,#b6804f,#714322)}
+.emblem-checker{position:absolute;z-index:2;width:13px;height:13px;border-radius:50%;top:4px;left:4px;box-shadow:0 2px 3px #0005}
+.emblem-checker.second{top:18px}
+.emblem-checker.light{background:#f3efdf;border:1px solid #bdb3a1}
+.emblem-checker.dark{background:#342f2c;border:1px solid #191614}
+.lobby-kicker{font-size:9px;letter-spacing:2.3px;font-weight:800;color:#cfb495}
+body:not(.in-game) .lobby h1{color:#fff9ee;font-weight:870;font-size:clamp(37px,9.3vw,52px);line-height:1.07;letter-spacing:-1.9px;margin:11px 0 12px}
+.lobby h1 span{color:#d9b184}
+body:not(.in-game) .lobby-hero p{max-width:360px;margin:0 auto;color:#bbae9d;line-height:1.55;font-size:13px}
+body:not(.in-game) .lobby-panel{margin:26px auto 0;padding:23px;border:1px solid #eee4d4;background:#faf8f4;color:#211c17;border-radius:22px;box-shadow:0 22px 50px #0005;text-align:left}
+.panel-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+.panel-eyebrow{font-size:9px;letter-spacing:1.6px;font-weight:850;color:#998370}
+.panel-heading h2{font-size:20px;line-height:1.15;margin:4px 0 0;color:#2e261f;letter-spacing:-.6px;font-weight:850}
+.panel-player-count{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:none;background:#eee7dd;border-radius:12px;padding:7px 10px;font-weight:900;font-size:19px;line-height:1;color:#634b35}
+.panel-player-count small{font-size:7px;font-weight:900;letter-spacing:1.2px;margin-top:3px}
+body:not(.in-game) .lobby-panel .tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;padding:5px;background:#ede8df;border-radius:13px;margin:0 0 20px}
+body:not(.in-game) .lobby-panel .tabs button{border:0;background:transparent;color:#716558;display:flex;align-items:center;justify-content:center;gap:7px;padding:11px 6px;border-radius:9px;font-size:12px;font-weight:800;min-height:44px}
+body:not(.in-game) .lobby-panel .tabs button.active{background:#fffdfa;color:#3c3025;box-shadow:0 2px 8px #0000000f}
+.tab-number{font-size:10px;opacity:.55;font-weight:850}
+body:not(.in-game) .lobby-panel label{display:flex;align-items:center;justify-content:space-between;margin:0 0 8px;color:#584b3e;font-size:10px;font-weight:900;letter-spacing:1px}
+.lobby-panel label span{font-size:9px;color:#a4927f}
+body:not(.in-game) .lobby-panel input{width:100%;border:1px solid #e1d9ce;border-radius:12px;background:#fff;color:#211914;padding:14px 15px;min-height:49px;font-size:16px;font-weight:650;box-shadow:none;outline:none}
+body:not(.in-game) .lobby-panel input:focus{border-color:#956d49;box-shadow:0 0 0 3px #bc916332}
+body:not(.in-game) .lobby-panel #code{text-align:center;letter-spacing:11px;font-size:24px;font-weight:900;font-variant-numeric:tabular-nums;line-height:1.4}
+body:not(.in-game) .lobby-panel #joinForm>label{margin:17px 0 8px}
+body:not(.in-game) .lobby-form-note{margin:13px 0 14px;color:#928171;font-size:12px;line-height:1.55}
+body:not(.in-game) .lobby-panel .primary{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:51px;margin:0;padding:12px 17px;border:0;background:#35271e;color:#fffaf2;border-radius:11px;font-size:14px;font-weight:850}
+.lobby-panel .primary span:last-child{font-size:19px;font-weight:550}
+body:not(.in-game) .lobby-panel .primary:active{transform:translateY(1px)}
+body:not(.in-game) .lobby-resume{display:inline-flex;align-items:center;justify-content:center;gap:10px;margin:16px auto 0;padding:11px 15px;background:#d7bb9140;border:1px solid #9876527d;border-radius:12px;color:#f2debd;font-size:12px;font-weight:800;text-decoration:none}
+body:not(.in-game) .lobby-footnote{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;color:#b9a68e;margin:22px auto 0;font-size:10px;font-weight:650}
+.lobby-footnote>span:not(.footnote-dot){color:#736452}
+
+/* First-roll scoreboard: visible on both phones until opening turn starts. */
+body.in-game #game.opening-active{grid-template-rows:auto auto auto minmax(0,1fr) auto}
+body.in-game .opening-panel{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:53px;padding:7px 11px;border:1px solid #eadbc6;background:#fff4e2;border-radius:11px;color:#392a20}
+body.in-game .opening-title{min-width:0;display:flex;flex-direction:column;gap:4px;justify-content:center}
+body.in-game .opening-title>span{font-size:9px;letter-spacing:1.2px;font-weight:900;color:#a07951}
+body.in-game .opening-title>strong{font-size:clamp(10px,3vw,13px);line-height:1.22;font-weight:850;color:#433223}
+body.in-game .opening-comparison{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+body.in-game .opening-side{display:grid;grid-template-columns:auto auto;grid-template-rows:auto auto;gap:2px 6px;align-items:center}
+body.in-game .opening-side>span{grid-column:1/-1;white-space:nowrap;text-align:center;font-size:9px;font-weight:900;color:#8f7256}
+body.in-game .opening-side b{font-size:16px;font-weight:900;font-variant-numeric:tabular-nums}
+body.in-game .opening-versus{color:#c1a584;font-weight:850}
+body.in-game .opening-die{width:27px;height:27px;padding:5px;border-radius:6px;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);place-items:center;gap:0;background:#fff;border:1px solid #d6c6b5;box-shadow:0 1px 1px #0001}
+body.in-game .opening-die .die-pip{width:4px;height:4px}
+@media(max-width:390px){body.in-game .opening-panel{padding:6px 8px;gap:6px}body.in-game .opening-comparison{gap:5px}body.in-game .opening-die{width:24px;height:24px;padding:4px}body.in-game .opening-side{gap:1px 4px}}
+@media(max-height:670px){body.in-game .opening-panel{min-height:39px;padding:3px 8px}body.in-game .opening-die{width:22px;height:22px;padding:3px}.lobby-board-emblem{margin-bottom:10px}}
+@media(max-width:360px){.lobby-identity{gap:5px;font-size:8px}.lobby-online{padding:5px;font-size:7px}body:not(.in-game) .lobby-panel{padding:19px}body:not(.in-game) .lobby h1{font-size:36px}}
+@media(max-height:780px){.lobby-identity{margin-bottom:14px}.lobby-board-emblem{height:55px;width:106px;margin-bottom:12px}body:not(.in-game) .lobby-panel{margin-top:18px}.lobby-footnote{margin-top:14px}}
