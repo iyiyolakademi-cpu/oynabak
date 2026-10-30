@@ -225,6 +225,12 @@ async function refresh(){
    // Shooter owns the local physics until the finish RPC succeeds.
    state={...state,opponent_online:next.opponent_online};
   }else{
+   // A broadcast can arrive before an already-running HTTP poll responds.
+   // Never let that older poll cancel a newer, actively animated shot.
+   if(remoteAnimating&&Number(next.shot)<remoteShotNo){
+    state={...state,opponent_online:next.opponent_online};
+    return;
+   }
    const completed=remoteAnimating&&(!next.active||next.shot>remoteShotNo||next.status==='finished');
    if(completed)remoteAnimating=false;
    const changed=next.frame!==lastFrame;
