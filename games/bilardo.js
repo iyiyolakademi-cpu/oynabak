@@ -82,7 +82,7 @@ function updateTurnPresentation(){
  announcedTurn=newKey;
  const announcement=$('turnAnnouncement');
  const mine=state.turn===state.seat;
- $('turnAnnouncementText').textContent=mine?'Sıra sende':'Sıra rakipte';
+ $('turnAnnouncementText').textContent=mine?'Sıra sende':'Sıra onda';
  $('turnAnnouncementColor').textContent=color==='blue'?'MAVİ OYNUYOR':'KIRMIZI OYNUYOR';
  announcement.classList.remove('show','turn-blue','turn-red');
  announcement.classList.add('turn-'+color);
@@ -153,7 +153,7 @@ function display(){
    ?(result?.foul?'Rakibin faul yaptı. Beyaz topu boş bir yere koy.':'Beyaz topu boş bir yere koy.')
    :(result?.reason||'Beyaz topu geriye çekip bırak.');
  }else{
-  $('status').textContent='Sıra rakipte';
+  $('status').textContent='Sıra onda';
   $('turnLabel').textContent=color+' oynuyor';
   $('actionHint').textContent=result?.reason||'Rakibin vuruşunu bekle.';
  }
