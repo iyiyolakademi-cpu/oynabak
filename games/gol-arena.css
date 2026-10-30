@@ -50,3 +50,54 @@ body.playing{height:100dvh;overflow:hidden;background:#102c23}body.playing main{
  .score-panel,.turn-bar{width:min(200px,28vw)}
  .game-tools{width:min(200px,28vw)}
 }
+
+/* Gol Arena v3: maximize reliable touch pitch on Safari / Android.
+   Exact measured width and height are set by resize() in gol-arena.js. */
+body.playing .game{
+ padding:max(3px,env(safe-area-inset-top)) max(4px,env(safe-area-inset-right))
+         max(3px,env(safe-area-inset-bottom)) max(4px,env(safe-area-inset-left));
+ gap:4px;
+}
+body.playing .game-inner{gap:4px;justify-content:center;min-height:0;max-width:100%;overflow:hidden}
+body.playing .pitch-wrap{
+ position:relative;
+ box-sizing:border-box;
+ display:block;
+ width:auto;
+ height:auto;
+ min-width:0;
+ min-height:0;
+ max-width:none;
+ max-height:none;
+ flex:none;
+ aspect-ratio:600/940;
+ border:3px solid #f3e8c2;
+ border-radius:12px;
+ overflow:hidden;
+ touch-action:none;
+ box-shadow:0 3px 13px #0009;
+}
+body.playing .pitch-wrap canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+body.playing .score-panel{flex:none;width:min(99%,550px);min-height:47px;padding:5px 8px}
+body.playing .team-score b{height:30px;min-width:27px;font-size:19px}
+body.playing .team-score small{font-size:12px}
+body.playing .score-center span{font-size:9px}
+body.playing .score-center b{font-size:12px}
+body.playing .turn-bar{width:min(99%,550px);min-height:37px;padding:6px 11px}
+body.playing .game-tools{width:min(99%,550px);gap:5px}
+body.playing .game-tools button{min-height:35px;padding:7px 6px;font-size:11px}
+body.playing.turn-blue .pitch-wrap{border-color:#35b5ff}
+body.playing.turn-red .pitch-wrap{border-color:#fd7c79}
+body.playing .wait-layer{z-index:4;background:#02271ec4}
+body.playing .turn-announcement{z-index:9}
+@media (max-width:420px){
+ body.playing .game{gap:3px}
+ body.playing .game-inner{gap:3px}
+ body.playing .score-panel{min-height:42px;padding:3px 6px}
+ body.playing .turn-bar{min-height:33px;padding:5px 8px}
+ body.playing .game-tools button{min-height:33px;padding:5px}
+}
+@media (orientation:landscape) and (max-height:520px){
+ body.playing .game-inner{flex-direction:column;flex-wrap:nowrap}
+ body.playing .score-panel,body.playing .turn-bar,body.playing .game-tools{width:min(99%,550px)}
+}
