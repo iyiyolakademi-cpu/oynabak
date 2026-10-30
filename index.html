@@ -2828,6 +2828,16 @@ body.games-mode .customer-entry-brand small{
 }
 @media(max-width:390px){.featured-game.pisti-featured{aspect-ratio:4/5.4}}
 @media(orientation:landscape) and (max-height:560px){.featured-game.pisti-featured{min-height:255px;aspect-ratio:16/9}}
+
+/* Compact featured Pişti so Tabu and following games show earlier on phones. */
+@media(max-width:640px){
+ .featured-game.pisti-featured{box-sizing:border-box;height:clamp(225px,61vw,275px)!important;min-height:0!important;aspect-ratio:auto!important;border-radius:18px}
+ .featured-game.pisti-featured .featured-content{box-sizing:border-box;min-height:0!important;height:100%;width:100%;padding:15px 17px!important;gap:0}
+ .featured-game.pisti-featured .featured-content h3{font-size:clamp(27px,7.5vw,36px);line-height:1;margin:8px 0 5px}
+ .featured-game.pisti-featured .featured-content .featured-badge{font-size:9px}
+ .featured-game.pisti-featured .featured-play{margin-top:10px;min-height:37px;padding:8px 13px;font-size:11px}
+ .featured-game.pisti-featured .featured-media:after{background:linear-gradient(0deg,rgba(0,15,12,.93),rgba(0,33,25,.2) 65%,transparent 90%)}
+}
 </style></head><body>
 <header><nav class="wrap"><a class="brand" href="#home" aria-label="OynaBak ana sayfa"><img src="oynabak-logo.png" alt="OynaBak"></a><div class="links"><a class="desktop" href="#features">Nasıl çalışır?</a><a class="desktop" href="#referanslar">Referanslar</a><a class="desktop" href="#faq">Merak edilenler</a><a class="desktop" href="#blog">Blog</a><a class="btn small light" href="#panel">İşletme Paneli ↗</a></div></nav></header>
 <main id="app"></main><footer><div class="wrap row" style="justify-content:space-between;gap:18px"><div><b>OynaBak · Molana oyun kat.</b><span style="display:block;margin-top:4px">Kafe · Spor salonu · Mağaza</span><span style="display:block;margin-top:4px;font-size:12px;color:#7b8797">Geliştiren: <a href="https://berkedenizyuksekdag.com/" target="_blank" rel="noopener noreferrer">Berke Deniz Yüksekdağ</a></span><span style="display:block;margin-top:4px;color:#7b8797">© 2026 OynaBak · Tüm hakları saklıdır.</span></div><div class="footer-links"><a href="#home">Ana sayfa</a><a href="#referanslar">Referanslar</a><a href="#blog">Blog</a><a href="#privacy">Gizlilik</a><a href="#kvkk">KVKK</a><a href="#terms">Kullanım Koşulları</a><a href="#contact">İletişim</a></div></div></footer><a class="whatsapp" href="https://wa.me/905066403989?text=Merhaba%2C%20OynaBak%20hakk%C4%B1nda%20bilgi%20almak%20istiyorum." target="_blank" rel="noopener noreferrer">WhatsApp'tan sor ↗</a>
@@ -7647,8 +7657,8 @@ function listGames(){
         <span class="featured-content">
           <span class="featured-badge">${esc(featured.type)}</span>
           <h3>${esc(featured.name)}</h3>
-          <p>${esc(featured.description)}</p>
-          <span class="featured-meta">${featuredMeta}</span>
+          ${featured.kind==='pisti'?'':`<p>${esc(featured.description)}</p>`}
+          ${featured.kind==='pisti'?'':`<span class="featured-meta">${featuredMeta}</span>`}
           <span class="featured-play">Oyunu başlat <i>→</i></span>
         </span>
       </button>
