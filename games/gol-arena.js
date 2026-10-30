@@ -186,7 +186,8 @@ function broadcast(event,payload={}){
 }
 function startRemote(action){
  if(!room||!session||!action||activeShot||remoteAnimating||room.status!=='playing')return;
- if(room.turn===room.seat||action.shot!==room.shot+1||!Number.isInteger(action.player))return;
+ if(room.turn===room.seat||!Number.isInteger(action.shot)||action.shot<=lastSeenShot||
+    (action.shot!==room.shot+1&&action.shot!==room.shot)||!Number.isInteger(action.player))return;
  const p=board[action.player];if(!p||p.team!==activeTeam())return;
  if(!Number.isFinite(action.vx)||!Number.isFinite(action.vy)||Math.hypot(action.vx,action.vy)>35)return;
  if(room.snapshot)appliedSnapshot(room.snapshot);
