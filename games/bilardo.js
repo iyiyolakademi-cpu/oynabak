@@ -269,16 +269,16 @@ function draw(){
  // Outer band always identifies the player whose turn is active.
  c.fillStyle=currentTurnColor()==='blue'?'#278de8':currentTurnColor()==='red'?'#eb5d60':'#f49b7e';
  c.fillRect(0,0,W,H);
- c.fillStyle='#050505';c.fillRect(0,26,W,10);c.fillRect(0,811,W,11);
- c.fillStyle='#91533b';roundedRect(c,0,37,W,774,9);c.fill();
- c.strokeStyle='#a26649';c.lineWidth=2;roundedRect(c,2,39,W-4,770,9);c.stroke();
- // Black six-pocket rail and a slightly wider vivid-green play surface.
- c.fillStyle='#050604';roundedRect(c,21,62,W-42,731,8);c.fill();
- c.fillStyle='#347e41';c.fillRect(34,81,W-68,698);
- c.fillStyle='#4fc75e';c.fillRect(48,81,W-96,698);
- const g=c.createLinearGradient(34,0,62,0);
+ c.fillStyle='#050505';c.fillRect(0,0,W,10);c.fillRect(0,H-10,W,10);
+ c.fillStyle='#91533b';roundedRect(c,0,10,W,H-20,8);c.fill();
+ c.strokeStyle='#a26649';c.lineWidth=2;roundedRect(c,2,12,W-4,H-24,8);c.stroke();
+ // Rails extend to both screen edges; there is no pink footer.
+ c.fillStyle='#050604';roundedRect(c,16,24,W-32,H-48,7);c.fill();
+ c.fillStyle='#347e41';c.fillRect(27,39,W-54,H-78);
+ c.fillStyle='#4fc75e';c.fillRect(41,39,W-82,H-78);
+ const g=c.createLinearGradient(27,0,55,0);
  g.addColorStop(0,'#1e6434aa');g.addColorStop(1,'#31864500');
- c.fillStyle=g;c.fillRect(34,81,28,698);
+ c.fillStyle=g;c.fillRect(27,39,28,H-78);
  for(const pocket of pockets){
   c.beginPath();c.arc(pocket.x,pocket.y,28,0,Math.PI*2);
   c.fillStyle='#030404';c.fill();
@@ -432,9 +432,9 @@ function animate(t){
     balls.forEach(b=>{b.vx=b.vy=0});
     activeShot=false;finishShotFromLoop();
    }
-  }else if(!moving){
-   remoteAnimating=false; // still wait for the server's authoritative finish.
   }
+  // Keep the remote-shot lock until the accepted final board arrives.
+  // Otherwise polling could reapply a stale pre-shot snapshot.
  }
  draw();
 }
