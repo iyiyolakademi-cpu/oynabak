@@ -51,7 +51,7 @@ function choose(type){
  if(joinMode)$('code').focus();else $('name').focus();
 }
 function showWelcome(){
- document.body.classList.remove('playing');$('game').hidden=true;$('lobby').hidden=false;
+ document.body.classList.remove('playing');document.querySelector('meta[name="theme-color"]')?.setAttribute('content','#003226');$('game').hidden=true;$('lobby').hidden=false;
  $('welcome').hidden=false;$('setup').hidden=true;$('winnerModal').hidden=true;
  const st=stored();$('resume').hidden=!st;$('resume').textContent=st?'Son masama dön: '+st.room:'Son masama dön';
 }
@@ -69,6 +69,7 @@ async function openRoom(code=null,token=null,override=null){
 }
 function enterGame(){
  $('lobby').hidden=true;$('game').hidden=false;document.body.classList.add('playing');
+ document.querySelector('meta[name="theme-color"]')?.setAttribute('content','#f49b7e');
  resize();display();clearInterval(pollTimer);clearInterval(heartbeat);
  pollTimer=setInterval(refresh,480);
  heartbeat=setInterval(()=>{if(session&&!document.hidden&&!activeShot)rpc('ob_bilardo_act',{p_code:session.room,p_token:session.token,p_action:'ping'}).catch(()=>{})},7000);
