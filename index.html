@@ -5418,11 +5418,12 @@ function instagramUrl(){
   const raw=venueInstagramUrl(venue);
   return normalizeInstagramUrl(raw);
 }
-function openInstagramPage(){
+async function openInstagramPage(){
   let url='';
   try{url=instagramUrl()}catch(e){toast(e.message||'Instagram bağlantısı geçersiz.');return;}
   if(!url){toast('Bu işletme için Instagram hesabı henüz eklenmemiş.');return;}
-  // Tek tıklama, tek yönlendirme: yeni sekme ve ikinci pencere açılmaz.
+  // Yönlendirmeden önce Instagram tıklamasını anonim işletme metriği olarak kaydet.
+  try{await trackEvent('instagram_click')}catch(e){console.warn('Instagram metriği:',e)}
   location.assign(url);
 }
 async function openReviewPage(){
@@ -6898,6 +6899,7 @@ async function stats(id,days=7){
       <div class="metric-grid">
         <div class="metric-card"><div class="metric-icon">⌁</div><small>QR açılışı</small><strong>${unavailable?'—':metricValue(a.qr_opens)}</strong><p>${period}</p></div>
         <div class="metric-card"><div class="metric-icon">🎮</div><small>Tamamlanan oyun</small><strong>${unavailable?'—':metricValue(a.game_finishes)}</strong><p>${period}</p></div>
+        <div class="metric-card"><div class="metric-icon">◎</div><small>Instagram tıklamaları</small><strong>${unavailable?'—':metricValue(a.instagram_clicks)}</strong><p>${period} · bağlantı açılışları</p></div>
         <div class="metric-card"><div class="metric-icon">★</div><small>Değerlendirme tıklaması</small><strong>${unavailable?'—':metricValue(a.review_clicks)}</strong><p>Google değerlendirme sayfasına geçiş</p></div>
         <div class="metric-card"><div class="metric-icon">☰</div><small>Menü açılışı</small><strong>${unavailable?'—':metricValue(a.menu_opens)}</strong><p>${period}</p></div>
         <div class="metric-card"><div class="metric-icon">◉</div><small>En çok açılan kategori</small><strong title="${esc(topCategory)}">${esc(topCategory)}</strong><p>Menü kategori etkileşimi</p></div>
@@ -6932,6 +6934,7 @@ async function stats(id,days=7){
           <div class="analytics-mini-stats">
             <div><small>Menü açılışı</small><b>${unavailable?'—':metricValue(a.menu_opens)}</b></div>
             <div><small>Değerlendirme</small><b>${unavailable?'—':metricValue(a.review_clicks)}</b></div>
+            <div><small>Instagram</small><b>${unavailable?'—':metricValue(a.instagram_clicks)}</b></div>
           </div>
         </section>
       </div>
@@ -7737,7 +7740,7 @@ document.addEventListener('click',e=>{
   if(!btn || btn.disabled || btn.hidden)return;
   e.preventDefault();e.stopImmediatePropagation();
   if(!featureOn(venue,'instagram')){toast('Bu işletmede Instagram özelliği aktif değil.');return;}
-  openInstagramPage();
+  openInstagramPage().catch(e=>toast(e.message));
 },true);
 document.addEventListener('click',async e=>{const b=e.target.closest('[data-action],[data-tab],[data-game],[data-custom],[data-menu-category]');if(!b||b.disabled)return;try{if(b.dataset.tab){tab=b.dataset.tab;drawAdmin();hydrateVenueCodes();obShowOwnerFinancePreview();return}if(b.dataset.game){const key=b.dataset.game;if(!hasQrGameAccess()){toast('Bu oyun yalnızca işletme QR koduyla açılır.');return}if(!venue||!venue.enabled.includes(key))return;await trackEvent('game_open',{game:key});if(embeddedGameBase64[key]){openEmbeddedGame(key);return}return}if(b.dataset.custom){if(!hasQrGameAccess()){toast('Bu oyun yalnızca işletme QR koduyla açılır.');return}const vid=String(venue?.id||qrParams().venueId||''),gid=b.dataset.custom,gmeta=venue.games.find(g=>String(g.id)===String(gid)),gname=gmeta?.name||'Oyun';if(!vid){toast('İşletme bağlantısı bulunamadı. QR kodunu yeniden okut.');return}await trackEvent('game_open',{game:'custom:'+gid});modal(gname,'<div id="customGame"><p style="padding:24px">Oyun yükleniyor…</p></div>');enterGameScreen();const token=++gameLoadSeq;try{const code=await rpc('ob_game',{vid,gid});if(token!==gameLoadSeq||!$('#modal').open)return;safeFrame(code,$('#customGame'),{gameId:gid,gameName:gname})}catch(error){if(token===gameLoadSeq){$('#customGame').innerHTML=`<div style="padding:24px;font:14px/1.5 system-ui;color:#fff;background:#111;min-height:100%"><b>Oyun yüklenemedi.</b><br>${esc(error?.message||'Bilinmeyen hata')}</div>`}}return}const a=b.dataset.action,id=b.dataset.id;
 if(a==='resume-venue'){
@@ -7816,7 +7819,7 @@ if(a==='waiter-panel'){await waiterPanel();return}
 if(a==='waiter-sound'){await toggleWaiterSound();return}
 if(a==='waiter-mute-call'){muteWaiterCall(id);return}
 if(a==='waiter-done'){await rpc('ob_waiter_done',{p_id:String(id)});waiterMutedCalls.delete(String(id));await loadWaiterCalls();refreshWaiterAlarm();return}
-if(a==='instagram'){openInstagramPage();return}
+if(a==='instagram'){await openInstagramPage();return}
 if(a==='merchant-review-settings'){venueForm(me?.venue||{},true);return}
 if(a==='merchant-games'){merchantGamesModal();return}
 if(a==='customer-games'){
