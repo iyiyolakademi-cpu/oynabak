@@ -228,9 +228,12 @@ function events(){
 }
 function init(){
  events();if(!engine){toast('Satranç motoru yüklenemedi');return}
- for(const [selector,color] of [['.chess-art .art-light','w'],['.chess-art .art-dark','b']]){
+ for(const [selector,color,type] of [
+  ['.chess-art .art-light','w','k'],['.chess-art .art-dark','b','k'],
+  ['.wait-layer .waiting-piece','b','n']
+ ]){
   const node=document.querySelector(selector);
-  if(node)node.replaceChildren(svgPiece({c:color,t:'k'},'cover-chess-piece'));
+  if(node)node.replaceChildren(svgPiece({c:color,t:type},type==='n'?'waiting-piece-svg':'cover-chess-piece'));
  }
  $('back').href='../?isletme='+encodeURIComponent(VENUE)+'#play';
  if(!/^[0-9a-f-]{36}$/i.test(VENUE)){$('network').textContent='İşletme QR bağlantısı gerekli';return}
