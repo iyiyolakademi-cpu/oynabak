@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0e352b">
+<meta name="robots" content="noindex,nofollow">
+<title>Satranç · OynaBak</title>
+<link rel="stylesheet" href="./satranc.css?v=20261030-online1">
+<script src="../assets/supabase-client.bundle.js"></script>
+<script defer src="./satranc-engine.js?v=20261030-online1"></script>
+<script defer src="./satranc.js?v=20261030-online1"></script>
+</head>
+<body>
+<main>
+ <section id="lobby" class="lobby">
+  <div id="welcome" class="welcome">
+   <header class="lobby-header"><b>OYNABAK</b><span id="network">Bağlanıyor</span></header>
+   <div class="welcome-hero">
+    <div class="chess-art" aria-hidden="true"><span class="art-light">♔</span><span class="art-dark">♚</span><span class="art-board"></span></div>
+    <h1>Satranç</h1><p>İki telefonda, karşılıklı satranç.</p>
+   </div>
+   <div class="welcome-actions">
+    <button id="chooseCreate" class="lobby-action primary" type="button"><span class="action-icon">+</span><strong>Oda Oluştur</strong><span class="chevron">›</span></button>
+    <button id="chooseJoin" class="lobby-action secondary" type="button"><span class="action-icon users">♟</span><strong>Kodla Katıl</strong><span class="chevron">›</span></button>
+    <button id="resume" type="button" class="resume" hidden>Son oyuna dön</button>
+   </div>
+   <footer class="lobby-footer"><a id="back" href="../#play" aria-label="Oyunlara geri dön">‹</a><button id="rulesOpen" type="button"><span class="question">?</span> Nasıl Oynanır?</button></footer>
+  </div>
+  <div id="setup" class="setup" hidden>
+   <header><button id="setupBack" type="button" aria-label="Geri">‹</button><b>OYNABAK / SATRANÇ</b><span>2 KİŞİ</span></header>
+   <div class="setup-intro"><div class="setup-symbol">♞</div><small>CANLI SATRANÇ</small><h2 id="setupTitle">Oda oluştur</h2><p id="setupDescription">Dört haneli kodla arkadaşını davet et.</p></div>
+   <div class="setup-card">
+    <label for="playerName">OYUNCU ADIN</label>
+    <input id="playerName" type="text" maxlength="18" minlength="2" placeholder="Adını yaz" autocomplete="nickname">
+    <form id="createForm"><p>Beyaz ve siyah taraflar otomatik belirlenir.</p><button type="submit">Oda Oluştur <span>→</span></button></form>
+    <form id="joinForm" hidden><label for="roomCode">4 HANELİ KOD</label><input id="roomCode" type="text" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" placeholder="0000" autocomplete="one-time-code"><p>Arkadaşının oluşturduğu oda kodunu yaz.</p><button type="submit">Masaya Katıl <span>→</span></button></form>
+   </div>
+   <p class="setup-note">Beyaz oyuncu beyazları, siyah oyuncu siyahları alttan görür.</p>
+  </div>
+ </section>
+ <section id="game" class="game" hidden>
+  <header class="game-bar"><button id="copyRoom" class="room-code" type="button"><small>ODA</small><b id="roomLabel">----</b></button><div class="game-label"><b>Satranç</b><span id="presence">Rakip bekleniyor</span></div><button id="exit" type="button" class="exit">Çıkış</button></header>
+  <div class="game-inner">
+   <div class="opponent player-panel" id="opponentPanel"><span class="player-avatar" id="opponentIcon">♚</span><span class="player-info"><small>RAKİP</small><b id="opponentName">Bekleniyor</b><span id="opponentColor">Siyah</span></span><span id="opponentTurn" class="turn-marker">○</span></div>
+   <div class="board-surround">
+    <div id="board" class="chessboard" role="grid" aria-label="Canlı satranç tahtası"></div>
+    <div id="waiting" class="wait-layer" hidden><span class="waiting-piece">♞</span><b>Rakip bekleniyor</b><small>Oda kodunu arkadaşına gönder.</small></div>
+   </div>
+   <div class="self player-panel" id="selfPanel"><span class="player-avatar" id="selfIcon">♔</span><span class="player-info"><small>SEN</small><b id="selfName">Oyuncu</b><span id="selfColor">Beyaz</span></span><span id="selfTurn" class="turn-marker">○</span></div>
+   <div class="turn-bar" aria-live="polite"><span id="turnDot" class="turn-dot"></span><b id="turnText">Rakip bekleniyor</b><span id="checkInfo"></span></div>
+   <div class="game-tools"><button id="drawOffer" type="button">½ Beraberlik Teklif Et</button><button id="resign" type="button">Pes Et</button></div>
+   <div class="move-row"><span>HAMLELER</span><div id="moveHistory">İlk hamleyi bekliyor</div></div>
+  </div>
+  <div id="turnAnnouncement" class="turn-announcement" hidden aria-live="polite"><b id="announcementTitle">Sıra sende</b><span id="announcementSubtitle">BEYAZ OYNUYOR</span></div>
+ </section>
+</main>
+<div id="promotionModal" class="overlay" hidden><div class="dialog"><h2>Piyon terfisi</h2><p>Piyonun hangi taşa dönüşsün?</p><div class="promotion-pieces" id="promotionPieces"></div><button id="cancelPromotion" class="outline" type="button">Vazgeç</button></div></div>
+<div id="drawModal" class="overlay" hidden><div class="dialog"><h2>Beraberlik teklifi</h2><p id="drawMessage">Rakibin beraberlik teklif ediyor.</p><div class="dialog-actions"><button id="declineDraw" class="outline" type="button">Reddet</button><button id="acceptDraw" type="button">Kabul Et</button></div></div></div>
+<div id="confirmModal" class="overlay" hidden><div class="dialog"><h2>Pes etmek istiyor musun?</h2><p>Pes ettiğinde rakibin maçı kazanır.</p><div class="dialog-actions"><button id="cancelResign" class="outline" type="button">Vazgeç</button><button id="confirmResign" type="button">Pes Et</button></div></div></div>
+<div id="finishModal" class="overlay" hidden><div class="dialog finish-dialog"><span class="finish-icon">♛</span><h2 id="finishTitle">Maç sona erdi</h2><p id="finishReason"></p><button id="finishExit" type="button">Oyunlara Dön</button></div></div>
+<div id="rulesModal" class="overlay" hidden><div class="dialog rules-dialog"><div class="rules-heading"><span>OYNABAK · SATRANÇ</span><button id="rulesClose" type="button" aria-label="Kapat">×</button></div><h2>Nasıl Oynanır?</h2><p>Satranç iki kişiyle oynanır. Beyaz ilk hamleyi yapar. Oda koduyla katılan oyuncu, kendi rengindeki taşları ekranın altından görür.</p><ol><li>Taşa dokun, ardından vurgulanan yasal hedef kareyi seç.</li><li>Rakibin şahını tehdit altında bırakabilirsin, ancak kendi şahını tehlikede bırakacak hamle yapamazsın.</li><li>Rok, geçerken alma ve son sıraya ulaşan piyonun terfisi desteklenir.</li><li>Şah mat kazanır. Pat, yeterli taşın olmaması veya uygun tekrar/hamle kuralı durumlarında maç berabere biter.</li><li>Beraberlik teklifi gönderebilir veya pes edebilirsin.</li></ol><button id="rulesDone" type="button">Anladım</button></div></div>
+<div id="toast" class="toast" role="alert" hidden></div>
+</body>
+</html>
