@@ -782,3 +782,11 @@ body:not(.in-game) .rules-overlay .rules-done{background:#493021}
 @media(max-height:690px){
  .tavla-lobby-v3 .welcome-art{transform:scale(.82) rotate(-8deg);margin-bottom:-11px}
 }
+
+/* Hide inactive screens and controls consistently on iPhone Safari. */
+.tavla-lobby-v3 .welcome-resume[hidden],
+.tavla-lobby-v3 #createForm[hidden],
+.tavla-lobby-v3 #joinForm[hidden],
+.tavla-lobby-v3 #lobbyHome[hidden],
+.tavla-lobby-v3 #lobbySetup[hidden]{display:none!important}
+body.in-game #lobby[hidden],body:not(.in-game) #game[hidden]{display:none!important}
