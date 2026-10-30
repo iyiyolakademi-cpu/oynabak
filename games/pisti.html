@@ -6,9 +6,9 @@
 <meta name="theme-color" content="#112c25">
 <meta name="robots" content="noindex,nofollow">
 <title>Pişti · OynaBak</title>
-<link rel="stylesheet" href="./pisti.css?v=20261030-pisti-premium">
+<link rel="stylesheet" href="./pisti.css?v=20261030-modes4">
 <script src="../assets/supabase-client.bundle.js"></script>
-<script defer src="./pisti.js?v=20261030-pisti-premium"></script>
+<script defer src="./pisti.js?v=20261030-modes4"></script>
 </head>
 <body>
 <header class="site-header">
@@ -34,7 +34,16 @@
    <label for="playerName">OYUNCU ADIN</label>
    <input id="playerName" type="text" maxlength="18" minlength="2" autocomplete="nickname" placeholder="Nasıl hitap edelim?">
    <form id="createForm">
-    <p class="form-help">Odanı oluşturduğunda dört rakamlı kodunu arkadaşınla paylaş.</p>
+    <fieldset class="match-mode-fieldset">
+      <legend>OYUN MODUNU SEÇ</legend>
+      <div id="matchModes" class="match-mode-grid" role="group" aria-label="Pişti maç türü">
+        <button type="button" class="mode-card" data-mode="quick" aria-pressed="false"><span class="mode-value">51</span><span class="mode-copy"><strong>Hızlı Maç</strong><small>51 puana ilk ulaşan</small></span></button>
+        <button type="button" class="mode-card active" data-mode="classic" aria-pressed="true"><span class="mode-value">101</span><span class="mode-copy"><strong>Klasik Maç</strong><small>101 puana ilk ulaşan</small></span></button>
+        <button type="button" class="mode-card" data-mode="long" aria-pressed="false"><span class="mode-value">151</span><span class="mode-copy"><strong>Uzun Maç</strong><small>151 puana ilk ulaşan</small></span></button>
+        <button type="button" class="mode-card" data-mode="single" aria-pressed="false"><span class="mode-value mode-one-round">1 EL</span><span class="mode-copy"><strong>Tek El</strong><small>Bir destede en yüksek puan</small></span></button>
+      </div>
+    </fieldset>
+    <p class="form-help">Seçtiğin modla oda kurulur. Arkadaşın aynı kurallarla katılır.</p>
     <button type="submit" class="start-button"><span>Oda Oluştur</span><span aria-hidden="true">→</span></button>
    </form>
    <form id="joinForm" hidden>
@@ -56,7 +65,7 @@
   </div>
   <div class="scoreboard" aria-label="Maç puanları">
    <div class="score-person opponent-score"><span id="opponentName">Rakip bekleniyor</span><strong id="opponentPoints">0</strong><small id="opponentCollected">0 kart topladı</small></div>
-   <div class="score-center"><span>HEDEF</span><strong>101</strong><small id="roundLabel">1. EL</small></div>
+   <div class="score-center"><span id="targetCaption">HEDEF</span><strong id="targetValue">101</strong><small id="roundLabel">1. EL</small></div>
    <div class="score-person self-score"><span id="selfName">Sen</span><strong id="selfPoints">0</strong><small id="selfCollected">0 kart topladın</small></div>
   </div>
   <div id="openingBanner" class="first-turn-banner" aria-live="polite" hidden><span class="banner-mark" aria-hidden="true">01</span><span id="openingText">İlk oyuncu belirleniyor</span></div>
