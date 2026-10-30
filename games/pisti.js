@@ -30,7 +30,7 @@ function saveSession(){
  try{if(session)localStorage.setItem(sessionKey,JSON.stringify(session))}catch(_){}
 }
 function chooseMatchMode(mode){
- if(!Object.hasOwn(modeNames,mode))return;
+ if(!Object.prototype.hasOwnProperty.call(modeNames,mode))return;
  selectedMode=mode;
  document.querySelectorAll('#matchModes [data-mode]').forEach(button=>{
   const active=button.dataset.mode===mode;
