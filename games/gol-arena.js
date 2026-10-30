@@ -221,7 +221,6 @@ async function beginShot(index,vx,vy){
   display();
  }catch(e){activeShot=false;notify(e.message);refresh()}
 }
-let finishing=false;
 async function finishShot(){
  if(!session||finishing)return;
  finishing=true;
@@ -277,7 +276,7 @@ async function openRoom(code=null,token=null,nm=null){
  const data=await api('ob_goal_open',{p_venue_id:VENUE,p_name:name,p_code:code,p_token:token,p_goal_target:target});
  if(data.venue!==VENUE)throw Error('İşletme doğrulanamadı');
  session={room:data.room,token:data.token,name};save();
- room=data;lastVersion=data.version;lastSeenShot=data.shot;activeShot=false;remoteAnimating=false;finishedShown=false;scored=null;announced='';
+ room=data;lastVersion=data.version;lastSeenShot=data.shot;activeShot=false;remoteAnimating=false;finishShown=false;scored=null;announced='';
  setBoard(starting());appliedSnapshot(data.snapshot);
  $('lobby').hidden=true;$('game').hidden=false;document.body.classList.add('playing');
  resize();display();stop();connect();
