@@ -238,13 +238,13 @@ function beginPlace(x,y){
 }
 async function shot(dx,dy,speed){
  if(!isMyTurn()||activeShot)return;
- activeShot=true;
+ activeShot=true;shotStarted=0;
  try{
   const snapshot=await rpc('ob_bilardo_act',{p_code:session.room,p_token:session.token,p_action:'shot',p_payload:{dx,dy,speed}});
   state=snapshot;firstHit=null;ownPocket=false;whitePocket=false;blackPocket=false;localWinner=null;
   const cue=balls[0];cue.vx=dx*speed;cue.vy=dy*speed;
   shotStarted=performance.now();lastFrameSent=0;display();
- }catch(e){activeShot=false;notify(e.message);await refresh()}
+ }catch(e){activeShot=false;shotStarted=0;notify(e.message);await refresh()}
 }
 async function sendFrame(action,next=null,winner=null){
  if(!session||!state)return;
@@ -273,7 +273,7 @@ async function finishShot(){
 }
 function animate(t){
  const dt=previous?Math.min(33,t-previous):16;previous=t;
- if(activeShot){
+ if(activeShot&&shotStarted>0){
   physics(dt);
   const moving=balls.some(b=>!b.potted&&Math.hypot(b.vx,b.vy)>.12);
   if(t-lastFrameSent>200&&!framePending){
@@ -297,7 +297,7 @@ async function finishShotFromLoop(){
  try{
   if(framePending)await framePending.catch(()=>{});
   await finishShot();
- }finally{activeShot=false;finalizing=false}
+ }finally{activeShot=false;shotStarted=0;finalizing=false}
 }
 function pointerDown(e){
  if(!isMyTurn())return;
