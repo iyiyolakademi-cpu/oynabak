@@ -13,7 +13,7 @@ let db,session=null,state=null,balls=makeBalls(),pollTimer=null,heartbeat=null;
 let activeShot=false,lastFrame=-1,aiming=false,drag=null,previous=0,shotStarted=0;
 let remoteAnimating=false,remoteShotNo=0,channel=null,channelReady=false,lastPaint=0;
 let firstHit=null,ownPocket=false,whitePocket=false,blackPocket=false,localWinner=null,placing=false,finishedUi=false,polling=false,joinMode=false;
-let announcedTurn=null,turnToastTimer=null;
+let announcedTurn=null,turnToastTimer=null,lastRenderedColor=null;
 const canvas=$('table'),ctx=canvas.getContext('2d');
 let sx=1,sy=1,scale=1,dpr=1;
 function ball(id,type,x,y){return{id,type,x,y,vx:0,vy:0,potted:false}}
@@ -55,7 +55,7 @@ function choose(type){
 }
 function showWelcome(){
  document.body.classList.remove('playing','turn-blue','turn-red');document.querySelector('meta[name="theme-color"]')?.setAttribute('content','#003226');$('game').hidden=true;$('lobby').hidden=false;
- clearTimeout(turnToastTimer);announcedTurn=null;$('turnAnnouncement').hidden=true;
+ clearTimeout(turnToastTimer);announcedTurn=null;lastRenderedColor=null;$('turnAnnouncement').hidden=true;
  $('welcome').hidden=false;$('setup').hidden=true;$('winnerModal').hidden=true;
  const st=stored();$('resume').hidden=!st;$('resume').textContent=st?'Son masama dön: '+st.room:'Son masama dön';
 }
@@ -64,9 +64,13 @@ function currentTurnColor(){return state?.status==='playing'?localSeatColor(stat
 function updateTurnPresentation(){
  if(!document.body.classList.contains('playing'))return;
  const color=currentTurnColor();
- document.body.classList.toggle('turn-blue',color==='blue');
- document.body.classList.toggle('turn-red',color==='red');
- document.querySelector('meta[name="theme-color"]')?.setAttribute('content',color==='blue'?'#278de8':color==='red'?'#eb5d60':'#103c31');
+ // Avoid forcing a theme update on every 400ms network poll.
+ if(color!==lastRenderedColor){
+  lastRenderedColor=color;
+  document.body.classList.toggle('turn-blue',color==='blue');
+  document.body.classList.toggle('turn-red',color==='red');
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content',color==='blue'?'#278de8':color==='red'?'#eb5d60':'#103c31');
+ }
  const newKey=color?`${state.room}:${state.turn}`:null;
  if(!newKey){
   if(state?.status==='waiting')announcedTurn=null;
