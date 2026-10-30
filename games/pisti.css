@@ -410,3 +410,76 @@ body:not(.pisti-playing) .pisti-lobby-v3 .setup-card .start-button{
  .pisti-lobby-v3 .welcome-stage{overflow-y:auto}
 }
 @media(prefers-reduced-motion:reduce){.pisti-lobby-v3 .welcome-action{transition:none}}
+
+/* Pişti mobile finishing: clean rules icon and safe landscape grid. */
+.pisti-lobby-v3 .welcome-rules{gap:10px;font-size:13px;font-weight:800}
+.pisti-lobby-v3 .rules-info-icon{
+ box-sizing:border-box;width:27px;height:27px;display:inline-flex;align-items:center;
+ justify-content:center;flex:0 0 27px;border-radius:50%;
+ border:1px solid #dcebc87a;background:#e6f1d01d;
+ font-size:15px;font-weight:850;font-family:system-ui,-apple-system,sans-serif;
+ color:#e7f2d9;line-height:1;
+}
+@media (orientation:landscape) and (max-height:600px){
+ body:not(.pisti-playing) .pisti-lobby-v3 .welcome-stage{
+  box-sizing:border-box;min-height:100dvh;max-height:none;
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(250px,1fr);
+  grid-template-rows:auto minmax(0,1fr);column-gap:clamp(16px,4vw,40px);
+  padding:max(8px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left));
+  overflow-y:auto;
+ }
+ .pisti-lobby-v3 .welcome-top{grid-column:1/-1;grid-row:1;min-height:27px}
+ .pisti-lobby-v3 .welcome-center{
+  grid-column:1;grid-row:2;min-height:0;
+  padding:0 0 5px;justify-content:center;align-items:center;
+ }
+ .pisti-lobby-v3 .welcome-art{
+  width:160px;height:110px;margin:0 auto 3px;transform:scale(.76);
+ }
+ body:not(.pisti-playing) .pisti-lobby-v3 .welcome-center h1{
+  font-size:clamp(35px,6vw,53px);line-height:1;margin:0 0 2px;
+ }
+ .pisti-lobby-v3 .welcome-subtitle{font-size:11px;line-height:1.25}
+ .pisti-lobby-v3 .welcome-bottom{grid-column:2;grid-row:2;justify-content:center;min-width:0}
+ .pisti-lobby-v3 .welcome-actions{gap:8px;margin:0 0 10px}
+ .pisti-lobby-v3 .welcome-action{
+  min-height:55px;padding:8px 12px;border-radius:12px;
+  grid-template-columns:33px minmax(0,1fr) 18px;
+ }
+ .pisti-lobby-v3 .welcome-action-symbol{width:33px;height:33px;font-size:23px}
+ .pisti-lobby-v3 .welcome-action strong{font-size:clamp(13px,2.6vw,17px)}
+ .pisti-lobby-v3 .welcome-action-chevron{font-size:28px}
+ .pisti-lobby-v3 .people-symbol{transform:scale(.75)}
+ .pisti-lobby-v3 .welcome-footer{margin-top:8px;min-height:30px}
+ .pisti-lobby-v3 .welcome-back{width:34px;height:34px;font-size:29px}
+ .pisti-lobby-v3 .welcome-rules{font-size:11px}
+ .pisti-lobby-v3 .rules-info-icon{width:22px;height:22px;flex-basis:22px;font-size:12px}
+ .pisti-lobby-v3 .welcome-resume{margin-bottom:5px;padding:6px 10px;font-size:10px}
+ .pisti-lobby-v3 .setup-stage{max-width:540px;margin:0 auto}
+ body.pisti-playing .game{gap:4px}
+ body.pisti-playing .game-topline{min-height:32px;padding:3px 7px}
+ body.pisti-playing .score-person,body.pisti-playing .score-center{min-height:38px;padding:3px 5px}
+ body.pisti-playing .score-person strong{font-size:18px}
+ body.pisti-playing .first-turn-banner{min-height:26px;padding:3px 7px;font-size:10px}
+ body.pisti-playing .my-rack{padding:4px 7px}
+ body.pisti-playing .hand{min-height:0;gap:7px;padding:2px 0}
+ body.pisti-playing .hand .card{height:clamp(49px,22vh,77px);width:clamp(36px,14.8vh,55px)}
+ body.pisti-playing .hand .card .big-suit{font-size:20px}
+ body.pisti-playing .opponent-area .opponent-hand .card-back{height:clamp(22px,9vh,31px);width:20px}
+ body.pisti-playing .opponent-area .player-avatar{display:none}
+ body.pisti-playing .opponent-area{gap:1px}
+ body.pisti-playing .felt{border-radius:18px;min-height:0}
+ body.pisti-playing .player-area .player-dot{display:none}
+ body.pisti-playing .player-area{gap:4px}
+ body.pisti-playing .help-line{line-height:1.15}
+}
+@media (orientation:landscape) and (max-height:410px){
+ .pisti-lobby-v3 .welcome-art{transform:scale(.58);height:79px;margin-bottom:-12px}
+ body:not(.pisti-playing) .pisti-lobby-v3 .welcome-center h1{font-size:34px}
+ .pisti-lobby-v3 .welcome-action{min-height:47px;padding:5px 11px}
+ .pisti-lobby-v3 .welcome-actions{gap:6px}
+ body.pisti-playing .my-rack{padding:2px 7px}
+ body.pisti-playing .rack-caption{font-size:8px}
+ body.pisti-playing .hand .card{height:clamp(43px,19vh,60px);width:clamp(33px,13.2vh,44px)}
+ body.pisti-playing .hand .card .big-suit{font-size:17px}
+}
