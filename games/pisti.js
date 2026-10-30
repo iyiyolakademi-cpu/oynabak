@@ -6,7 +6,8 @@ const KEY='sb_publishable_RU5vtZxlqK2dMD-LWuwUaA_Eak6b9cj';
 const $=id=>document.getElementById(id);
 const suits=['♠','♥','♣','♦'],suitNames=['Maça','Kupa','Sinek','Karo'];
 const nameKey='ob-pisti:name',sessionKey='ob-pisti:session';
-let db,game=null,session=null,busy=false,poll=null,toastTimer=null,shownResult='',gesture=null,ghost=null;
+let db,game=null,session=null,busy=false,poll=null,toastTimer=null,shownResult='',gesture=null,ghost=null,selectedMode='classic';
+const modeNames={quick:'Hızlı Maç',classic:'Klasik Maç',long:'Uzun Maç',single:'Tek El'};
 const esc=text=>String(text??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const nameOf=card=>{const rank=card%13+1;return rank===1?'A':rank===11?'J':rank===12?'Q':rank===13?'K':String(rank)};
 const suitOf=card=>suits[Math.floor(card/13)];
@@ -27,6 +28,15 @@ function connection(message,bad=false){const e=$('network');e.textContent=messag
 function rpc(name,args){return db.rpc(name,args).then(({data,error})=>{if(error)throw Error(error.message||'Sunucu yanıt vermedi');return data})}
 function saveSession(){
  try{if(session)localStorage.setItem(sessionKey,JSON.stringify(session))}catch(_){}
+}
+function chooseMatchMode(mode){
+ if(!Object.hasOwn(modeNames,mode))return;
+ selectedMode=mode;
+ document.querySelectorAll('#matchModes [data-mode]').forEach(button=>{
+  const active=button.dataset.mode===mode;
+  button.classList.toggle('active',active);
+  button.setAttribute('aria-pressed',String(active));
+ });
 }
 function chooseMode(mode){
  const join=mode==='join';
@@ -52,7 +62,10 @@ function writeNames(){
  $('opponentPoints').textContent=game.scores?.[1-game.seat]??0;
  $('selfCollected').textContent=(you?.collected_count||0)+' kart topladın';
  $('opponentCollected').textContent=(them?.collected_count||0)+' kart topladı';
- $('roundLabel').textContent=(game.round||0)+'. EL';
+ const single=game.mode==='single';
+ $('targetCaption').textContent=single?'MOD':'HEDEF';
+ $('targetValue').textContent=single?'1 EL':String(game.target||101);
+ $('roundLabel').textContent=single?'TEK EL':(game.round||0)+'. EL';
 }
 function render(){
  if(!game)return;
@@ -100,17 +113,20 @@ function showResult(){
  const who=last.winner;
  const name=who===null?'Berabere':game.players[who]?.name||'Oyuncu';
  $('resultSymbol').textContent=isMatch?'♠':'♦';
- $('resultEyebrow').textContent=isMatch?'MAÇ TAMAMLANDI':game.round+'. EL BİTTİ';
- $('resultTitle').textContent=isMatch?(who===game.seat?'Kazandın!':name+' kazandı!'):'El tamamlandı';
+ $('resultEyebrow').textContent=isMatch?(game.mode==='single'?'TEK EL TAMAMLANDI':'MAÇ TAMAMLANDI'):game.round+'. EL BİTTİ';
+ $('resultTitle').textContent=isMatch?(who===null?'Berabere!':who===game.seat?'Kazandın!':name+' kazandı!'):'El tamamlandı';
  $('resultName0').textContent=game.players[0]?.name||'1. oyuncu';
  $('resultName1').textContent=game.players[1]?.name||'2. oyuncu';
  $('resultScore0').textContent=game.scores[0];$('resultScore1').textContent=game.scores[1];
- $('resultMessage').textContent=isMatch?'101 puanlık maç sonuçlandı. İkiniz hazır olunca yeni maç başlayabilir.':
+ const matchLabel=game.mode==='single'?'Tek el':(game.target||101)+' puanlık maç';
+ $('resultMessage').textContent=isMatch?
+  (game.mode==='single'?'Bir deste bitti; en yüksek puan kazandı. ':'Hedef puana ulaşıldı. ')+
+  'Sonuç: '+game.scores[0]+' – '+game.scores[1]+'. İkiniz hazır olunca yeni '+(game.mode==='single'?'ele':'maça')+' geçebilirsiniz.':
  'Bu el: '+(last.round_scores?.[0]||0)+' – '+(last.round_scores?.[1]||0)+
- '. Yeni ele başlamak için iki oyuncu da hazır olmalı.';
+ '. '+matchLabel+' devam ediyor; yeni ele başlamak için ikiniz de hazır olmalısınız.';
  const ready=game.ready?.[game.seat]===true;
  $('readyButton').disabled=ready;
- $('readyButton').textContent=ready?'Rakibin bekleniyor…':isMatch?'Yeni Maça Hazırım →':'Sonraki Ele Hazırım →';
+ $('readyButton').textContent=ready?'Rakibin bekleniyor…':isMatch?(game.mode==='single'?'Yeni Tek Ele Hazırım →':'Yeni Maça Hazırım →'):'Sonraki Ele Hazırım →';
  $('resultModal').hidden=false;
 }
 async function refresh(){
@@ -134,7 +150,7 @@ async function openRoom(name,code='',token=null){
  busy=true;connection('● Bağlanıyor');
  document.querySelectorAll('#lobby button[type="submit"]').forEach(b=>b.disabled=true);
  try{
-  const next=await rpc('ob_pisti_open',{p_venue_id:VENUE,p_name:name,p_code:code||null,p_token:token||null});
+  const next=await rpc('ob_pisti_open_v2',{p_venue_id:VENUE,p_name:name,p_code:code||null,p_token:token||null,p_mode:selectedMode});
   if(!next?.room||!next?.token)throw Error('Masa oluşturulamadı');
   session={room:next.room,token:next.token,name};saveSession();
   try{localStorage.setItem(nameKey,name)}catch(_){}
@@ -247,6 +263,10 @@ function wire(){
  try{$('playerName').value=localStorage.getItem(nameKey)||''}catch(_){}
  $('chooseCreate').addEventListener('click',()=>chooseMode('create'));
  $('chooseJoin').addEventListener('click',()=>chooseMode('join'));
+ document.querySelectorAll('#matchModes button[data-mode]').forEach(btn=>{
+  btn.addEventListener('click',()=>chooseMatchMode(btn.dataset.mode));
+ });
+ chooseMatchMode('classic');
  const code=(search.get('masa')||'').toUpperCase();
  if(/^[0-9]{4}$/.test(code)){$('joinCode').value=code;chooseMode('join')}
  $('joinCode').addEventListener('input',e=>{e.target.value=e.target.value.replace(/\D/g,'').slice(0,4)});
