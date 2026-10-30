@@ -94,13 +94,15 @@ function resize(){
  const field=document.querySelector('.pitch-wrap');
  const inner=document.querySelector('.game-inner');
  const game=$('game');
- const header=game.querySelector('.game-bar');
- const elements=[header,document.querySelector('.score-panel'),document.querySelector('.turn-bar'),document.querySelector('.game-tools')];
- // A measured viewport budget avoids invalid CSS calc() widths and zero-height
- // canvas on iOS Safari. The pitch takes all available space after controls.
- const availableH=(game.clientHeight||window.innerHeight)-elements.reduce((a,e)=>a+(e?.offsetHeight||0),0)-53;
+ // The flex container already excludes the header, mobile safe-area padding
+ // and browser toolbar. Measure the real remaining space rather than
+ // guessing a fixed iPhone-height subtraction.
+ const controls=[document.querySelector('.score-panel'),document.querySelector('.turn-bar'),document.querySelector('.game-tools')];
+ const style=window.getComputedStyle(inner);
+ const gap=Number.parseFloat(style.rowGap||style.gap)||4;
+ const availableH=(inner.clientHeight||Math.max(240,game.clientHeight-65))-controls.reduce((a,e)=>a+(e?.offsetHeight||0),0)-gap*3-7;
  const availableW=Math.min((inner?.clientWidth||window.innerWidth)-6,window.innerWidth-10,570);
- const height=Math.max(210,Math.min(availableH,availableW*H/W));
+ const height=Math.max(190,Math.min(availableH,availableW*H/W));
  const width=height*W/H;
  field.style.width=Math.round(width)+'px';
  field.style.height=Math.round(height)+'px';
