@@ -59,3 +59,286 @@ body.in-game .rolls span{font-size:9px}body.in-game .rolls b{font-size:13px}
 /* A full-screen board needs to capture touch drags instead of page scrolling. */
 body.in-game .board .point{touch-action:none}
 @media(orientation:landscape) and (max-height:550px){body.in-game .players{display:flex}body.in-game .players .player{flex:1}.board{row-gap:5px}body.in-game .board-frame{padding:3px}.bar-area>span{display:none}}
+
+
+/* 30 Oct 2026: portrait-first full-screen layout, Safari-safe and without checker overlap. */
+body.in-game{
+  background:#543019;
+  overscroll-behavior:none;
+}
+body.in-game main{
+  box-sizing:border-box;
+  width:100%;
+  max-width:none;
+  height:100vh;
+  height:100dvh;
+  padding:max(5px,env(safe-area-inset-top)) max(6px,env(safe-area-inset-right))
+    max(6px,env(safe-area-inset-bottom)) max(6px,env(safe-area-inset-left));
+  overflow:hidden;
+}
+body.in-game #game{
+  height:100%;
+  min-height:0;
+  display:grid;
+  grid-template-rows:auto auto minmax(0,1fr) auto;
+  gap:6px;
+}
+body.in-game .roomline{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  align-items:center;
+  min-height:49px;
+  gap:8px;
+  padding:5px 9px;
+  margin:0;
+  border-radius:13px;
+  background:#fffdfa;
+}
+.roomline .room-code-block{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:3px;
+  min-width:0;
+}
+.roomline .room-code-block small{font-size:9px;letter-spacing:1.1px;font-weight:800;color:#948d83}
+.roomline #copy{
+  padding:5px 10px;
+  min-height:30px;
+  border-radius:9px;
+  background:#efede8;
+  display:flex;align-items:center;gap:6px;
+  color:#382b20;
+  font-size:12px;
+}
+.roomline #copy strong{font-size:17px;font-weight:900;font-variant-numeric:tabular-nums;letter-spacing:.5px}
+.roomline #copy span{font-size:16px;color:#6e6254}
+.roomline .match-status{
+  min-width:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:3px;
+}
+body.in-game .roomline #state{
+  display:block;max-width:100%;text-align:center;
+  font-size:clamp(11px,3.2vw,14px);line-height:1.15;
+  color:#486b51;font-weight:850;overflow:hidden;text-overflow:ellipsis;
+}
+body.in-game .roomline #connection{display:block;max-width:100%;font-size:10px;font-weight:750;white-space:nowrap;color:#718071;text-align:center}
+.roomline .room-actions{display:flex;align-items:center;gap:5px}
+body.in-game .roomline #share,body.in-game .roomline #leave{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:9px;
+  padding:0 10px;
+  min-height:37px;
+  font-size:11px;font-weight:850;white-space:nowrap;
+}
+body.in-game .roomline #share{color:#4a3526;background:#f1ece6}
+body.in-game .roomline #leave{color:#fff;background:#382116}
+body.in-game .players{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  align-items:stretch;
+  gap:6px;
+  min-width:0;
+  margin:0;
+}
+body.in-game .players .player{
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  justify-content:center;
+  min-width:0;
+  gap:4px;
+  min-height:52px;
+  padding:7px 10px;
+  border-radius:12px;
+  background:#fffdfa;
+}
+.player-title{display:flex;align-items:center;gap:7px;min-width:0}
+body.in-game .player-title small{
+  font-size:10px;letter-spacing:.5px;flex:0 0 auto;color:#887d72;
+}
+body.in-game .player-title strong{
+  display:block;min-width:0;max-width:100%;flex:1 1 auto;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  font-size:clamp(12px,3.5vw,16px);line-height:1.25;
+}
+body.in-game .player .player-detail{
+  margin:0;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  color:#756b5d;font-weight:650;font-size:clamp(10px,2.7vw,12px);
+}
+body.in-game .board-frame{
+  width:100%;
+  height:100%;
+  min-width:0;
+  min-height:0;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  gap:0;
+  padding:5px;
+  border-radius:13px;
+  background:linear-gradient(135deg,#a66c3b,#764520);
+}
+body.in-game .board{
+  width:100%;
+  height:100%;
+  min-width:0;
+  min-height:0;
+  flex:1 1 auto;
+  position:relative;
+  display:grid;
+  grid-template-columns:repeat(6,minmax(0,1fr)) 12px repeat(6,minmax(0,1fr));
+  grid-template-rows:repeat(2,minmax(0,1fr));
+  column-gap:2px;
+  row-gap:clamp(10px,2.5vh,24px);
+  padding:4px 3px;
+  border:3px solid #74441f;
+  border-radius:6px;
+  background:linear-gradient(120deg,#eac48e,#e6b67d);
+  isolation:isolate;
+  overflow:hidden;
+}
+body.in-game .board::after{
+  content:'';
+  display:block;
+  position:absolute;
+  z-index:0;
+  inset:0 auto 0 calc(50% - 6px);
+  width:12px;
+  background:linear-gradient(90deg,#603819 0%,#a77442 46%,#6e411f 100%);
+  box-shadow:0 0 0 1px #5a381d30;
+  pointer-events:none;
+  transform:none;
+}
+body.in-game .board>.point{
+  z-index:1;
+  height:100%;
+  min-width:0;
+  min-height:0;
+  overflow:visible;
+  touch-action:none;
+}
+body.in-game .board>.point .triangle{height:80%}
+body.in-game .board>.point .checkers{
+  display:flex;
+  position:relative;
+  width:100%;
+  gap:1px;
+  z-index:2;
+  align-items:center;
+}
+body.in-game .board>.point .checker{
+  box-sizing:border-box;
+  display:block;
+  width:min(90%,29px);
+  height:auto;
+  aspect-ratio:1/1;
+  flex:0 0 auto;
+  border-width:1.5px;
+  box-shadow:0 1px 3px #21120c60;
+}
+body.in-game .board>.point .count{
+  font-size:10px;padding:1px 3px;line-height:1.2;
+}
+body.in-game .bar-area{
+  display:flex;align-items:center;justify-content:flex-start;
+  flex:0 0 auto;min-height:31px;padding:4px 4px 0;
+}
+body.in-game .bar-area #barButton{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  min-height:29px;max-width:100%;
+  margin:0;padding:5px 10px;
+  background:#f9edda;
+  border:1px solid #d9bf9b;
+  border-radius:8px;
+  color:#4b3121;font-size:11px;font-weight:800;
+}
+body.in-game .bar-area #barButton:disabled{opacity:.75}
+body.in-game .bar-area #barButton strong{
+  margin:0;min-width:16px;padding:1px 5px;border-radius:5px;background:#ebdac4;font-size:11px;
+}
+body.in-game .bar-area .bar-arrow{font-size:16px}
+body.in-game .controls{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:9px;
+  width:100%;
+  min-width:0;
+  min-height:62px;
+  margin:0;
+  padding:7px 9px;
+  background:#fffaf2;
+  border-radius:12px;
+}
+body.in-game .dice-stage{flex:0 0 auto;gap:5px}
+body.in-game .die-face{
+  width:34px;height:34px;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  grid-template-rows:repeat(3,1fr);
+  gap:1px;
+  align-items:center;
+  justify-items:center;
+  padding:6px;
+  background:#fff;
+  border:1px solid #d7cbbc;
+  border-radius:7px;
+  box-shadow:1px 2px 0 #c8b7a2;
+  font-family:inherit;
+}
+.die-face .die-pip{display:block;width:6px;height:6px;border-radius:50%;background:transparent}
+.die-face .die-pip.on{background:#272420}
+.die-face.empty .die-pip.on{background:transparent}
+body.in-game .rolls{flex:1 1 auto;min-width:0;display:grid;grid-template-columns:1fr;gap:4px}
+body.in-game .rolls>div{display:flex;align-items:center;justify-content:space-between;gap:5px;min-width:0}
+body.in-game .rolls span{font-size:9px;font-weight:850;white-space:nowrap;color:#877969}
+body.in-game .rolls b{font-size:13px;line-height:1.1;font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+body.in-game .controls>.primary{
+  flex:0 0 auto;
+  min-width:100px;
+  max-width:145px;
+  min-height:44px;
+  padding:8px 11px;
+  font-size:12px;
+  line-height:1.2;
+  font-weight:850;
+  border-radius:10px;
+}
+body.in-game .controls>.primary:disabled{
+  opacity:1;background:#e7e3dc;color:#83776b;
+}
+body.in-game .choices{
+  max-height:min(35dvh,260px);
+  overflow:auto;
+  bottom:calc(70px + env(safe-area-inset-bottom));
+}
+@media(max-width:390px){
+ body.in-game .roomline{gap:5px;padding:5px 7px}
+ body.in-game .roomline #share{padding:0 7px}
+ body.in-game .roomline #leave{padding:0 8px}
+ body.in-game .roomline #connection{font-size:9px}
+ body.in-game .board>.point .checker{width:min(88%,25px)}
+ body.in-game .dice-stage{gap:3px}
+ body.in-game .die-face{width:30px;height:30px;padding:5px}
+ body.in-game .controls{gap:6px;padding:6px}
+ body.in-game .controls>.primary{min-width:88px;max-width:114px;padding:6px 7px;font-size:11px}
+ body.in-game .player-title small{font-size:9px}
+}
+@media(max-height:670px){
+ body.in-game #game{gap:4px}
+ body.in-game .roomline{min-height:39px;padding-top:3px;padding-bottom:3px}
+ body.in-game .players .player{min-height:42px;padding:4px 8px}
+ body.in-game .controls{min-height:49px;padding:4px 8px}
+ body.in-game .bar-area{min-height:25px;padding-top:2px}
+ body.in-game .board{row-gap:9px}
+}
+@media(orientation:landscape) and (max-height:510px){
+ body.in-game #game{grid-template-rows:auto auto minmax(0,1fr) auto}
+ body.in-game .roomline{min-height:34px}
+ body.in-game .players .player{min-height:30px;flex-direction:row;align-items:center;justify-content:space-between}
+ body.in-game .bar-area{min-height:23px}
+ body.in-game .board>.point .checker{width:min(75%,23px)}
+ body.in-game .board>.point .triangle{height:86%}
+}
