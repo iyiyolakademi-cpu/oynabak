@@ -2816,6 +2816,18 @@ body.games-mode .customer-entry-brand small{
 @media(max-width:850px){.freed-gallery-hero{grid-template-columns:1fr;gap:22px}.freed-gallery-logo{min-height:175px}.freed-media-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.freed-media-card:first-child{grid-column:1/-1}.freed-media-card:first-child .freed-media-visual{aspect-ratio:16/10}}
 @media(max-width:540px){.freed-discover{padding-top:24px;padding-bottom:50px}.freed-gallery-hero{padding:25px 20px;border-radius:19px}.freed-gallery-hero h1{font-size:40px;letter-spacing:-1.7px}.freed-gallery-logo{min-height:150px}.freed-gallery-logo img{width:220px}.freed-gallery-heading{margin-top:29px;align-items:start}.freed-gallery-heading h2{font-size:23px}.freed-media-grid{grid-template-columns:1fr;gap:15px}.freed-media-card:first-child{grid-column:auto}.freed-media-card:first-child .freed-media-visual{aspect-ratio:4/5}.freed-media-visual{aspect-ratio:5/5}.freed-media-description{padding:13px 14px}.freed-gallery-count{font-size:9px}}
 
+
+/* Pişti feature: panoramic artwork scaled for portrait and landscape phones. */
+.featured-game.pisti-featured{background:#0c4737;isolation:isolate}
+.featured-game.pisti-featured .featured-media{background:#0c4737}
+.featured-game.pisti-featured .featured-media svg{width:100%;height:100%;display:block;object-fit:cover}
+@media(max-width:640px){
+ .featured-game.pisti-featured{min-height:0;aspect-ratio:4/5;border-radius:22px}
+ .featured-game.pisti-featured .featured-content{padding:clamp(15px,4vw,23px)}
+ .featured-game.pisti-featured .featured-media:after{background:linear-gradient(0deg,rgba(0,19,15,.97),rgba(0,32,25,.73) 38%,rgba(0,30,24,0) 78%)}
+}
+@media(max-width:390px){.featured-game.pisti-featured{aspect-ratio:4/5.4}}
+@media(orientation:landscape) and (max-height:560px){.featured-game.pisti-featured{min-height:255px;aspect-ratio:16/9}}
 </style></head><body>
 <header><nav class="wrap"><a class="brand" href="#home" aria-label="OynaBak ana sayfa"><img src="oynabak-logo.png" alt="OynaBak"></a><div class="links"><a class="desktop" href="#features">Nasıl çalışır?</a><a class="desktop" href="#referanslar">Referanslar</a><a class="desktop" href="#faq">Merak edilenler</a><a class="desktop" href="#blog">Blog</a><a class="btn small light" href="#panel">İşletme Paneli ↗</a></div></nav></header>
 <main id="app"></main><footer><div class="wrap row" style="justify-content:space-between;gap:18px"><div><b>OynaBak · Molana oyun kat.</b><span style="display:block;margin-top:4px">Kafe · Spor salonu · Mağaza</span><span style="display:block;margin-top:4px;font-size:12px;color:#7b8797">Geliştiren: <a href="https://berkedenizyuksekdag.com/" target="_blank" rel="noopener noreferrer">Berke Deniz Yüksekdağ</a></span><span style="display:block;margin-top:4px;color:#7b8797">© 2026 OynaBak · Tüm hakları saklıdır.</span></div><div class="footer-links"><a href="#home">Ana sayfa</a><a href="#referanslar">Referanslar</a><a href="#blog">Blog</a><a href="#privacy">Gizlilik</a><a href="#kvkk">KVKK</a><a href="#terms">Kullanım Koşulları</a><a href="#contact">İletişim</a></div></div></footer><a class="whatsapp" href="https://wa.me/905066403989?text=Merhaba%2C%20OynaBak%20hakk%C4%B1nda%20bilgi%20almak%20istiyorum." target="_blank" rel="noopener noreferrer">WhatsApp'tan sor ↗</a>
@@ -5670,12 +5682,14 @@ function currentGameSelectionHtml(v={}){
   const games=currentTenGames(adminData?.games||[]);
   const venueId=String(v?.id||'');
   const isNew=!venueId;
+  const pistiEnabled=featureCache.get(venueId)?.pisti ?? (venueId==='70abef21-053c-4026-b402-e18311f758d5');
+  const builtinPisti=`<label><input type="checkbox" name="feature_pisti" ${pistiEnabled?'checked':''}>Pişti · 2 kişilik canlı (51 / 101 / 151 / Tek El)</label>`;
 
   if(!games.length){
-    return '<div class="empty">Henüz güncel özel oyun bulunmuyor.</div>';
+    return builtinPisti;
   }
 
-  return games.map(g=>{
+  return builtinPisti + games.map(g=>{
     const assigned=(g.venue_ids||[]).map(String).includes(venueId);
     const checked=isNew||assigned;
     return `<label><input type="checkbox" name="custom_enabled" value="${esc(g.id)}" ${checked?'checked':''}>${esc(g.name)}</label>`;
@@ -5938,7 +5952,7 @@ const OB_FEATURES=[
   ['review','⭐ Google Değerlendirme'],['instagram','📸 Instagram Hesabı'],['waiter','🔔 Garson Çağırma']
 ];
 const featureCache=new Map();
-function defaultFeatures(){return {games:true,menu:true,review:true,instagram:true,waiter:false}}
+function defaultFeatures(){return {games:true,menu:true,review:true,instagram:true,waiter:false,pisti:false}}
 function featureOn(v,key){
   const id=String(v?.id||'');
   return (featureCache.get(id)||defaultFeatures())[key]===true;
@@ -5947,7 +5961,7 @@ async function loadVenueFeatures(vid){
   vid=String(vid||''); if(!vid)return defaultFeatures();
   try{
     const f=await rpc('ob_features_get',{vid});
-    const out={games:f?.games!==false,menu:f?.menu!==false,review:f?.review!==false,instagram:f?.instagram!==false,waiter:f?.waiter===true};
+    const out={games:f?.games!==false,menu:f?.menu!==false,review:f?.review!==false,instagram:f?.instagram!==false,waiter:f?.waiter===true,pisti:f?.pisti===true};
     featureCache.set(vid,out); return out;
   }catch(_){const f=defaultFeatures();featureCache.set(vid,f);return f}
 }
@@ -7546,20 +7560,20 @@ function listGames(){
     });
   }
 
-  // Two-player live Pişti is enabled only for the İyi Yol Akademi pilot venue.
-  if(String(venue?.id)==='70abef21-053c-4026-b402-e18311f758d5'){
+  // Native Pişti is enabled individually for each business by an administrator.
+  if(featureOn(venue,'pisti')){
     items.push({
       kind:'pisti',key:'pisti-live',name:'Pişti',type:'2 Kişilik · Canlı',
-      description:'İki telefondan karşılıklı Pişti! Arkadaşınla özel masa kur, kartları topla ve 101 puana ulaş.',
+      description:'İki telefondan canlı Pişti! 51, 101, 151 puan ya da Tek El modunu seç, arkadaşınla oyna.',
       players:'2 oyuncu',time:'Canlı masa',cats:[],
-      cover:`<svg viewBox="0 0 640 360" role="img" aria-label="Yeşil Pişti masası üzerinde oyun kartları">
+      cover:`<svg viewBox="0 0 640 360" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Yeşil Pişti masası üzerinde oyun kartları">
         <defs><linearGradient id="obPistiBg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#208c61"/><stop offset="1" stop-color="#073a31"/></linearGradient></defs>
         <rect width="640" height="360" rx="26" fill="url(#obPistiBg)"/>
         <rect x="34" y="28" width="572" height="304" rx="95" fill="#105b45" stroke="#b79255" stroke-width="13"/>
         <g font-family="system-ui" text-anchor="middle" font-weight="850">
           <g transform="translate(184 70) rotate(-11 60 110)"><rect width="125" height="192" rx="9" fill="#fff9e7"/><text x="27" y="38" font-size="32" fill="#c94348">A</text><text x="62" y="126" font-size="78" fill="#c94348">♥</text></g>
           <g transform="translate(328 62) rotate(10 60 110)"><rect width="125" height="192" rx="9" fill="#fff9e7"/><text x="29" y="38" font-size="32" fill="#17334a">J</text><text x="62" y="126" font-size="78" fill="#17334a">♠</text></g>
-          <text x="320" y="299" font-size="22" fill="#f2d7a4" letter-spacing="5">PİŞTİ · 2 KİŞİ</text>
+          <path d="M48 317h544" stroke="#d3a963" stroke-width="3" opacity=".5"/>
         </g>
       </svg>`
     });
@@ -7628,7 +7642,7 @@ function listGames(){
     <section class="featured-wrap">
       <div class="section-heading"><h2>Öne çıkan</h2><span>Tek dokunuşla başla</span></div>
 
-      <button class="featured-game priority-featured" type="button" ${featuredAction}>
+      <button class="featured-game priority-featured${featured.kind==='pisti'?' pisti-featured':''}" type="button" ${featuredAction}>
         <span class="featured-media">${featured.cover}</span>
         <span class="featured-content">
           <span class="featured-badge">${esc(featured.type)}</span>
@@ -7796,8 +7810,8 @@ if(a==='tavla-open'){
   return;
 }
 if(a==='pisti-open'){
-  if(!hasQrGameAccess()||!featureOn(venue,'games')||String(venue?.id)!=='70abef21-053c-4026-b402-e18311f758d5'){
-    toast('Pişti yalnızca İyi Yol Akademi işletmesinde açık.');return;
+  if(!hasQrGameAccess()||!featureOn(venue,'games')||!featureOn(venue,'pisti')){
+    toast('Pişti bu işletmede etkin değil.');return;
   }
   await trackEvent('game_open',{game:'pisti'});
   const pistiUrl=new URL('games/pisti.html',location.href);
@@ -7977,7 +7991,7 @@ document.addEventListener('submit',async e=>{const f=e.target;if(!['authForm','p
   if(!merchant&&venueId){
     await saveVenueFeatures(venueId,{
       games:d.has('feature_games'),menu:d.has('feature_menu'),
-      review:d.has('feature_review'),instagram:d.has('feature_instagram'),waiter:d.has('feature_waiter')
+      review:d.has('feature_review'),instagram:d.has('feature_instagram'),waiter:d.has('feature_waiter'),pisti:d.has('feature_pisti')
     });
     await syncVenueCustomGames(venueId,d.getAll('custom_enabled'));
   }
