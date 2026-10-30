@@ -207,3 +207,79 @@ body.playing .ball-hint{z-index:4;bottom:70px;max-width:75%;font-size:11px}
  body.playing .side-score strong{font-size:20px}
  body.playing .side-exit{font-size:13px}
 }
+
+/* 2026-10-30 — Expand the portrait table and reserve the narrower
+   former peach margins for the current player's blue/red turn color. */
+body.playing.turn-blue,
+body.playing.turn-blue main,
+body.playing.turn-blue .game,
+body.playing.turn-blue .table-wrap{background:#278de8}
+body.playing.turn-red,
+body.playing.turn-red main,
+body.playing.turn-red .game,
+body.playing.turn-red .table-wrap{background:#eb5d60}
+body.playing .table-shell{
+  width:min(100vw,calc(100dvh * .54));
+  max-width:640px;
+}
+body.playing .turn-announcement{
+  position:absolute;
+  left:50%;
+  top:22%;
+  z-index:9;
+  width:max-content;
+  max-width:84%;
+  padding:13px 20px;
+  border-radius:15px;
+  background:rgba(4,24,20,.9);
+  color:#fff;
+  border:2px solid rgba(255,255,255,.65);
+  box-shadow:0 5px 24px rgba(0,0,0,.35);
+  font-weight:900;
+  font-size:clamp(17px,5.2vw,26px);
+  text-align:center;
+  letter-spacing:-.4px;
+  line-height:1.15;
+  white-space:nowrap;
+  pointer-events:none;
+  opacity:0;
+  transform:translate(-50%,-10px) scale(.94);
+}
+body.playing .turn-announcement.turn-blue{
+  border-color:#65bdff;
+  box-shadow:0 5px 24px rgba(0,0,0,.35),0 0 15px #389bff6b;
+}
+body.playing .turn-announcement.turn-red{
+  border-color:#ffaaaa;
+  box-shadow:0 5px 24px rgba(0,0,0,.35),0 0 15px #fc4a5a6b;
+}
+@keyframes billiards-turn-badge{
+  0%{opacity:0;transform:translate(-50%,-12px) scale(.92)}
+  17%{opacity:1;transform:translate(-50%,0) scale(1.04)}
+  27%,75%{opacity:1;transform:translate(-50%,0) scale(1)}
+  100%{opacity:0;transform:translate(-50%,8px) scale(.98)}
+}
+body.playing .turn-announcement.show{
+  animation:billiards-turn-badge 1.75s ease-in-out both;
+}
+@media (min-width:720px){
+  body.playing .table-shell{
+    width:min(580px,calc(94dvh * .54));
+    max-width:640px;
+  }
+}
+@media (orientation:landscape){
+  body.playing .table-shell{
+    width:min(83vw,calc(96dvh * .54));
+  }
+}
+@media (max-width:360px){
+  body.playing .turn-announcement{padding:10px 13px;font-size:16px}
+}
+@media (prefers-reduced-motion: reduce){
+  body.playing .turn-announcement.show{
+    animation:none;
+    opacity:1;
+    transform:translate(-50%,0) scale(1);
+  }
+}
