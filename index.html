@@ -5683,7 +5683,7 @@ function currentGameSelectionHtml(v={}){
   const venueId=String(v?.id||'');
   const isNew=!venueId;
   const pistiEnabled=featureCache.get(venueId)?.pisti ?? (venueId==='70abef21-053c-4026-b402-e18311f758d5');
-  const builtinPisti=`<label><input type="checkbox" name="feature_pisti" ${pistiEnabled?'checked':''}>Pişti · 2 kişilik canlı (51 / 101 / 151 / Tek El)</label>`;
+  const builtinPisti=`<label><input type="checkbox" name="feature_pisti" ${pistiEnabled?'checked':''}>Pişti</label>`;
 
   if(!games.length){
     return builtinPisti;
