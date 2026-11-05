@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OynaBak · Yazıcı Yönetimi</title>
+<style>
+:root{font-family:Inter,system-ui,-apple-system,sans-serif;color:#142033;background:#f5f7fa}
+*{box-sizing:border-box}body{margin:0}main{max-width:1000px;margin:auto;padding:24px 16px 60px}
+header{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+h1{font-size:28px;margin:8px 0}p{color:#667085;line-height:1.5}.card{background:white;border:1px solid #e5e9f0;border-radius:16px;padding:20px;margin:16px 0;box-shadow:0 4px 22px #10182808}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
+label{display:grid;gap:6px;font-weight:650;font-size:13px}select,input{padding:12px;border:1px solid #cdd5df;border-radius:10px;background:white;color:#142033;max-width:100%;font:inherit}
+button,.btn{border:0;border-radius:10px;padding:11px 15px;background:#192b44;color:#fff;font:700 14px system-ui;cursor:pointer;text-decoration:none}
+button:disabled{opacity:.5;cursor:not-allowed}.light{background:#f0f3f7;color:#1b2a44}.muted{color:#667085;font-size:13px}
+.notice{background:#fff8e6;border:1px solid #f5daa0;border-radius:10px;padding:12px;color:#704b0b;font-size:13px}
+.status{font-weight:700}.item{border-top:1px solid #edf0f3;padding:12px 0;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+pre{overflow:auto;background:#f7f9fc;padding:12px;border-radius:10px;white-space:pre-wrap}
+#error{color:#b42318;font-weight:700}.ok{color:#067647}
+</style></head><body><main>
+<header><div><div class="muted">OYNABAK / İYİ YOL AKADEMİ YÖNETİMİ</div><h1>Yazıcı Yönetimi</h1></div><a class="btn light" href="/#panel">← Yönetim paneline dön</a></header>
+<p>Sipariş yazdırma ayarları ve hazırlık kuyruğu. Erişim yalnızca kurucu/yönetici hesabına açıktır.</p>
+<div id="message" class="card">Güvenli oturum kontrol ediliyor…</div>
+<div id="content" hidden>
+<div class="card"><label>İşletme<select id="venue"></select></label></div>
+<div class="card"><h2 style="margin-top:0">Yazıcı ayarları</h2>
+<div class="notice">Gerçek yazıcı bağlantısı henüz kurulmadı. Otomatik yazdırma kapalı tutulur. Bu sayfa yalnızca yapılandırma ve kuyruk görüntüleme içindir.</div>
+<form id="settings" style="margin-top:18px">
+<div class="grid">
+<label>Bağlantı türü<select name="connection_type"><option value="ethernet">Ethernet / Ağ</option><option value="usb">USB</option><option value="serial">Seri bağlantı</option><option value="bluetooth">Bluetooth</option></select></label>
+<label>Kağıt genişliği<select name="paper_width_mm"><option value="80">80 mm</option><option value="58">58 mm</option></select></label>
+<label>Fiş yönlendirmesi<select name="station"><option value="all">Tüm ürünler</option><option value="kitchen">Mutfak</option><option value="bar">Bar</option><option value="cashier">Kasa</option></select></label>
+</div>
+<p class="muted">Aktif etme ve otomatik yazdırma, yerel yazdırma servisi doğrulanınca açılacak.</p>
+<button type="submit" id="save">Ayarları kaydet (kapalı)</button>
+</form></div>
+<div class="card"><h2 style="margin-top:0">Yazdırma kuyruğu</h2><p class="muted">Yalnızca yönetici görebilir. Yazdırma işlemi bu sayfadan başlatılmaz.</p>
+<button id="refresh" type="button" class="light">Kuyruğu yenile</button><div id="jobs"></div></div>
+</div>
+</main>
+<script src="assets/supabase-client.bundle.js"></script>
+<script>
+'use strict';
+const db=window.supabase?.createClient('https://qacmubkcierbpxmdtsph.supabase.co','sb_publishable_RU5vtZxlqK2dMD-LWuwUaA_Eak6b9cj');
+const $=id=>document.getElementById(id);
+const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let venueList=[],selected='';
+function notice(s,bad=false){$('message').hidden=false;$('message').textContent=s;$('message').style.color=bad?'#b42318':'#067647'}
+async function verify(){
+ if(!db)throw Error('Supabase bağlantısı kurulamadı.');
+ const {data:session,error:se}=await db.auth.getUser();
+ if(se||!session?.user)throw Error('Önce İyi Yol Akademi yönetici hesabıyla oturum açın.');
+ const {data:me,error:meErr}=await db.rpc('ob_me');
+ if(meErr||me?.role!=='admin')throw Error('Bu bölüme yalnızca İyi Yol Akademi kurucu/yönetici hesabı erişebilir.');
+ const {data:admin,error:ae}=await db.rpc('ob_admin_data');
+ if(ae)throw Error(ae.message);
+ venueList=admin?.venues||[];
+ $('venue').innerHTML=venueList.map(v=>'<option value="'+esc(v.id)+'">'+esc(v.name)+'</option>').join('');
+ if(!venueList.length)throw Error('Henüz işletme bulunamadı.');
+ $('content').hidden=false;
+ notice('Yönetici oturumu doğrulandı. Otomatik yazdırma devre dışı.');
+ await load();
+}
+async function load(){
+ selected=$('venue').value;
+ const [settings,jobs]=await Promise.all([
+  db.from('ob_printer_settings').select('venue_id,connection_type,paper_width_mm,station,enabled,auto_print').eq('venue_id',selected).maybeSingle(),
+  db.from('ob_print_jobs').select('id,order_request_id,table_no,status,station,created_at,payload,last_error').eq('venue_id',selected).order('created_at',{ascending:false}).limit(30)
+ ]);
+ if(settings.error)throw Error(settings.error.message);
+ if(jobs.error)throw Error(jobs.error.message);
+ const s=settings.data||{};
+ for(const name of ['connection_type','paper_width_mm','station']){
+  $('settings').elements[name].value=String(s[name]??({connection_type:'ethernet',paper_width_mm:80,station:'all'}[name]));
+ }
+ if(s.enabled||s.auto_print)notice('Dikkat: Bu işletme için eski yapılandırmada yazdırma açık görünüyor. Bu ekran etkinleştirme yapmaz.',true);
+ const list=jobs.data||[];
+ $('jobs').innerHTML=list.length?list.map(j=>'<div class="item"><div><b>Masa '+esc(j.table_no)+'</b> · '+esc(j.station)+'<div class="muted">'+esc(new Date(j.created_at).toLocaleString('tr-TR'))+'</div></div><div class="status">'+esc(j.status)+'</div></div>').join(''):'<p>Henüz yazdırma görevi yok.</p>';
+}
+$('venue').addEventListener('change',()=>load().catch(e=>notice(e.message,true)));
+$('refresh').addEventListener('click',()=>load().catch(e=>notice(e.message,true)));
+$('settings').addEventListener('submit',async e=>{
+ e.preventDefault();
+ const b=$('save');b.disabled=true;
+ try{
+  const f=new FormData($('settings'));
+  const {data:user,error:ue}=await db.auth.getUser();if(ue||!user?.user)throw Error('Oturum bulunamadı.');
+  const payload={venue_id:selected,connection_type:String(f.get('connection_type')),paper_width_mm:Number(f.get('paper_width_mm')),station:String(f.get('station')),enabled:false,auto_print:false,updated_at:new Date().toISOString(),updated_by:user.user.id};
+  const {error}=await db.from('ob_printer_settings').upsert(payload,{onConflict:'venue_id'});
+  if(error)throw Error(error.message);
+  notice('Ayarlar kaydedildi. Otomatik yazdırma kapalı.');
+  await load();
+ }catch(err){notice(err.message,true)}finally{b.disabled=false}
+});
+verify().catch(e=>notice(e.message,true));
+</script></body></html>
