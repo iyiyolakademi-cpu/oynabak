@@ -2,6 +2,7 @@
 // OynaBak LAN ESC/POS bridge. Node >=20. No service role key.
 import fs from 'node:fs';
 import net, {isIP} from 'node:net';
+import {pathToFileURL} from 'node:url';
 
 const API='https://qacmubkcierbpxmdtsph.supabase.co';
 const KEY='sb_publishable_RU5vtZxlqK2dMD-LWuwUaA_Eak6b9cj';
@@ -118,4 +119,4 @@ async function run(){
     await sleep(4000);
   }
 }
-if(import.meta.url===new URL('file://'+process.argv[1]).href)run().catch(e=>{console.error(clean(e.message,180));process.exitCode=1});
+if(process.argv[1] && import.meta.url===pathToFileURL(process.argv[1]).href)run().catch(e=>{console.error(clean(e.message,180));process.exitCode=1});
