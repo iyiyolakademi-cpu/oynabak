@@ -42,6 +42,8 @@ Kaynak: Rongta 80 Series Printer Command Set, code page 29 (Turkish).
 
 ## Kapsam
 
-Bu sürüm müşteri QR siparişinin **personel tarafından onaylandığı anda** sipariş fişi kuyruğu oluşturur. Garsonun adisyona doğrudan eklediği kalemler ve sipariş değişiklikleri **henüz** yazdırma akışına dahil değildir.
+**Doğrudan QR siparişi (yeni):** İyi Yol Akademi yöneticisi ilgili işletmede Ethernet yazıcı ayarını ve otomatik yazdırmayı etkinleştirdiğinde, müşteri QR menüde **Siparişi Ver** düğmesine bastığı anda sipariş doğrulanarak Supabase yazdırma kuyruğuna alınır. **Garson onayı fişin yazdırılması için gerekmez.** İşletmede otomatik yazdırma kapalıysa mevcut garson onay süreci değişmez. Bir siparişin sonradan onaylanması ikinci fiş oluşturmaz. Garsonun doğrudan adisyona eklediği ürünler ve sipariş değişiklikleri bu sürümde otomatik yazdırılmaz.
+
+Siparişin yazdırma kuyruğuna alınması, kâğıdın gerçekten basıldığı anlamına gelmez. Yerel yazıcı servisi açık ve erişilebilir olmalıdır. Otomatik yazdırma etkin olmayan işletmelerde yazdırma görevi oluşmaz.
 
 `node --test print-agent.test.mjs` komutu ile birim testler çalıştırılabilir. Gerçek yazıcıyla uçtan uca baskı henüz doğrulanmadı.
