@@ -127,8 +127,12 @@ async function main(){
    ?found[+answer-1]:answer;
   if(!lanIP(host))throw Error(which+' için geçerli yerel IPv4 adresi girilmeli.');
   if(!await available(host,9100,3500))throw Error(which+' yazıcısı bulunamadı. Ethernet/IP/9100 kontrol edin.');
-  return {host,port:9100,width:80};
+  return {host,port:9100,width:paperWidth};
  }
+ const paperInput=(await ask('Kağıt genişliği (her iki yazıcı için 80 veya 58, varsayılan 80): '))||'80';
+ if(!['80','58'].includes(paperInput))throw Error('Kağıt genişliği 80 veya 58 olmalı.');
+ const paperWidth=Number(paperInput);
+ console.log('OynaBak yönetici panelindeki kağıt genişliğini de '+paperWidth+' mm ayarlayın.');
  const kitchen=await choose('MUTFAK');
  const cashier=await choose('KASA');
  if(kitchen.host===cashier.host)
