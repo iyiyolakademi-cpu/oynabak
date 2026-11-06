@@ -144,8 +144,10 @@ async function run(){
      if(job.paper_width_mm!==c.paper_width_mm)throw Error('Kağıt ölçüsü farklı');
      const bytes=receipt(job.payload,c.paper_width_mm,job.station);
      await checkPrinterStatus(c);
-     await tcpWrite(c,bytes);
+     // Network failure during transfer makes physical output uncertain.
+     // Mark ambiguous BEFORE starting TCP writes; never retry automatically.
      sent=true;
+     await tcpWrite(c,bytes);
      const ok=await rpc('ob_print_finish',{p_token:c.device_token,p_job_id:job.id,p_claim_id:job.claim_id,p_outcome:'printed',p_error:''});
      if(ok)console.log('Fiş yazıcıya gönderildi:',job.id);
      else console.error('Gönderildi ancak sunucu onayı belirsiz:',job.id);
