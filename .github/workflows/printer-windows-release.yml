@@ -38,8 +38,9 @@ jobs:
       - name: Smoke test generated executable
         shell: pwsh
         run: |
-          & 'dist/OynaBak-Yazici.exe' --self-test
-          if ($LASTEXITCODE -ne 0) { throw 'Receipt self-test failed' }
+          $binary = (Resolve-Path 'dist/OynaBak-Yazici.exe').Path
+          $test = Start-Process -FilePath $binary -ArgumentList '--self-test' -PassThru -Wait
+          if ($test.ExitCode -ne 0) { throw "Receipt self-test failed with code $($test.ExitCode)" }
 
       - name: Upload downloadable build artifact
         uses: actions/upload-artifact@v4
