@@ -8,6 +8,7 @@ import {spawn,execFileSync} from 'node:child_process';
 import {createInterface,emitKeypressEvents} from 'node:readline';
 import {fileURLToPath} from 'node:url';
 import {lanIP} from './print-agent.mjs';
+import {configureStartup} from './windows-startup.mjs';
 
 const root=path.join(process.env.LOCALAPPDATA||path.join(os.homedir(),'AppData','Local'),'OynaBak');
 const config=path.join(root,'printer.json');
@@ -91,9 +92,8 @@ function save(cfg){
   lock(config);
   fs.copyFileSync(fileURLToPath(new URL('./print-agent.mjs',import.meta.url)),target);
   lock(target);
-  fs.mkdirSync(path.dirname(startup),{recursive:true});
-  fs.writeFileSync(startup,'@echo off\r\nstart "" /min '+quote(process.execPath)+' '+quote(target)+' --live\r\n','utf8');
-  lock(startup);
+  const method=configureStartup({nodePath:process.execPath,scriptPath:target,mode:'single'});
+  console.log('Windows otomatik açılış: '+method.description+' (CMD başlangıcı yok).');
  }catch(e){
   try{fs.unlinkSync(tmp)}catch{}
   throw Error('Güvenli kurulum yapılamadı: '+e.message);
@@ -120,6 +120,7 @@ async function main(){
  if(Number(process.versions.node.split('.')[0])<20)throw Error('Resmî Node.js 20+ LTS gerekiyor.');
  if(process.argv.includes('--check')){
   fs.accessSync(new URL('./print-agent.mjs',import.meta.url));
+  fs.accessSync(new URL('./windows-startup.mjs',import.meta.url));
   console.log('OynaBak kurulum dosyaları hazır.');
   return;
  }
