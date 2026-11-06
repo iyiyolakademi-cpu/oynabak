@@ -49,6 +49,7 @@ jobs:
           New-Item -ItemType Directory -Force -Path dual-package | Out-Null
           Copy-Item printer-agent/oynabak-kurulum.mjs dual-package/
           Copy-Item printer-agent/OYNABAK-KURULUM.cmd dual-package/
+          Copy-Item printer-agent/OKU-BENI-QR-KURULUM.md dual-package/
           Copy-Item printer-agent/kolay-kurulum.mjs dual-package/
           Copy-Item printer-agent/dual-agent.mjs dual-package/
           Copy-Item printer-agent/print-agent.mjs dual-package/
