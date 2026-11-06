@@ -40,8 +40,10 @@ try {
  $sid=[System.Security.Principal.WindowsIdentity]::GetCurrent().User
  $rule=New-Object System.Security.AccessControl.FileSystemAccessRule($sid,'FullControl','Allow')
  $acl.AddAccessRule($rule);Set-Acl -LiteralPath $config -AclObject $acl
- $agent=Join-Path $PSScriptRoot 'print-agent.mjs'
- if(-not (Test-Path $agent)){throw 'print-agent.mjs bulunamadi.'}
+ $source=Join-Path $PSScriptRoot 'print-agent.mjs'
+ if(-not (Test-Path $source)){throw 'print-agent.mjs bulunamadi.'}
+ $agent=Join-Path $root 'print-agent.mjs'
+ Copy-Item -LiteralPath $source -Destination $agent -Force
  $launcher=Join-Path $root 'start-printer.ps1'
  $lines=@(
   '$ErrorActionPreference="Continue"',
