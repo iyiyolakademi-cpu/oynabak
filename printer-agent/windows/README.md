@@ -41,3 +41,11 @@ out/OynaBak-Yazici.exe --self-test
 ```
 
 Eski `printer-agent/KURULUM-BASLAT.cmd` Node.js gerektiren alternatif kurulumdur. Yeni tek .exe kurulumunda bu dosyaya gerek yoktur.
+
+## Yazıcısız geliştirme ve deneme modu
+
+- Windows uygulamasındaki **Yazıcısız Demo** düğmesi, örnek Masa 8 sipariş fişini gösterir; yazıcı, Supabase, müşteri siparişleri veya yazdırma kuyruğu ile bağlantı kurmaz.
+- **Bağlantı Kontrolü** düğmesi yalnızca girilen özel IPv4 adresindeki TCP portunu test eder. Port açık olması fişin fiziksel basıldığı anlamına gelmez.
+- **Yazıcıları Tara** düğmesinin sonuç vermemesi, ortamda gerçek yazıcı olmadığı zaman normaldir.
+- Cihaz eşleştirme ve fiziksel test olmadan otomatik yazdırma özelliği açılmamalıdır.
+- Mevcut ilk EXE, yeni derlenen EXE'nin Windows Akıllı Uygulama Denetimi tarafından da kabul edileceği anlamına gelmez. Yeni EXE imzasız test derlemesi olarak saklanır; güvenliği kapatarak çalıştırmayı önermiyoruz.
