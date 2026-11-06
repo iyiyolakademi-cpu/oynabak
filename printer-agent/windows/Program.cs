@@ -153,6 +153,7 @@ internal sealed class SetupForm : Form
     private readonly Button saveButton = new() { Text = "Kaydet ve Çalıştır", Width = 200, Height = 39 };
     private readonly Button diagnoseButton = new() { Text = "Bağlantı Kontrolü", Width = 184, Height = 39 };
     private Settings current;
+    private Settings? physicallyVerified;
     private readonly bool startedHidden;
 
     public SetupForm(bool startHidden)
@@ -341,7 +342,11 @@ internal sealed class SetupForm : Form
         try
         {
             var cfg = InputSettings(true);
+            if (physicallyVerified is null || physicallyVerified.Host != cfg.Host ||
+                physicallyVerified.Port != cfg.Port || physicallyVerified.Width != cfg.Width)
+                throw new InvalidOperationException("Kurulumu tamamlamadan önce bu yazıcıdan gerçek test fişi çıkarıp kâğıdın çıktığını onaylayın.");
             Program.Save(cfg); current = cfg; tokenBox.Clear();
+            physicallyVerified = null;
             SetStatus("Kurulum kaydedildi. Program Windows oturumu açıldığında otomatik başlar.");
             MessageBox.Show("Kurulum kaydedildi. Şimdi test fişi basın; fiş doğruysa web panelinde " +
                 "otomatik yazdırmayı açın.", "OynaBak", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -361,9 +366,18 @@ internal sealed class SetupForm : Form
                 JsonDocument.Parse("""{"table_no":5,"items":[{"name":"İskender çiğ köfte","quantity":2},{"name":"Şekersiz Türk çayı","quantity":1}],"customer_note":"Ç Ğ İ Ö Ş Ü / ç ğ ı ö ş ü"}""").RootElement,
                 cfg.Width, "all"));
             SetStatus("Test fişi yazıcıya gönderildi. Kâğıdı ve Türkçe karakterleri kontrol edin.");
-            MessageBox.Show("Yazıcıya test fişi gönderildi. Fiş fiziksel olarak çıktı mı? " +
-                "Türkçe karakterler doğru mu? Kontrol ettikten sonra Kaydet ve Çalıştır'a basın.",
-                "OynaBak Test Fişi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            var answer = MessageBox.Show("FİŞİN GERÇEKTEN ÇIKTIĞINI KONTROL EDİN.\n\n" +
+                "Masa numarası, ürünler ve Türkçe karakterler kâğıtta doğru mu? " +
+                "Evet derseniz bu yazıcı için kurulum kaydına izin verilecektir.",
+                "OynaBak - Fiziksel Baskı Onayı", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (answer != DialogResult.Yes)
+            {
+                physicallyVerified = null;
+                SetStatus("Fiziksel fiş doğrulanmadı. Yazıcı henüz kurulum için onaylanmadı.");
+                return;
+            }
+            physicallyVerified = cfg;
+            SetStatus("Gerçek fiş onaylandı. Şimdi Kaydet ve Başlat ile kurulumu tamamlayabilirsiniz.");
         }
         catch (Exception ex)
         {
