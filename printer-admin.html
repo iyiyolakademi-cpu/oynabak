@@ -47,6 +47,15 @@ pre{overflow:auto;background:#f7f9fc;padding:12px;border-radius:10px;white-space
 </div>
 <button type="submit" id="save">Yazıcı Ayarlarını Kaydet</button>
 </form></div>
+<div class="card"><h2 style="margin-top:0">Otomatik Kasa + Mutfak (2 Ayrı Yazıcı)</h2>
+<div class="notice">Bu modda aynı QR siparişi için iki ayrı iş oluşturulur: <b>Mutfak fişi</b> ve <b>Kasa fişi</b>. İşler birbirinden bağımsız tamamlanır. Eski tek yazıcı agentini kapatın, iki yazıcı kurulumunu kullanın.</div>
+<p>Windows bilgisayara ücretsiz, resmi Node.js LTS kurun. <b>KASA-MUTFAK-KURULUM.cmd</b> ile kasa ve mutfak yazıcılarını ayrı ayrı eşleştirin. Her ikisinden de gerçek test fişi aldıktan sonra iki yazıcı modunu açın.</p>
+<p><a class="btn light" href="https://github.com/iyiyolakademi-cpu/oynabak/releases/tag/printer-dual-free-v1" target="_blank" rel="noopener noreferrer">2 Yazıcı Ücretsiz Kurulumu</a></p>
+<label style="display:flex;gap:9px;align-items:center;margin:12px 0"><input type="checkbox" id="dualMode"> Kasa + Mutfak iki ayrı otomatik yazıcı modu</label>
+<div style="display:flex;gap:10px;flex-wrap:wrap"><button id="saveDual" type="button">2 Yazıcı Ayarını Kaydet</button><button class="light" id="refreshDual" type="button">Kasa ve Mutfak Kuyruğunu Yenile</button></div>
+<p class="muted">Önce yukarıdaki genel yazıcı ayarlarında servisi etkinleştirin ve otomatik yazdırmayı açın. İki gerçek test fişini doğrulayın; ardından bu modu etkinleştirin. Yazdırılmamış işleri olan aktif iki yazıcı modu kapatılamaz.</p>
+<div id="dualJobs"></div>
+</div>
 <div class="card"><h2 style="margin-top:0">Eşleştirilmiş Yazıcı Cihazları</h2>
 <p class="muted">Her bilgisayara yalnızca seçili işletmenin sipariş kuyruğunu açan özel cihaz anahtarı verilir. Anahtar yalnızca oluşturulurken görüntülenir.</p>
 <div class="grid"><label>Cihaz adı<input id="deviceName" placeholder="Ör. Mutfak bilgisayarı" maxlength="80" value="Mutfak bilgisayarı"></label>
@@ -91,6 +100,7 @@ async function load(){
  if(settings.error)throw Error(settings.error.message);
  if(jobs.error)throw Error(jobs.error.message);
  await loadDevices();
+ await loadDual();
  const s=settings.data||{};
  for(const name of ['connection_type','paper_width_mm','station']){
   $('settings').elements[name].value=String(s[name]??({connection_type:'ethernet',paper_width_mm:80,station:'all'}[name]));
@@ -149,6 +159,57 @@ $('jobs').addEventListener('click',async(e)=>{
  if(error||!data){notice(error?.message||'Yeniden kuyruğa alınamadı',true);return}
  notice('Kontrollü tekrar kaydedildi. İş kuyruğuna eklendi.');
  await load();
+});
+
+
+let dualEnabled=false;
+async function loadDual(){
+ const {data,error}=await db.rpc('ob_dual_admin_status',{p_venue_id:selected});
+ if(error)throw Error(error.message);
+ dualEnabled=Boolean(data?.enabled);
+ $('dualMode').checked=dualEnabled;
+ const outputs=Array.isArray(data?.outputs)?data.outputs:[];
+ $('dualJobs').innerHTML=outputs.length?outputs.map(o=>{
+  const station=o.station==='kitchen'?'MUTFAK':'KASA';
+  const date=new Date(o.created_at).toLocaleString('tr-TR');
+  const needs=['printing','failed','printed'].includes(o.status);
+  return '<div class="item"><div><b>'+station+' · Masa '+esc(o.table_no)+'</b>'+
+    '<div class="muted">'+esc(date)+' · '+esc(o.status)+(o.last_error?' · '+esc(o.last_error):'')+'</div></div>'+
+    '<div>'+(needs?'<button type="button" class="light" data-dual-retry="'+esc(o.id)+'">Yalnız '+station+' fişini tekrar bas</button>':'')+'</div></div>';
+ }).join(''):'<p class="muted">Bu işletmede henüz iki yazıcıya ait yazdırma görevi yok.</p>';
+}
+$('saveDual').addEventListener('click',async()=>{
+ const enabled=$('dualMode').checked;
+ const b=$('saveDual');b.disabled=true;
+ try{
+  if(enabled){
+   if(!$('printerEnabled').checked||!$('printerAuto').checked)
+    throw Error('Önce genel Yazıcı Ayarları bölümünden servis ve otomatik yazdırmayı kaydedin.');
+   if(!$('physicalTest').checked)
+    throw Error('Mutfak VE kasa için gerçek fiziksel test fişlerini aldıysan yukarıdaki fiziksel test kutusunu işaretle.');
+   if(!await isDeviceRecentlyOnline())
+    throw Error('İşletmedeki OynaBak yazdırma bilgisayarı çevrimiçi görünmüyor.');
+   if(!confirm('İKİ YAZICI fiziksel olarak test edildi mi? Eski tek yazıcı programı kapalı mı? Onayla: Kasa ve mutfak ikisine de otomatik fiş gönderilecek.'))return;
+  }else if(!confirm('İki yazıcı modunu devre dışı bırakmak istiyor musun? Bekleyen işler varsa reddedilecektir.'))return;
+  const {data,error}=await db.rpc('ob_dual_admin_config',{p_venue_id:selected,p_enabled:enabled});
+  if(error||!data)throw Error(error?.message||'İki yazıcı ayarı kaydedilemedi.');
+  notice(enabled?'Kasa + mutfak otomatik baskısı etkinleştirildi.':'İki yazıcı modu kapatıldı.');
+  await loadDual();
+ }catch(err){$('dualMode').checked=dualEnabled;notice(err.message,true)}
+ finally{b.disabled=false}
+});
+$('refreshDual').addEventListener('click',()=>loadDual().catch(e=>notice(e.message,true)));
+$('dualJobs').addEventListener('click',async event=>{
+ const id=event.target.closest('[data-dual-retry]')?.dataset.dualRetry;
+ if(!id)return;
+ if(!confirm('DİKKAT: Fiş daha önce basılmış olabilir. İlgili yazıcıdan çıkan fiziksel fişi kontrol ettiniz mi?'))return;
+ const reason=prompt('Yalnız bu yazıcıya tekrar basma gerekçesi (en az 5 karakter):');
+ if(reason===null)return;
+ if(reason.trim().length<5){notice('Gerekçe en az 5 karakter olmalı.',true);return}
+ const {data,error}=await db.rpc('ob_dual_admin_retry',{p_output_id:id,p_reason:reason.trim()});
+ if(error||!data){notice(error?.message||'Tekrar baskı kaydedilemedi',true);return}
+ notice('Yalnız seçilen yazıcıya kontrollü tekrar baskı kuyruğa alındı.');
+ await loadDual();
 });
 
 $('venue').addEventListener('change',()=>load().catch(e=>notice(e.message,true)));
