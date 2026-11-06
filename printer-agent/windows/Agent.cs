@@ -34,7 +34,7 @@ internal static class Agent
         string body = await response.Content.ReadAsStringAsync(ct);
         if (!response.IsSuccessStatusCode)
             throw new InvalidOperationException("Sunucu hatası (" + (int)response.StatusCode + "): " +
-                Regex.Replace(body, @"[\r\n]+", " ")[..Math.Min(body.Length, 160)]);
+                Regex.Replace(body, @"[\r\n]+", " "));
         return JsonDocument.Parse(body);
     }
 
@@ -172,7 +172,7 @@ internal static class Agent
             if (string.IsNullOrWhiteSpace(name)) throw new Exception("Ürün adı boş.");
             if (!int.TryParse(Value(row, "quantity"), out int quantity) || quantity is < 1 or > 999)
                 throw new Exception("Ürün adedi geçersiz.");
-            Line(quantity + " × " + name);
+            Line(quantity + " x " + name);
             if (Text(row, "variant_name", out var variant) && !string.IsNullOrWhiteSpace(variant))
                 Line("  " + variant);
             if (Text(row, "note", out var note) && !string.IsNullOrWhiteSpace(note))
