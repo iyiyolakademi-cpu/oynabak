@@ -1,40 +1,44 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {receipt,isLanIp} from './print-agent.mjs';
+import {receipt,lanIP,encodeCP857} from './print-agent.mjs';
 
-const sample={
-  table_no:8,customer_note:'Az tuzlu',
-  items:[
-    {name:'Hamburger',quantity:2,note:'Sogansiz',station:'kitchen'},
-    {name:'Ayran',quantity:1,station:'bar'}
-  ]
+const order={
+ table_no:8,customer_note:'Şekersiz çay, çiğ köfte',
+ items:[
+  {name:'İskender',quantity:2,note:'Soğansız',station:'kitchen'},
+  {name:'Sütlü kahve',quantity:1,station:'bar'}
+ ]
 };
-test('80 mm print job includes table and selected order items',()=>{
- const bytes=receipt(sample,80,'all');
- const text=bytes.toString('ascii');
- assert.match(text,/OYNABAK/);
- assert.match(text,/MASA 8/);
- assert.match(text,/2 x Hamburger/);
- assert.match(text,/1 x Ayran/);
+test('CP857 encodes Turkish letters correctly',()=>{
+ const bytes=encodeCP857('ÇçĞğİıÖöŞşÜü');
+ assert.deepEqual([...bytes],[128,135,166,167,152,141,153,148,158,159,154,129]);
+});
+test('ESC/POS receipt selects Rongta page 29 CP857',()=>{
+ const bytes=receipt(order,80);
+ assert.equal(bytes.subarray(0,5).toString('hex'),'1b401b741d');
  assert.equal(bytes.subarray(-3).toString('hex'),'1d5600');
+ assert.ok(bytes.includes(Buffer.from([152]))); // İ
+ assert.ok(bytes.includes(Buffer.from([158]))); // Ş
 });
-test('kitchen station filters bar products',()=>{
- const text=receipt(sample,80,'kitchen').toString('ascii');
- assert.match(text,/Hamburger/);
- assert.doesNotMatch(text,/Ayran/);
+test('Kitchen receipts do not include bar items',()=>{
+ const bytes=receipt(order,80,'kitchen');
+ assert.ok(bytes.includes(Buffer.from('skender'))); // first char encoded
+ assert.equal(bytes.includes(Buffer.from('kahve')),false);
 });
-test('58 mm receipts and notes',()=>{
- const text=receipt({...sample,customer_note:'Sogansiz'},58,'all').toString('ascii');
- assert.match(text,/NOT: Sogansiz/);
+test('58 mm receipt supports Turkish notes',()=>{
+ const bytes=receipt(order,58);
+ assert.ok(bytes.includes(Buffer.from([158,101,107,101,114,115,105,122]))); // Şekersiz
 });
-test('rejects invalid order quantities and no matching station',()=>{
- assert.throws(()=>receipt({...sample,items:[{name:'X',quantity:0,station:'kitchen'}]}));
- assert.throws(()=>receipt(sample,80,'storage'));
+test('Invalid quantities, stations and sizes are rejected',()=>{
+ assert.throws(()=>receipt({...order,items:[{name:'x',quantity:0,station:'bar'}]}));
+ assert.throws(()=>receipt(order,58,'unknown-station'));
+ assert.throws(()=>receipt(order,70));
 });
-test('only LAN printer IPs accepted',()=>{
- assert.equal(isLanIp('192.168.1.20'),true);
- assert.equal(isLanIp('10.0.0.2'),true);
- assert.equal(isLanIp('172.16.1.1'),true);
- assert.equal(isLanIp('8.8.8.8'),false);
- assert.equal(isLanIp('printer.example.com'),false);
+test('Only literal private LAN IPv4 allowed',()=>{
+ assert.equal(lanIP('192.168.1.50'),true);
+ assert.equal(lanIP('10.1.2.3'),true);
+ assert.equal(lanIP('172.16.1.5'),true);
+ assert.equal(lanIP('8.8.8.8'),false);
+ assert.equal(lanIP('printer.example.org'),false);
+ assert.equal(lanIP('127.0.0.1'),false);
 });
