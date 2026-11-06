@@ -105,6 +105,8 @@
     try {
       const data = await rpc('ob_print_device_overview', { p_token: deviceToken });
       applyOverview(data);
+      // Mark this paired device online without claiming any print jobs.
+      try { await rpc('ob_print_device_heartbeat', { p_token: deviceToken }); } catch { }
     } catch (error) {
       alertText(error.message || 'İşletmeye ulaşılamadı.');
       setText('state','Bağlantı sorunu');
@@ -128,6 +130,7 @@
       $('pairing').hidden = true;
       $('business').hidden = false;
       applyOverview(data);
+      await rpc('ob_print_device_heartbeat', { p_token: deviceToken });
       alertText('Gerçek işletme verilerine güvenli bağlantı kuruldu.', 'ok');
     } catch(error) {
       alertText(error.message || 'Bağlantı kurulamadı.');
@@ -276,7 +279,9 @@
   $('print-now').addEventListener('click',printNow);
   $('confirm').addEventListener('click',confirmPrint);
   $('close-modal').addEventListener('click',closeModal);
-  setInterval(() => {if(deviceToken && !activeJob && !$('print-modal').hidden === false)refresh();},12000);
+  setInterval(() => {
+    if (deviceToken && !activeJob && $('print-modal').hidden) refresh();
+  },12000);
   window.addEventListener('beforeunload',event => {
     if (!activeJob) return;
     event.preventDefault();
