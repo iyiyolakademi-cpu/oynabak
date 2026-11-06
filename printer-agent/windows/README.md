@@ -10,11 +10,11 @@
 ## İşletmede kurulum
 
 1. RONGTA RP330 yazıcıyı **Ethernet kablosuyla modeme** bağlayın, termal kâğıdı yerleştirin; Windows bilgisayar aynı ağda olsun.
-2. Kurulum programını indirin ve çift tıklayın. Program kendini `%LOCALAPPDATA%\OynaBak\OynaBak-Yazici.exe` yoluna kurar.
-3. [İyi Yol Akademi Yazıcı Yönetimi](https://oynabak.com/printer-admin.html) sayfasına kurucu/yönetici hesabıyla giriş yapın, doğru işletmeyi seçin ve **Cihaz Eşleştir** ile bir kere gösterilen anahtarı oluşturun.
-4. Anahtarı OynaBak Windows programına yapıştırın. **Yazıcıları Bul**'a basın; yazıcının IP adresi bulunmuyorsa elle girin. Port genelde `9100`, kâğıt `80 mm`.
-5. **Test Fişi Yazdır**'a basın. Termal fişin kâğıda çıktığını ve Türkçe karakterleri doğrulayın.
-6. **Kaydet ve Çalıştır**'a basın. Program oturum açıldığında otomatik başlar (HKCU Run). Windows kullanıcısının oturumu açık kalmalıdır.
+2. Yeni kurulum programını indirin ve çift tıklayın. Programı Windows'a uygun, sürümüne özgü bir dosya adıyla `%LOCALAPPDATA%\OynaBak` klasörüne kopyalar; böylece eski açık .exe dosyasının üzerine yazmaz. Eski OynaBak programı hâlâ çalışıyorsa sağ alt simgeden **Çıkış** seçip yeni programı tekrar açın.
+3. Uygulamadaki **1 İşletmeyi OynaBak'a bağla** bölümünden [İyi Yol Akademi Yazıcı Yönetimi](https://oynabak.com/printer-admin.html) sayfasına kurucu/yönetici hesabıyla giriş yapın, doğru işletmeyi seçin ve **Cihaz Eşleştir** ile bir kere gösterilen anahtarı oluşturun.
+4. Anahtarı OynaBak Windows programına yapıştırın. **2 Yazıcıyı bul** bölümünde **Yazıcıları Tara**'ya basın; yazıcının IP adresi bulunmuyorsa elle girin. Port genelde `9100`, kâğıt `80 mm`; bunlar **Gelişmiş ayarlar** bölümündedir.
+5. **3 Deneme fişi çıkart ve tamamla** bölümünden **Test Fişi Çıkar**'a basın. Termal fişin kâğıda çıktığını ve Türkçe karakterleri doğrulayın.
+6. **Kaydet ve Başlat**'a basın. Program oturum açıldığında otomatik başlar (HKCU Run). Windows kullanıcısının oturumu açık kalmalıdır.
 7. İyi Yol Akademi panelinden **Yazıcı servisini etkinleştir** ve **Otomatik yazdır** seçeneklerini açın. Panel çevrimiçi cihaz ve fiziksel test onayı arar.
 
 ## Sınırlamalar
