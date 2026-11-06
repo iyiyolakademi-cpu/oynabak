@@ -60,7 +60,7 @@ export function lanIP(ip){
  return n[0]===10||(n[0]===172&&n[1]>=16&&n[1]<=31)||(n[0]===192&&n[1]===168)||(n[0]===169&&n[1]===254);
 }
 function cfg(){
- const c=JSON.parse(fs.readFileSync(configPath(),'utf8'));
+ const c=JSON.parse(fs.readFileSync(configPath(),'utf8').replace(/^\uFEFF/,''));
  if(!/^obp_[a-f0-9]{64}$/.test(c.device_token))throw Error('Cihaz anahtarı eksik');
  if(!lanIP(c.printer_host))throw Error('Yazıcı yerel ağ IPv4 adresi olmalı');
  if(!Number.isInteger(c.printer_port)||c.printer_port<1||c.printer_port>65535)throw Error('Port geçersiz');
