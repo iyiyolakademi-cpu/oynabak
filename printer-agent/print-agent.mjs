@@ -34,26 +34,61 @@ function wrap(s,cols){
 }
 export function receipt(payload,width=80,station='all',displayStation=station){
  if(![58,80].includes(width)||!Array.isArray(payload?.items))throw Error('Fiş verisi geçersiz');
+ if(!['all','kitchen','bar','cashier'].includes(station))throw Error('Bölüm geçersiz');
  const cols=width===58?30:42;
  const items=payload.items.filter(x=>station==='all'||station==='cashier'||x.station===station);
  if(!items.length)throw Error('Bu istasyona ait ürün yok');
  const out=[],cmd=(...n)=>out.push(Buffer.from(n));
- const line=text=>out.push(encodeCP857(safeText(text,cols)+'\n'));
- cmd(27,64);cmd(27,116,29); // RP330/Rongta page 29 = CP857 Turkish (verify per device)
- cmd(27,97,1);cmd(27,69,1);line('OYNABAK');cmd(27,69,0);line('SİPARİŞ FİŞİ');
- cmd(27,97,0);line('-'.repeat(cols));line('MASA '+safeText(payload.table_no,6));
- line('BÖLÜM '+safeText(displayStation,24).toLocaleUpperCase('tr-TR'));line('-'.repeat(cols));
- for(const it of items){
-  const qty=Number(it.quantity);
-  if(!Number.isInteger(qty)||qty<1||qty>999||!safeText(it.name))throw Error('Ürün geçersiz');
-  for(const s of wrap(qty+' x '+it.name,cols))line(s);
-  if(it.variant_name)for(const s of wrap('  '+it.variant_name,cols))line(s);
-  if(it.note)for(const s of wrap('  NOT: '+it.note,cols))line(s);
+ const put=text=>out.push(encodeCP857(String(text)+'\n'));
+ const line=text=>put(safeText(text,cols));
+ const lines=(text,max=600)=>wrap(safeText(text,max),cols).forEach(put);
+ const center=()=>cmd(27,97,1),left=()=>cmd(27,97,0);
+ const bold=yes=>cmd(27,69,yes?1:0);
+ const rule=()=>line('-'.repeat(cols));
+ const label=displayStation==='kitchen'?'MUTFAK SİPARİŞİ':
+  displayStation==='cashier'?'KASA SİPARİŞİ':
+  displayStation==='bar'?'BAR SİPARİŞİ':'YENİ SİPARİŞ';
+ const table=safeText(payload.table_no,12);
+ if(!table)throw Error('Masa numarası boş');
+ const submitted=payload.submitted_at||payload.created_at;
+ const parsed=submitted?new Date(submitted):new Date();
+ const stamp=Number.isNaN(parsed.getTime())?new Date():parsed;
+ const datetime=new Intl.DateTimeFormat('tr-TR',{
+  timeZone:'Europe/Istanbul',day:'2-digit',month:'2-digit',year:'numeric',
+  hour:'2-digit',minute:'2-digit',hour12:false
+ }).format(stamp);
+ // ESC/POS: initialize; CP857 Turkish; native bold; 2x table title; paper cut.
+ cmd(27,64);cmd(27,116,29);
+ cmd(27,100,1);center();bold(true);line('OYNABAK');bold(false);
+ line(label);rule();
+ // Large but bounded table number. 2x width leaves half the normal columns.
+ const tableTitle='MASA '+table;
+ if(tableTitle.length<=Math.floor(cols/2)){
+  cmd(29,33,0x11);bold(true);line(tableTitle);bold(false);cmd(29,33,0x00);
+ }else{
+  bold(true);line(tableTitle);bold(false);
  }
- if(payload.customer_note){line('-'.repeat(cols));for(const s of wrap('NOT: '+payload.customer_note,cols))line(s)}
- line('-'.repeat(cols));line('HAZIRLANACAK SİPARİŞ');cmd(27,100,4);cmd(29,86,0);
+ rule();left();bold(true);
+ for(const item of items){
+  const qty=Number(item.quantity);
+  const name=safeText(item.name,240);
+  if(!Number.isInteger(qty)||qty<1||qty>999||!name)throw Error('Ürün geçersiz');
+  lines(qty+' x '+name);
+  bold(false);
+  if(item.variant_name)lines('  '+safeText(item.variant_name,200));
+  if(item.note)lines('  NOT: '+safeText(item.note,300));
+  bold(true);
+ }
+ bold(false);
+ if(payload.customer_note&&safeText(payload.customer_note,400)){
+  rule();bold(true);line('SİPARİŞ NOTU');bold(false);
+  lines(payload.customer_note,400);
+ }
+ rule();center();line(datetime);line('OYNABAK · QR SİPARİŞ'.replace(' · ',' - '));
+ cmd(27,100,4);cmd(29,86,0);
  return Buffer.concat(out);
 }
+
 export function lanIP(ip){
  if(isIP(ip)!==4)return false;
  const n=ip.split('.').map(Number);
