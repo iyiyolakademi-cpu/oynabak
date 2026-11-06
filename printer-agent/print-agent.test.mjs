@@ -49,3 +49,35 @@ test('Printer cover/error/paper sensors stop writing before receipt',()=>{
  assert.throws(()=>decodePrinterStatus(Buffer.from([0x12,0x12,0x72])),/kâğıt/);
  assert.throws(()=>decodePrinterStatus(Buffer.from([0x12])),/eksik/);
 });
+
+
+test('Professional cashier and kitchen tickets use independent headings and large table',()=>{
+ const p={table_no:5,submitted_at:'2026-11-07T19:25:00+03:00',items:[
+  {name:'Hamburger',quantity:2,note:'Soğansız'},
+  {name:'Kola',quantity:1}
+ ],customer_note:'Az tuzlu'};
+ const kitchen=receipt(p,80,'all','kitchen');
+ const cashier=receipt(p,80,'all','cashier');
+ assert.ok(kitchen.includes(Buffer.from('MUTFAK S')));
+ assert.ok(cashier.includes(Buffer.from('KASA S')));
+ assert.ok(kitchen.includes(Buffer.from([29,33,0x11])));
+ assert.ok(kitchen.includes(Buffer.from([29,33,0x00])));
+ assert.ok(kitchen.includes(Buffer.from('MASA 5')));
+ assert.ok(kitchen.includes(Buffer.from('2 x Hamburger')));
+ assert.ok(kitchen.includes(Buffer.from('07.11.2026')));
+ assert.ok(kitchen.includes(Buffer.from('19:25')));
+ assert.ok(kitchen.includes(Buffer.from('So')));
+ assert.ok(kitchen.includes(Buffer.from('Az tuzlu')));
+ assert.ok(!kitchen.includes(Buffer.from('cek numarasi')));
+ assert.equal(cashier.subarray(-3).toString('hex'),'1d5600');
+});
+
+test('58mm narrow paper preserves product notes and emits safe 2x title',()=>{
+ const p={table_no:12,items:[{name:'Karisik tost ve ekstra domates',quantity:3,note:'Acisiz'}]};
+ const bytes=receipt(p,58,'all','kitchen');
+ assert.ok(bytes.includes(Buffer.from('MASA 12')));
+ assert.ok(bytes.includes(Buffer.from([29,33,17])));
+ assert.ok(bytes.includes(Buffer.from('3 x Karisik tost')));
+ assert.ok(bytes.includes(Buffer.from('Acisiz')));
+ assert.equal(bytes.subarray(-3).toString('hex'),'1d5600');
+});
