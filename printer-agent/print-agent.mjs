@@ -70,7 +70,7 @@ function cfg(){
 async function rpc(name,payload){
  const res=await fetch(API+'/rest/v1/rpc/'+name,{
   method:'POST',signal:AbortSignal.timeout(15000),
-  headers:{apikey:KEY,Authorization:'Bearer '+KEY,'Content-Type':'application/json'},
+  headers:{apikey:KEY,'Content-Type':'application/json'},
   body:JSON.stringify(payload)});
  const result=await res.json().catch(()=>null);
  if(!res.ok)throw Error('Sunucu HTTP '+res.status+': '+safeText(JSON.stringify(result),140));
@@ -103,16 +103,19 @@ async function run(){
    // The server enforces venue scope and enabled settings. No founder password.
    const job=await rpc('ob_print_claim',{p_token:c.device_token});
    if(job){
+    let sent=false;
     try{
      if(job.paper_width_mm!==c.paper_width_mm)throw Error('Kağıt ölçüsü farklı');
      const bytes=receipt(job.payload,c.paper_width_mm,job.station);
      await tcpWrite(c,bytes);
+     sent=true;
      const ok=await rpc('ob_print_finish',{p_token:c.device_token,p_job_id:job.id,p_claim_id:job.claim_id,p_outcome:'printed',p_error:''});
      if(ok)console.log('Fiş yazıcıya gönderildi:',job.id);
      else console.error('Gönderildi ancak sunucu onayı belirsiz:',job.id);
     }catch(e){
      console.error('Baskı belirsiz veya hatalı, otomatik tekrar yok:',job.id,safeText(e.message,100));
-     // If the network is down this call may fail; job stays "printing" for manual review.
+     // Never mark a possibly printed order as failed: leave printing for manual review.
+     if(sent){console.error('Baskı gönderildi; sonuç belirsiz. Yönetici kontrol etmeli.');continue}
      try{await rpc('ob_print_finish',{p_token:c.device_token,p_job_id:job.id,p_claim_id:job.claim_id,p_outcome:'failed',p_error:safeText(e.message,180)})}catch(err){console.error('Durum kaydedilemedi, yönetici incelemeli.')}
     }
    }
