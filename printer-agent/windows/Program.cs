@@ -25,6 +25,15 @@ internal static class Program
     private static void Main(string[] args)
     {
         ApplicationConfiguration.Initialize();
+        if (args.Contains("--self-test"))
+        {
+            using var sample = JsonDocument.Parse("""{"table_no":5,"items":[{"name":"Çiğ köfte","quantity":2,"station":"all"},{"name":"Şekerli çay","quantity":1,"station":"all"}],"customer_note":"Ğ İ Ö Ş Ü"}""");
+            var receipt = Agent.BuildReceipt(sample.RootElement, 80, "all");
+            if (receipt.Length < 80 || receipt[0] != 27 || receipt[1] != 64 ||
+                !receipt.AsSpan().Contains((byte)158)) throw new Exception("ESC/POS CP857 test failed.");
+            Console.WriteLine("OynaBak yazıcı fiş testi başarılı.");
+            return;
+        }
         Directory.CreateDirectory(Folder);
         try
         {
