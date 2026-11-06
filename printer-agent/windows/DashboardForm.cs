@@ -350,12 +350,12 @@ internal sealed class DashboardForm : Form
             }
             var root = response.RootElement;
             var sum = root.GetProperty("summary");
-            printed.Text = Text(sum, "printed_today", "0");
-            pending.Text = Text(sum, "pending", "0");
-            failed.Text = Text(sum, "failed", "0");
-            review.Text = Text(sum, "review", "0");
-            heading.Text = "OynaBak  |  " + Text(root, "device_name", "Yazdırma Merkezi");
-            var venue = Text(root, "venue_id", "İşletme");
+            printed.Text = Field(sum, "printed_today", "0");
+            pending.Text = Field(sum, "pending", "0");
+            failed.Text = Field(sum, "failed", "0");
+            review.Text = Field(sum, "review", "0");
+            heading.Text = "OynaBak  |  " + Field(root, "device_name", "Yazdırma Merkezi");
+            var venue = Field(root, "venue_id", "İşletme");
             subtitle.Text = "İşletme: " + venue + "   •   Sipariş ve yazdırma takibi";
             var active = Flag(root, "enabled") && Flag(root, "auto_print");
             tag.Text = active ? "Otomatik yazdırma etkin" : "Otomatik yazdırma kapalı";
@@ -368,20 +368,20 @@ internal sealed class DashboardForm : Form
             if (root.TryGetProperty("recent", out var recent) && recent.ValueKind == JsonValueKind.Array)
             foreach (var job in recent.EnumerateArray()) {
                 var stamp = "";
-                if (DateTimeOffset.TryParse(Text(job,"created_at",""),out var date))
+                if (DateTimeOffset.TryParse(Field(job,"created_at",""),out var date))
                     stamp = date.ToLocalTime().ToString("dd.MM HH:mm");
                 var names = new List<string>();
                 if (job.TryGetProperty("items", out var items) && items.ValueKind == JsonValueKind.Array)
                     foreach (var item in items.EnumerateArray())
-                        names.Add(Text(item,"quantity","1")+"x "+Text(item,"name","Ürün"));
-                var jobStatus = Text(job,"status","");
+                        names.Add(Field(item,"quantity","1")+"x "+Field(item,"name","Ürün"));
+                var jobStatus = Field(job,"status","");
                 var friendly = jobStatus switch {
                     "printed" => "Gönderildi", "pending" => "Bekliyor", "failed" => "Hata",
                     "printing" => "Kontrol gerekli", _ => "Bilinmiyor"
                 };
-                var table = Text(job,"table_no","—");
+                var table = Field(job,"table_no","—");
                 int index = orders.Rows.Add(stamp, table, string.Join(", ",names), friendly);
-                orders.Rows[index].Tag = Text(job,"last_error","");
+                orders.Rows[index].Tag = Field(job,"last_error","");
                 if (jobStatus is "failed" or "printing")
                     orders.Rows[index].DefaultCellStyle.BackColor = Color.FromArgb(255, 247, 242);
             }
@@ -398,7 +398,7 @@ internal sealed class DashboardForm : Form
         }
     }
 
-    private static string Text(JsonElement e, string key, string fallback)
+    private static string Field(JsonElement e, string key, string fallback)
         => e.ValueKind == JsonValueKind.Object &&
            e.TryGetProperty(key, out var v) && v.ValueKind is not JsonValueKind.Null
         ? v.ToString() : fallback;
