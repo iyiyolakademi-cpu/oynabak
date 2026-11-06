@@ -1,0 +1,1 @@
+Temporary CI packaging check for one/two QR printer setup with quick guide.
