@@ -151,6 +151,8 @@ internal sealed class SetupForm : Form
     private readonly Button findButton = new() { Text = "Yazıcıları Bul", Width = 175, Height = 39 };
     private readonly Button testButton = new() { Text = "Test Fişi Yazdır", Width = 175, Height = 39 };
     private readonly Button saveButton = new() { Text = "Kaydet ve Çalıştır", Width = 200, Height = 39 };
+    private readonly Button demoButton = new() { Text = "Yazıcısız Demo", Width = 185, Height = 39 };
+    private readonly Button diagnoseButton = new() { Text = "Bağlantı Kontrolü", Width = 184, Height = 39 };
     private readonly NotifyIcon tray;
     private readonly CancellationTokenSource stop = new();
     private Settings current;
@@ -174,8 +176,8 @@ internal sealed class SetupForm : Form
         printers.Text = current.Host;
         portBox.Value = current.Port;
 
-        Width = 745; Height = 670;
-        MinimumSize = new Size(710, 630);
+        Width = 745; Height = 765;
+        MinimumSize = new Size(710, 700);
         MaximizeBox = false;
 
         var body = new FlowLayoutPanel {
@@ -248,6 +250,8 @@ internal sealed class SetupForm : Form
         printerRow.Controls.Add(printers);
         printerRow.Controls.Add(findButton);
         secondInner.Controls.Add(printerRow);
+        diagnoseButton.Width = 181;
+        secondInner.Controls.Add(diagnoseButton);
         var advancedLink = new LinkLabel {
             Text = "Gelişmiş ayarlar (port / kâğıt) ▼",
             AutoSize = false, Width = 595, Height = 29
@@ -268,11 +272,11 @@ internal sealed class SetupForm : Form
         secondInner.Controls.Add(advancedRow);
         advancedLink.LinkClicked += (_, _) => {
             advancedRow.Visible = !advancedRow.Visible;
-            second.Height = advancedRow.Visible ? 203 : 161;
+            second.Height = advancedRow.Visible ? 251 : 209;
             advancedLink.Text = advancedRow.Visible
                 ? "Gelişmiş ayarları gizle ▲" : "Gelişmiş ayarlar (port / kâğıt) ▼";
         };
-        second.Height = 161;
+        second.Height = 209;
         body.Controls.Add(second);
 
         var third = Card("3   Deneme fişi çıkart ve tamamla",
@@ -286,8 +290,15 @@ internal sealed class SetupForm : Form
         saveButton.Width = 194;
         actions.Controls.Add(testButton);
         actions.Controls.Add(saveButton);
+        actions.Controls.Add(demoButton);
         thirdInner.Controls.Add(actions);
-        third.Height = 137;
+        thirdInner.Controls.Add(new Label {
+            Text = "Yazıcın yoksa Demo ile örnek fişi görüntüle. Demo sipariş göndermez ve baskıyı açmaz.",
+            Width = 610, Height = 34,
+            ForeColor = Color.FromArgb(90, 103, 123),
+            Font = new Font("Segoe UI", 9)
+        });
+        third.Height = 164;
         body.Controls.Add(third);
         body.Controls.Add(new Label {
             Text = "Program, bilgisayarın Windows oturumu açıldığında kendiliğinden çalışır. " +
@@ -302,6 +313,8 @@ internal sealed class SetupForm : Form
         body.Controls.Add(status);
 
         findButton.Click += async (_, _) => await FindPrinters();
+        diagnoseButton.Click += async (_, _) => await Diagnose();
+        demoButton.Click += (_, _) => ShowDemo();
         testButton.Click += async (_, _) => await TestPrinter();
         saveButton.Click += (_, _) => SaveSettings();
         tray = new NotifyIcon {
@@ -317,8 +330,8 @@ internal sealed class SetupForm : Form
         };
         Shown += (_, _) => { if (startedHidden && current.Ready) Hide(); };
         SetStatus(current.Ready
-            ? "Yazıcı kurulu. Sipariş kuyruğu takip ediliyor. Gerçek test fişini doğrulamayı unutmayın."
-            : "Henüz yazıcı bağlı değil. Yukarıdaki adımları izleyin.");
+            ? "Kaydedilmiş bağlantı var. Gerçek cihazda test fişini doğrulamayı unutma."
+            : "Yazıcı yoksa sağdaki Yazıcısız Demo'ya basarak sistemi inceleyebilirsin.");
         _ = Task.Run(() => Agent.Loop(() => current, stop.Token, SetStatus));
     }
 
@@ -384,6 +397,74 @@ internal sealed class SetupForm : Form
         finally { testButton.Enabled = true; }
     }
 
+    private static readonly string DemoJson =
+        """{"table_no":8,"items":[{"name":"Izgara köfte","quantity":2,"station":"all","note":"Soğansız"},{"name":"Türk çayı","quantity":1,"station":"all"}],"customer_note":"Lütfen sıcak servis edin."}""";
+
+    private void ShowDemo()
+    {
+        // This is deliberately offline: no printer, Supabase call, pairing or background queue.
+        using var json = JsonDocument.Parse(DemoJson);
+        var bytes = Agent.BuildReceipt(json.RootElement, (int)(paperBox.SelectedIndex == 1 ? 58 : 80), "all");
+        var preview = "OYNABAK - DEMO / GERÇEK BASKI DEĞİL\r\n" +
+            "------------------------------------\r\n" +
+            "MASA 8\r\n2 x Izgara köfte\r\n    NOT: Soğansız\r\n" +
+            "1 x Türk çayı\r\nNOT: Lütfen sıcak servis edin.\r\n" +
+            "------------------------------------\r\n" +
+            "Fiş verisi hazır: " + bytes.Length + " bayt\r\n\r\n" +
+            "Bu yalnızca önizlemedir.\r\n" +
+            "Gerçek yazıcıya gönderilmedi.\r\n" +
+            "Otomatik yazdırma etkinleştirilmedi.";
+        using var dialog = new Form {
+            Text = "OynaBak - Yazıcısız Deneme",
+            Width = 465, Height = 510, StartPosition = FormStartPosition.CenterParent,
+            Font = new Font("Segoe UI", 10), BackColor = Color.White,
+            MinimumSize = new Size(400, 450)
+        };
+        var box = new TextBox {
+            Dock = DockStyle.Fill, Text = preview, ReadOnly = true,
+            Multiline = true, ScrollBars = ScrollBars.Vertical,
+            Font = new Font("Consolas", 11),
+            BackColor = Color.White, BorderStyle = BorderStyle.None,
+            Margin = new Padding(18)
+        };
+        dialog.Controls.Add(box);
+        dialog.ShowDialog(this);
+        SetStatus("Demo tamamlandı: yazıcıya veya gerçek sipariş kuyruğuna hiçbir şey gönderilmedi.");
+    }
+
+    private async Task Diagnose()
+    {
+        diagnoseButton.Enabled = false;
+        try
+        {
+            if (string.IsNullOrWhiteSpace(printers.Text))
+            {
+                SetStatus("Henüz yazıcı seçilmedi. Şu an yanında yazıcı yoksa 'Yazıcısız Demo' kullan.");
+                return;
+            }
+            if (!IPAddress.TryParse(printers.Text.Trim(), out var ip) ||
+                ip.AddressFamily != AddressFamily.InterNetwork || !Settings.IsPrivate(ip))
+            {
+                SetStatus("Yazıcı adresi geçersiz. Örnek: 192.168.1.100 (yerel IPv4).");
+                return;
+            }
+            SetStatus("Yazıcının TCP bağlantısı kontrol ediliyor...");
+            using var client = new TcpClient();
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(4));
+            await client.ConnectAsync(ip, (int)portBox.Value, timeout.Token);
+            SetStatus("TCP bağlantısı var. Bunun yazıcı olduğunu ancak gerçek test fişi doğrulayabilir.");
+        }
+        catch (OperationCanceledException)
+        {
+            SetStatus("Yazıcı erişilemiyor: bağlantı zaman aşımına uğradı. Kabloyu, IP'yi ve portu kontrol et.");
+        }
+        catch (Exception ex)
+        {
+            SetStatus("Yazıcıya bağlanılamadı: " + ex.Message);
+        }
+        finally { diagnoseButton.Enabled = true; }
+    }
+
     private async Task FindPrinters()
     {
         findButton.Enabled = false;
@@ -430,7 +511,7 @@ internal sealed class SetupForm : Form
                 printers.SelectedIndex = 0;
                 SetStatus($"{printers.Items.Count} adet erişilebilir cihaz bulundu. Yazıcınızı seçin, test fişi alın.");
             }
-            else SetStatus("Yazıcı bulunamadı. IP adresini manuel yazın veya Ethernet kablosunu kontrol edin.");
+            else SetStatus("Ağda yazıcı bulunamadı. Yanında yazıcı yoksa bu normal; Yazıcısız Demo ile devam et.");
         }
         catch (Exception ex) { SetStatus("Arama başarısız: " + ex.Message); }
         finally { findButton.Enabled = true; }
