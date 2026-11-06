@@ -47,7 +47,7 @@ jobs:
               $certFile, $env:OYNABAK_SIGN_PFX_PASSWORD,
               [System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::EphemeralKeySet)
             if (-not $cert.HasPrivateKey) { throw 'Missing signing private key' }
-            if ($cert.GetRSAPublicKey() -eq $null) { throw 'RSA signing certificate required for Smart App Control' }
+            if ([System.Security.Cryptography.X509Certificates.RSACertificateExtensions]::GetRSAPublicKey($cert) -eq $null) { throw 'RSA signing certificate required for Smart App Control' }
             if ($cert.NotAfter -lt (Get-Date)) { throw 'Signing certificate expired' }
             $sdk = 'C:\Program Files (x86)\Windows Kits\10\bin'
             $signTools = @(Get-ChildItem $sdk -Filter signtool.exe -Recurse -ErrorAction SilentlyContinue |
