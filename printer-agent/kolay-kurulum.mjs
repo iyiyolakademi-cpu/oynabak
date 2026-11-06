@@ -92,8 +92,6 @@ function save(cfg){
   lock(config);
   fs.copyFileSync(fileURLToPath(new URL('./print-agent.mjs',import.meta.url)),target);
   lock(target);
-  const method=configureStartup({nodePath:process.execPath,scriptPath:target,mode:'single'});
-  console.log('Windows otomatik açılış: '+method.description+' (CMD başlangıcı yok).');
  }catch(e){
   try{fs.unlinkSync(tmp)}catch{}
   throw Error('Güvenli kurulum yapılamadı: '+e.message);
@@ -154,6 +152,8 @@ async function main(){
  if(ok!=='e'&&ok!=='evet'){
   console.log('Fiziksel test doğrulanmadı. Otomatik yazdırmayı açma.');return;
  }
+ const method=configureStartup({nodePath:process.execPath,scriptPath:target,mode:'single'});
+ console.log('Windows otomatik açılış: '+method.description+' (CMD başlangıcı yok).');
  start();
  console.log('\nBAĞLANTI BAŞLADI. Windows açılışında tekrar çalışacak.');
  console.log('SON ADIM: https://oynabak.com/printer-admin.html');
