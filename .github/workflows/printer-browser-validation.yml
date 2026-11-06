@@ -1,0 +1,44 @@
+name: OynaBak Browser Printer Validation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'printer-browser.html'
+      - 'printer-browser.css'
+      - 'printer-browser.js'
+      - '.github/workflows/printer-browser-validation.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'printer-browser.html'
+      - 'printer-browser.css'
+      - 'printer-browser.js'
+      - '.github/workflows/printer-browser-validation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate app syntax and dependencies
+        run: |
+          node --check printer-browser.js
+          test -s printer-browser.html
+          test -s printer-browser.css
+          grep -q 'printer-browser.js' printer-browser.html
+          grep -q 'ob_print_device_overview' printer-browser.js
+          grep -q 'ob_print_device_heartbeat' printer-browser.js
+          grep -q 'ob_print_claim' printer-browser.js
+          grep -q 'ob_print_finish' printer-browser.js
+          if grep -E 'localStorage|sessionStorage|eval\(' printer-browser.js; then
+            echo 'Forbidden API in browser printer code'
+            exit 1
+          fi
