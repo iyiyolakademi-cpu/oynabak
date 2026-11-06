@@ -11,7 +11,7 @@ Bu klasör OynaBak siparişlerini işletmede bulunan ESC/POS termal yazıcıya g
 5. Tek sefer gösterilen cihaz anahtarını kopyalayın. Anahtarı asla GitHub'a, e-postaya veya ekran görüntülerine koymayın.
 6. Bu klasördeki **KURULUM-BASLAT.cmd** dosyasını çift tıklayın. Açılan pencerelere cihaz anahtarı, yazıcı IP adresi, port (genelde 9100) ve 80/58 mm bilgilerini girin.
 7. Kurulum programı, yazıcı servisini Windows'un LocalAppData/OynaBak klasörüne kopyalar ve kullanıcı Windows'a giriş yaptığında otomatik başlatılacak kısayolu ekler. Yönetici parolası kullanılmaz.
-8. Deneme fişini **gerçek yazıcıda** doğrulamadan otomatik baskı etkinleştirilmemelidir. Güvenlik gereği web paneli etkinleştirme düğmesi içermez. Etkinleştirme ve gerçek test ayrı bir devreye alma adımı gerektirir.
+8. Kurulum sırasında **Türkçe test fişi** çıkarmak isteyip istemediğiniz sorulur; testte kâğıt veya kapak hatası varsa fiş gönderilmez. Deneme fişini **gerçek yazıcıda** doğrulamadan otomatik baskı etkinleştirilmemelidir. Yönetici panelinde cihazın son 10 dakika içinde çevrimiçi olduğu doğrulandıktan ve gerçek test fişinin çıktığı işaretlendikten sonra otomatik yazdırma bilinçli biçimde açılabilir.
 
 ## Güvenlik
 
@@ -29,6 +29,7 @@ Bu klasör OynaBak siparişlerini işletmede bulunan ESC/POS termal yazıcıya g
 - İnternet yokken henüz sunucuya ulaşmamış bir müşteri siparişinin kaydedildiği garanti edilmez; çevrimdışı sipariş özelliği ayrı geliştirme gerektirir.
 - Yerel servis kapalıysa işler `pending` durumunda bekler. Cihaz ve bağlantı geldiğinde servis bunları işleyebilir.
 - İş tek bir cihaza **atomik olarak** verilir (`FOR UPDATE SKIP LOCKED`, `claim_id`), başka cihaz aynı işi alamaz.
+- RONGTA durum protokolü destekleyen cihazda fişten önce DLE EOT 2/3/4 ile **kapak, donanım hatası ve kâğıt sensörü** kontrol edilir; cihaz yanıt vermiyorsa güvenli şekilde durur. Gerçek donanım uyumu doğrulanmalıdır.
 - Yazıcıya gönderildikten sonra ağ bağlantısı koparsa durumu **belirsiz** olabilir. İş `printing` kalır; **otomatik yeniden basılmaz**.
 - Yetkili yönetici fiziksel fişi kontrol edip sebep yazarak **Kontrollü tekrar** seçeneğiyle yeniden kuyruğa alabilir. Denetim kaydına gerekçe yazılır.
 - TCP'ye gönderim, fiziksel kâğıt çıktısının kesin kanıtı değildir. Kâğıt bitmesi/açık kapak gibi mekanik arızalar modelin durum komutlarına göre ayrıca doğrulanmalıdır.
