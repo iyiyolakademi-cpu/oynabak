@@ -77,10 +77,10 @@ function render(){
  });
  let content='<header class="ob-checkout-header"><div><small>OYNABAK · QR SİPARİŞ</small>'+
   '<h3 id="ob-cart-title" tabindex="-1">'+(last?'Siparişiniz':'Sepetim')+'</h3>'+
-  '<p>'+(last?'Siparişinizi buradan takip edin.':'Ürünleri onayla, masanı seç ve garsona ilet.')+'</p></div>'+
+  '<p>'+(last?'Siparişinizi buradan takip edin.':(config?.direct_print?'Ürünlerini seç, masanı belirle ve siparişini mutfağa gönder.':'Ürünleri onayla, masanı seç ve garsona ilet.'))+'</p></div>'+
   '<button type="button" class="ob-cart-close" data-ob-cart-close aria-label="Sepeti kapat">✕</button></header>';
  if(last){
-  const status=({pending:'Garson onayı bekleniyor',approved:'Onaylandı, hazırlığa alındı',rejected:'Garson tarafından reddedildi'}[last.status]||last.status||'Durum kontrol ediliyor');
+  const status=({pending:config?.direct_print?'Siparişiniz alındı':'Garson onayı bekleniyor',approved:'Onaylandı, hazırlığa alındı',rejected:'Garson tarafından reddedildi'}[last.status]||last.status||'Durum kontrol ediliyor');
   content+='<div class="ob-checkout-status"><small>Masa '+esc(last.table_no)+' · '+money(last.total)+'</small>'+
    '<strong>'+esc(status)+'</strong></div>'+
    (Array.isArray(last.items_status)&&last.items_status.length?
@@ -105,9 +105,9 @@ function render(){
    '</select></label>'+
    (config?.require_table_code?'<label>Masadaki 6 haneli doğrulama kodu<input id="ob-order-table-code" type="text" inputmode="numeric" maxlength="6" autocomplete="off" value="'+esc(tableCode)+'" placeholder="6 haneli kod"></label>':'')+
    '<label>Sipariş notu (isteğe bağlı)<textarea id="ob-order-note" maxlength="200" placeholder="Örn. şekersiz">'+esc(customerNote)+'</textarea></label></div>'+
-   '<p class="ob-order-privacy-note">Sipariş notuna özel kişisel bilgilerinizi yazmayın. Sipariş garson onayına gönderilir. Online ödeme yoktur.</p>'+
+   '<p class="ob-order-privacy-note">Sipariş notuna özel kişisel bilgilerinizi yazmayın. '+(config?.direct_print?'Sipariş doğrudan mutfağa iletilir.':'Sipariş garson onayına gönderilir.')+' Online ödeme yoktur.</p>'+
    '<button type="button" class="ob-checkout-send" data-ob-submit '+(!cart.length&&!pendingSubmit?'disabled':'')+'>'+
-   (pendingSubmit?'↻ Sipariş durumunu yeniden kontrol et':'Garsona sipariş gönder')+'</button>'+
+   (pendingSubmit?'↻ Sipariş durumunu yeniden kontrol et':(config?.direct_print?'Siparişi Ver':'Garsona sipariş gönder'))+'</button>'+
    '<p id="ob-order-error" class="ob-order-error" role="alert"></p>';
  }
  panel.innerHTML=content;
@@ -181,7 +181,8 @@ async function submit(fromRetry=false){
  try{
   const data=await rpc('ob_customer_order_submit',payload);
   pendingSubmit=null;last={...data,venue:venueId};cart=[];
-  persist();render();inform('Sipariş garson onayına gönderildi.');
+  persist();render();
+  if(config?.direct_print){lastCheckAt=0;await check();inform('Siparişiniz mutfağa iletildi.')}else inform('Sipariş garson onayına gönderildi.');
  }catch(err){
   const transient=!navigator.onLine||/fetch|network|timeout|bağlantı|connection|Failed to fetch/i.test(String(err.message));
   if(!transient)pendingSubmit=null;
