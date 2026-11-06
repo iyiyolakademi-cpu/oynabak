@@ -16,6 +16,7 @@ internal static class Program
 {
     internal static readonly string Folder = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "OynaBak");
+    // Each release gets its own installation filename so an older running EXE is never overwritten.
     internal static readonly string InstalledExe = Path.Combine(Folder, "OynaBak-Yazici.exe");
     internal static readonly string ConfigFile = Path.Combine(Folder, "printer-settings.json");
     private const string MutexId = @"Local\OynaBak-Yazici-SingleInstance";
@@ -37,17 +38,27 @@ internal static class Program
         Directory.CreateDirectory(Folder);
         try
         {
-            if (!Path.GetFullPath(Environment.ProcessPath ?? "").Equals(
-                Path.GetFullPath(InstalledExe), StringComparison.OrdinalIgnoreCase))
+            var source = Path.GetFullPath(Environment.ProcessPath ??
+                throw new InvalidOperationException("Çalışan program dosyası bulunamadı."));
+            var folderPath = Path.GetFullPath(Folder).TrimEnd(Path.DirectorySeparatorChar)
+                + Path.DirectorySeparatorChar;
+            if (!source.StartsWith(folderPath, StringComparison.OrdinalIgnoreCase))
             {
-                File.Copy(Environment.ProcessPath!, InstalledExe, true);
-                Process.Start(new ProcessStartInfo(InstalledExe) { UseShellExecute = true });
+                // Installing to a hash-specific filename avoids Access denied when an older
+                // OynaBak-Yazici.exe is still running or locked by Windows.
+                using var stream = File.OpenRead(source);
+                var digest = Convert.ToHexString(SHA256.HashData(stream))[..12].ToLowerInvariant();
+                var versionedExe = Path.Combine(Folder, "OynaBak-Yazici-" + digest + ".exe");
+                if (!File.Exists(versionedExe))
+                    File.Copy(source, versionedExe, false);
+                Process.Start(new ProcessStartInfo(versionedExe) { UseShellExecute = true });
                 return;
             }
         }
         catch (Exception ex)
         {
-            MessageBox.Show("Kurulum dosyası kopyalanamadı: " + ex.Message,
+            MessageBox.Show("Kurulum başlatılamadı: " + ex.Message +
+                "\nOynaBak klasöründeki eski program açıksa sistem tepsisinden Çıkış deyip tekrar deneyin.",
                 "OynaBak Yazıcı", MessageBoxButtons.OK, MessageBoxIcon.Error);
             return;
         }
@@ -56,7 +67,11 @@ internal static class Program
         if (!first)
         {
             try { using var handle = EventWaitHandle.OpenExisting(WakeId); handle.Set(); }
-            catch { MessageBox.Show("OynaBak yazıcı uygulaması zaten çalışıyor. Sağ alttaki yazıcı simgesine tıklayın."); }
+            catch { }
+            MessageBox.Show("OynaBak Yazıcı zaten çalışıyor. Yeni sürümü açmak için Windows sağ alt köşedeki " +
+                "OynaBak simgesine sağ tıklayıp Çıkış deyin; ardından indirdiğiniz kurulum dosyasını tekrar açın. " +
+                "Kaydedilmiş cihaz ayarlarınız silinmeyecektir.",
+                "OynaBak Yazıcı", MessageBoxButtons.OK, MessageBoxIcon.Information);
             return;
         }
         using var wake = new EventWaitHandle(false, EventResetMode.AutoReset, WakeId);
@@ -104,7 +119,7 @@ internal static class Program
         File.Move(tmp, ConfigFile, true);
         using var startup = Registry.CurrentUser.CreateSubKey(
             @"Software\Microsoft\Windows\CurrentVersion\Run");
-        startup?.SetValue("OynaBak Yazici", "\"" + InstalledExe + "\" --background", RegistryValueKind.String);
+        startup?.SetValue("OynaBak Yazici", "\"" + Environment.ProcessPath + "\" --background", RegistryValueKind.String);
     }
 }
 
