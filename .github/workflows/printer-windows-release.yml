@@ -6,6 +6,11 @@ on:
     paths:
       - 'printer-agent/windows/**'
       - '.github/workflows/printer-windows-release.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'printer-agent/windows/**'
+      - '.github/workflows/printer-windows-release.yml'
   workflow_dispatch:
 
 permissions:
@@ -45,6 +50,7 @@ jobs:
           retention-days: 30
 
       - name: Publish stable installer download
+        if: github.event_name != 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
         shell: pwsh
