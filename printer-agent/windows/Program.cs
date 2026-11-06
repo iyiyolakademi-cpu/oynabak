@@ -75,7 +75,7 @@ internal static class Program
             return;
         }
         using var wake = new EventWaitHandle(false, EventResetMode.AutoReset, WakeId);
-        using var window = new SetupForm(args.Contains("--background"));
+        using var window = new DashboardForm(args.Contains("--background"));
         _ = Task.Run(() =>
         {
             while (!window.IsDisposed)
@@ -151,12 +151,8 @@ internal sealed class SetupForm : Form
     private readonly Button findButton = new() { Text = "Yazıcıları Bul", Width = 175, Height = 39 };
     private readonly Button testButton = new() { Text = "Test Fişi Yazdır", Width = 175, Height = 39 };
     private readonly Button saveButton = new() { Text = "Kaydet ve Çalıştır", Width = 200, Height = 39 };
-    private readonly Button demoButton = new() { Text = "Yazıcısız Demo", Width = 185, Height = 39 };
     private readonly Button diagnoseButton = new() { Text = "Bağlantı Kontrolü", Width = 184, Height = 39 };
-    private readonly NotifyIcon tray;
-    private readonly CancellationTokenSource stop = new();
     private Settings current;
-    private bool exitRequested;
     private readonly bool startedHidden;
 
     public SetupForm(bool startHidden)
@@ -176,8 +172,8 @@ internal sealed class SetupForm : Form
         printers.Text = current.Host;
         portBox.Value = current.Port;
 
-        Width = 745; Height = 765;
-        MinimumSize = new Size(710, 700);
+        Width = 745; Height = 715;
+        MinimumSize = new Size(710, 670);
         MaximizeBox = false;
 
         var body = new FlowLayoutPanel {
@@ -290,14 +286,7 @@ internal sealed class SetupForm : Form
         saveButton.Width = 194;
         actions.Controls.Add(testButton);
         actions.Controls.Add(saveButton);
-        actions.Controls.Add(demoButton);
         thirdInner.Controls.Add(actions);
-        thirdInner.Controls.Add(new Label {
-            Text = "Yazıcın yoksa Demo ile örnek fişi görüntüle. Demo sipariş göndermez ve baskıyı açmaz.",
-            Width = 610, Height = 34,
-            ForeColor = Color.FromArgb(90, 103, 123),
-            Font = new Font("Segoe UI", 9)
-        });
         third.Height = 164;
         body.Controls.Add(third);
         body.Controls.Add(new Label {
@@ -314,25 +303,12 @@ internal sealed class SetupForm : Form
 
         findButton.Click += async (_, _) => await FindPrinters();
         diagnoseButton.Click += async (_, _) => await Diagnose();
-        demoButton.Click += (_, _) => ShowDemo();
         testButton.Click += async (_, _) => await TestPrinter();
         saveButton.Click += (_, _) => SaveSettings();
-        tray = new NotifyIcon {
-            Icon = SystemIcons.Application, Text = "OynaBak Yazıcı",
-            Visible = true, ContextMenuStrip = new ContextMenuStrip()
-        };
-        tray.ContextMenuStrip.Items.Add("Kurulumu Aç", null, (_, _) => ShowSetup());
-        tray.ContextMenuStrip.Items.Add("Çıkış", null, (_, _) => { exitRequested = true; Close(); });
-        tray.DoubleClick += (_, _) => ShowSetup();
-        FormClosing += (_, e) => {
-            if (!exitRequested) { e.Cancel = true; Hide(); }
-            else stop.Cancel();
-        };
-        Shown += (_, _) => { if (startedHidden && current.Ready) Hide(); };
         SetStatus(current.Ready
-            ? "Kaydedilmiş bağlantı var. Gerçek cihazda test fişini doğrulamayı unutma."
-            : "Yazıcı yoksa sağdaki Yazıcısız Demo'ya basarak sistemi inceleyebilirsin.");
-        _ = Task.Run(() => Agent.Loop(() => current, stop.Token, SetStatus));
+            ? "Kayıtlı yazıcı ayarları hazır. Gerçek test fişi ile doğrula."
+            : "İşletme cihaz anahtarını gir ve yazıcını seç.");
+
     }
 
     private static Label Line(string message) => new() {
@@ -395,41 +371,6 @@ internal sealed class SetupForm : Form
             MessageBox.Show(ex.Message, "Yazıcı Testi", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
         finally { testButton.Enabled = true; }
-    }
-
-    private static readonly string DemoJson =
-        """{"table_no":8,"items":[{"name":"Izgara köfte","quantity":2,"station":"all","note":"Soğansız"},{"name":"Türk çayı","quantity":1,"station":"all"}],"customer_note":"Lütfen sıcak servis edin."}""";
-
-    private void ShowDemo()
-    {
-        // This is deliberately offline: no printer, Supabase call, pairing or background queue.
-        using var json = JsonDocument.Parse(DemoJson);
-        var bytes = Agent.BuildReceipt(json.RootElement, (int)(paperBox.SelectedIndex == 1 ? 58 : 80), "all");
-        var preview = "OYNABAK - DEMO / GERÇEK BASKI DEĞİL\r\n" +
-            "------------------------------------\r\n" +
-            "MASA 8\r\n2 x Izgara köfte\r\n    NOT: Soğansız\r\n" +
-            "1 x Türk çayı\r\nNOT: Lütfen sıcak servis edin.\r\n" +
-            "------------------------------------\r\n" +
-            "Fiş verisi hazır: " + bytes.Length + " bayt\r\n\r\n" +
-            "Bu yalnızca önizlemedir.\r\n" +
-            "Gerçek yazıcıya gönderilmedi.\r\n" +
-            "Otomatik yazdırma etkinleştirilmedi.";
-        using var dialog = new Form {
-            Text = "OynaBak - Yazıcısız Deneme",
-            Width = 465, Height = 510, StartPosition = FormStartPosition.CenterParent,
-            Font = new Font("Segoe UI", 10), BackColor = Color.White,
-            MinimumSize = new Size(400, 450)
-        };
-        var box = new TextBox {
-            Dock = DockStyle.Fill, Text = preview, ReadOnly = true,
-            Multiline = true, ScrollBars = ScrollBars.Vertical,
-            Font = new Font("Consolas", 11),
-            BackColor = Color.White, BorderStyle = BorderStyle.None,
-            Margin = new Padding(18)
-        };
-        dialog.Controls.Add(box);
-        dialog.ShowDialog(this);
-        SetStatus("Demo tamamlandı: yazıcıya veya gerçek sipariş kuyruğuna hiçbir şey gönderilmedi.");
     }
 
     private async Task Diagnose()
@@ -531,9 +472,4 @@ internal sealed class SetupForm : Form
             ? Color.DarkRed : Color.FromArgb(35, 75, 100);
     }
 
-    protected override void Dispose(bool disposing)
-    {
-        if (disposing) { stop.Cancel(); tray.Dispose(); stop.Dispose(); }
-        base.Dispose(disposing);
-    }
 }
