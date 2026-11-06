@@ -1,0 +1,98 @@
+name: Release SIGNED OynaBak Windows Printer
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  signed-windows:
+    runs-on: windows-latest
+    environment: production-signing
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Build self-contained single EXE
+        shell: pwsh
+        run: |
+          dotnet publish printer-agent/windows/OynaBak.Yazici.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:DebugType=None -o dist
+          if ($LASTEXITCODE -ne 0) { throw "Build failed" }
+          if (-not (Test-Path 'dist/OynaBak-Yazici.exe')) { throw "No EXE produced" }
+
+      - name: Print encoder smoke test
+        shell: pwsh
+        run: |
+          $binary = (Resolve-Path 'dist/OynaBak-Yazici.exe').Path
+          $test = Start-Process -FilePath $binary -ArgumentList '--self-test' -PassThru -Wait
+          if ($test.ExitCode -ne 0) { throw "Receipt test failed" }
+
+      - name: Require verified publisher certificate and sign
+        shell: pwsh
+        env:
+          OYNABAK_SIGN_PFX_BASE64: ${{ secrets.OYNABAK_SIGN_PFX_BASE64 }}
+          OYNABAK_SIGN_PFX_PASSWORD: ${{ secrets.OYNABAK_SIGN_PFX_PASSWORD }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:OYNABAK_SIGN_PFX_BASE64) -or
+              [string]::IsNullOrWhiteSpace($env:OYNABAK_SIGN_PFX_PASSWORD)) {
+            throw 'Code-signing certificate not configured. Refusing to publish unsigned Windows EXE.'
+          }
+          $certFile = Join-Path $env:RUNNER_TEMP 'oynabak-signing.pfx'
+          try {
+            [IO.File]::WriteAllBytes($certFile, [Convert]::FromBase64String($env:OYNABAK_SIGN_PFX_BASE64))
+            $cert = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new(
+              $certFile, $env:OYNABAK_SIGN_PFX_PASSWORD,
+              [System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::EphemeralKeySet)
+            if (-not $cert.HasPrivateKey) { throw 'Missing signing private key' }
+            if ($cert.GetRSAPublicKey() -eq $null) { throw 'RSA signing certificate required for Smart App Control' }
+            if ($cert.NotAfter -lt (Get-Date)) { throw 'Signing certificate expired' }
+            $sdk = 'C:\Program Files (x86)\Windows Kits\10\bin'
+            $signTools = @(Get-ChildItem $sdk -Filter signtool.exe -Recurse -ErrorAction SilentlyContinue |
+              Where-Object FullName -match 'x64' | Sort-Object FullName -Descending)
+            if ($signTools.Count -eq 0) { throw 'Windows SDK SignTool not found' }
+            $signtool = $signTools[0].FullName
+            & $signtool sign /v /fd SHA256 /f $certFile /p $env:OYNABAK_SIGN_PFX_PASSWORD /tr http://timestamp.digicert.com /td SHA256 'dist/OynaBak-Yazici.exe'
+            if ($LASTEXITCODE -ne 0) { throw 'EXE code signing failed' }
+            $signature = Get-AuthenticodeSignature 'dist/OynaBak-Yazici.exe'
+            if ($signature.Status -ne 'Valid') {
+              throw "Publisher chain not publicly trusted: $($signature.Status). Refusing to publish."
+            }
+            if ($signature.SignerCertificate.Thumbprint -ne $cert.Thumbprint) {
+              throw 'Signed publisher certificate mismatch'
+            }
+            Write-Host "Verified trusted publisher: $($signature.SignerCertificate.Subject)"
+          } finally {
+            if (Test-Path $certFile) { Remove-Item $certFile -Force }
+          }
+
+      - name: Generate SHA-256 for customers
+        shell: pwsh
+        run: |
+          (Get-FileHash 'dist/OynaBak-Yazici.exe' -Algorithm SHA256).Hash.ToLowerInvariant() +
+            '  OynaBak-Yazici.exe' | Set-Content 'dist/SHA256SUMS.txt' -Encoding ascii
+
+      - name: Upload signed production installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: OynaBak-Yazici-SIGNED-Windows-x64
+          path: |
+            dist/OynaBak-Yazici.exe
+            dist/SHA256SUMS.txt
+          if-no-files-found: error
+
+      - name: Publish verified production release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: pwsh
+        run: |
+          $tag = 'printer-windows-signed-v1'
+          gh release view $tag --repo $env:GITHUB_REPOSITORY *> $null
+          if ($LASTEXITCODE -eq 0) {
+            gh release upload $tag 'dist/OynaBak-Yazici.exe' 'dist/SHA256SUMS.txt' --clobber --repo $env:GITHUB_REPOSITORY
+          } else {
+            gh release create $tag 'dist/OynaBak-Yazici.exe' 'dist/SHA256SUMS.txt' --title 'OynaBak Yazıcı - İmzalı Windows Kurulumu' --notes 'Signed Windows x64 release with verified code-signing certificate. Real RONGTA physical printer test is still required.' --repo $env:GITHUB_REPOSITORY
+          }
+          if ($LASTEXITCODE -ne 0) { throw 'Signed release upload failed' }
