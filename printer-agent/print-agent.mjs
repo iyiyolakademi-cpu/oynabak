@@ -9,7 +9,7 @@ import {pathToFileURL} from 'node:url';
 const API='https://qacmubkcierbpxmdtsph.supabase.co';
 const KEY='sb_publishable_RU5vtZxlqK2dMD-LWuwUaA_Eak6b9cj';
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-const configPath=()=>process.env.OYNABAK_PRINTER_CONFIG||path.join(os.homedir(),'AppData','Local','OynaBak','printer.json');
+const configPath=()=>process.env.OYNABAK_PRINTER_CONFIG||path.join(process.env.LOCALAPPDATA||path.join(os.homedir(),'AppData','Local'),'OynaBak','printer.json');
 const sample={table_no:8,customer_note:'Soğansız, az tuzlu',items:[{name:'İskender ve çiğ köfte',quantity:2,note:'Şekersiz çay',station:'kitchen'},{name:'Sütlü Türk kahvesi',quantity:1,station:'bar'}]};
 const cp857={'Ç':128,'ç':135,'Ğ':166,'ğ':167,'İ':152,'ı':141,'Ö':153,'ö':148,'Ş':158,'ş':159,'Ü':154,'ü':129};
 const latinExtras={'é':130,'â':131,'ä':132,'à':133,'å':134,'ê':136,'ë':137,'è':138,'ï':139,'î':140,'Ä':142,'Å':143,'É':144,'æ':145,'Æ':146,'ô':147,'ò':149,'û':150,'ù':151,'á':160,'í':161,'ó':162,'ú':163,'ñ':164,'Ñ':165};
