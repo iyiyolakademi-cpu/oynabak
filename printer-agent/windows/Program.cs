@@ -174,39 +174,133 @@ internal sealed class SetupForm : Form
         printers.Text = current.Host;
         portBox.Value = current.Port;
 
-        var root = new TableLayoutPanel {
-            Dock = DockStyle.Fill, Padding = new Padding(22),
-            ColumnCount = 1, AutoScroll = true, RowCount = 12
+        Width = 745; Height = 670;
+        MinimumSize = new Size(710, 630);
+        MaximizeBox = false;
+
+        var body = new FlowLayoutPanel {
+            Dock = DockStyle.Fill, AutoScroll = true, FlowDirection = FlowDirection.TopDown,
+            WrapContents = false, Padding = new Padding(24, 16, 24, 22)
         };
-        Controls.Add(root);
-        root.Controls.Add(new Label {
-            Text = "OynaBak Yazıcı Kurulumu",
-            Font = new Font("Segoe UI", 18, FontStyle.Bold),
-            AutoSize = true, Margin = new Padding(3, 2, 3, 10)
+        Controls.Add(body);
+        var title = new Label {
+            Text = "OynaBak  |  Yazıcı Bağlantısı",
+            Font = new Font("Segoe UI Semibold", 19, FontStyle.Bold),
+            ForeColor = Color.FromArgb(24, 36, 56),
+            AutoSize = false, Width = 655, Height = 49
+        };
+        body.Controls.Add(title);
+        body.Controls.Add(new Label {
+            Text = "Müşteri QR'dan sipariş verir → Sipariş mutfak yazıcısına gider.",
+            ForeColor = Color.FromArgb(89, 99, 116), Width = 655, Height = 34
         });
-        root.Controls.Add(Line("1. İyi Yol Akademi panelinden cihaz anahtarı oluşturup aşağıya yapıştırın."));
-        root.Controls.Add(tokenBox);
-        root.Controls.Add(Line("2. Yazıcıyı Ethernet kablosuyla modeme bağlayın ve “Yazıcıları Bul”a basın."));
-        var findLine = new FlowLayoutPanel { Width = 620, Height = 50 };
-        findLine.Controls.Add(printers); root.Controls.Add(findLine);
-        root.Controls.Add(findButton);
-        root.Controls.Add(Line("3. Kâğıt genişliğini seçin. Port genellikle 9100'dür."));
-        var paramsLine = new FlowLayoutPanel { Width = 610, Height = 48 };
-        paramsLine.Controls.Add(new Label { Text = "Port", Width = 44, TextAlign = ContentAlignment.MiddleLeft, Height = 32 });
-        paramsLine.Controls.Add(portBox);
-        paramsLine.Controls.Add(new Label { Text = "Kâğıt", Width = 65, TextAlign = ContentAlignment.MiddleLeft, Height = 32 });
-        paramsLine.Controls.Add(paperBox);
-        root.Controls.Add(paramsLine);
-        var buttons = new FlowLayoutPanel { Height = 55, Width = 610 };
-        buttons.Controls.Add(testButton);
-        buttons.Controls.Add(saveButton);
-        root.Controls.Add(buttons);
-        root.Controls.Add(Line("4. Gerçek fiş çıktıysa web panelinden otomatik yazdırmayı etkinleştirin."));
-        var panelLink = new LinkLabel { Text = "Yazıcı Yönetimini Aç (İyi Yol Akademi)", AutoSize = true };
+
+        Panel Card(string heading, string help, out FlowLayoutPanel inner) {
+            var container = new Panel {
+                Width = 655, Height = 158, BackColor = Color.White,
+                BorderStyle = BorderStyle.FixedSingle,
+                Margin = new Padding(0, 8, 0, 8)
+            };
+            inner = new FlowLayoutPanel {
+                Dock = DockStyle.Fill, Padding = new Padding(15, 12, 12, 8),
+                FlowDirection = FlowDirection.TopDown, WrapContents = false
+            };
+            inner.Controls.Add(new Label {
+                Text = heading, Width = 610, Height = 33,
+                Font = new Font("Segoe UI", 12, FontStyle.Bold),
+                ForeColor = Color.FromArgb(25, 39, 60)
+            });
+            inner.Controls.Add(new Label {
+                Text = help, Width = 610, Height = 27,
+                ForeColor = Color.FromArgb(95, 105, 120),
+                Font = new Font("Segoe UI", 9)
+            });
+            container.Controls.Add(inner);
+            return container;
+        }
+
+        var first = Card("1   İşletmeyi OynaBak'a bağla",
+            "Cihaz kodunu yalnızca İyi Yol Akademi yönetiminden alabilirsin.", out var firstInner);
+        tokenBox.Width = 602; tokenBox.Height = 30;
+        tokenBox.PlaceholderText = "Yönetim panelinden kopyaladığın cihaz anahtarını yapıştır";
+        firstInner.Controls.Add(tokenBox);
+        var panelLink = new LinkLabel {
+            Text = "Cihaz anahtarı oluştur → Yönetim panelini aç",
+            AutoSize = false, Width = 595, Height = 28
+        };
         panelLink.LinkClicked += (_, _) => Process.Start(new ProcessStartInfo(
             "https://oynabak.com/printer-admin.html") { UseShellExecute = true });
-        root.Controls.Add(panelLink);
-        root.Controls.Add(status);
+        firstInner.Controls.Add(panelLink);
+        first.Height = 165;
+        body.Controls.Add(first);
+
+        var second = Card("2   Yazıcıyı bul",
+            "RONGTA yazıcı Ethernet kablosuyla aynı modeme bağlı olmalı.", out var secondInner);
+        var printerRow = new FlowLayoutPanel {
+            Width = 616, Height = 46, FlowDirection = FlowDirection.LeftToRight,
+            WrapContents = false
+        };
+        printers.Width = 408; printers.Height = 35;
+        printers.DropDownStyle = ComboBoxStyle.DropDown;
+        printers.Text = current.Host;
+        printers.PlaceholderText = "Yazıcı IP adresi";
+        findButton.Width = 172;
+        findButton.Text = "Yazıcıları Tara";
+        printerRow.Controls.Add(printers);
+        printerRow.Controls.Add(findButton);
+        secondInner.Controls.Add(printerRow);
+        var advancedLink = new LinkLabel {
+            Text = "Gelişmiş ayarlar (port / kâğıt) ▼",
+            AutoSize = false, Width = 595, Height = 29
+        };
+        secondInner.Controls.Add(advancedLink);
+        var advancedRow = new FlowLayoutPanel {
+            Width = 610, Height = 42, Visible = false, WrapContents = false
+        };
+        advancedRow.Controls.Add(new Label {
+            Text = "Port", Width = 48, Height = 32, TextAlign = ContentAlignment.MiddleLeft
+        });
+        advancedRow.Controls.Add(portBox);
+        advancedRow.Controls.Add(new Label {
+            Text = "Kâğıt", Width = 60, Height = 32, TextAlign = ContentAlignment.MiddleLeft,
+            Margin = new Padding(20, 3, 3, 3)
+        });
+        advancedRow.Controls.Add(paperBox);
+        secondInner.Controls.Add(advancedRow);
+        advancedLink.LinkClicked += (_, _) => {
+            advancedRow.Visible = !advancedRow.Visible;
+            second.Height = advancedRow.Visible ? 203 : 161;
+            advancedLink.Text = advancedRow.Visible
+                ? "Gelişmiş ayarları gizle ▲" : "Gelişmiş ayarlar (port / kâğıt) ▼";
+        };
+        second.Height = 161;
+        body.Controls.Add(second);
+
+        var third = Card("3   Deneme fişi çıkart ve tamamla",
+            "Fiş çıktıysa kaydet. Ardından yönetim panelinde otomatik baskıyı aç.", out var thirdInner);
+        var actions = new FlowLayoutPanel {
+            Width = 616, Height = 54, WrapContents = false
+        };
+        testButton.Text = "Test Fişi Çıkar";
+        testButton.Width = 185;
+        saveButton.Text = "Kaydet ve Başlat";
+        saveButton.Width = 194;
+        actions.Controls.Add(testButton);
+        actions.Controls.Add(saveButton);
+        thirdInner.Controls.Add(actions);
+        third.Height = 137;
+        body.Controls.Add(third);
+        body.Controls.Add(new Label {
+            Text = "Program, bilgisayarın Windows oturumu açıldığında kendiliğinden çalışır. " +
+                "Bilgisayar kapanırsa fişler sunucu kuyruğunda bekler.",
+            AutoSize = false, Width = 655, Height = 49,
+            ForeColor = Color.FromArgb(99, 110, 125),
+            Font = new Font("Segoe UI", 9)
+        });
+        status.Width = 655; status.Height = 56;
+        status.BackColor = Color.FromArgb(230, 239, 255);
+        status.Padding = new Padding(10);
+        body.Controls.Add(status);
 
         findButton.Click += async (_, _) => await FindPrinters();
         testButton.Click += async (_, _) => await TestPrinter();
