@@ -4,6 +4,12 @@ on:
   push:
     branches: [main]
     paths:
+      - 'printer-agent/oynabak-kurulum.mjs'
+      - 'printer-agent/OYNABAK-KURULUM.cmd'
+      - 'printer-agent/kolay-kurulum.mjs'
+      - 'printer-agent/oynabak-kurulum.mjs'
+      - 'printer-agent/OYNABAK-KURULUM.cmd'
+      - 'printer-agent/kolay-kurulum.mjs'
       - 'printer-agent/dual-agent.mjs'
       - 'printer-agent/dual-agent.test.mjs'
       - 'printer-agent/print-agent.mjs'
@@ -39,6 +45,10 @@ jobs:
       - name: Check syntax and test two independent station receipts
         shell: pwsh
         run: |
+          node --check printer-agent/oynabak-kurulum.mjs
+          if ($LASTEXITCODE -ne 0) { throw "Launcher syntax failed" }
+          node --check printer-agent/kolay-kurulum.mjs
+          if ($LASTEXITCODE -ne 0) { throw "Single setup syntax failed" }
           node --check printer-agent/print-agent.mjs
           if ($LASTEXITCODE -ne 0) { throw "Agent syntax failed" }
           node --check printer-agent/dual-agent.mjs
@@ -53,17 +63,20 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path dual-package | Out-Null
+          Copy-Item printer-agent/oynabak-kurulum.mjs dual-package/
+          Copy-Item printer-agent/OYNABAK-KURULUM.cmd dual-package/
+          Copy-Item printer-agent/kolay-kurulum.mjs dual-package/
           Copy-Item printer-agent/dual-agent.mjs dual-package/
           Copy-Item printer-agent/print-agent.mjs dual-package/
           Copy-Item printer-agent/kasa-mutfak-kurulum.mjs dual-package/
           Copy-Item printer-agent/KASA-MUTFAK-KURULUM.cmd dual-package/
           Copy-Item printer-agent/KASA-MUTFAK-README.md dual-package/
-          Compress-Archive -Path dual-package/* -DestinationPath OynaBak-Kasa-Mutfak-Otomatik-Yazici.zip -Force
-          if (-not (Test-Path OynaBak-Kasa-Mutfak-Otomatik-Yazici.zip)) { throw "ZIP missing" }
+          Compress-Archive -Path dual-package/* -DestinationPath OynaBak-QR-Otomatik-Yazici-1veya2.zip -Force
+          if (-not (Test-Path OynaBak-QR-Otomatik-Yazici-1veya2.zip)) { throw "ZIP missing" }
       - uses: actions/upload-artifact@v4
         with:
-          name: OynaBak-Kasa-Mutfak-Otomatik-Yazici
-          path: OynaBak-Kasa-Mutfak-Otomatik-Yazici.zip
+          name: OynaBak-QR-Otomatik-Yazici-1veya2
+          path: OynaBak-QR-Otomatik-Yazici-1veya2.zip
           retention-days: 30
       - name: Publish user installer ZIP
         if: github.event_name != 'pull_request'
@@ -71,11 +84,11 @@ jobs:
         env:
           GH_TOKEN: \${{ github.token }}
         run: |
-          $tag = 'printer-dual-free-v1'
+          $tag = 'printer-automatic-free-v1'
           gh release view $tag --repo $env:GITHUB_REPOSITORY *> $null
           if ($LASTEXITCODE -eq 0) {
-            gh release upload $tag OynaBak-Kasa-Mutfak-Otomatik-Yazici.zip --clobber --repo $env:GITHUB_REPOSITORY
+            gh release upload $tag OynaBak-QR-Otomatik-Yazici-1veya2.zip --clobber --repo $env:GITHUB_REPOSITORY
           } else {
-            gh release create $tag OynaBak-Kasa-Mutfak-Otomatik-Yazici.zip --title 'OynaBak Kasa + Mutfak Tam Otomatik Yazıcı' --notes 'Resmi Node.js LTS gerektirir. İki Ethernet yazıcı ayrı IP ile kurulur. İki gerçek termal test fişi zorunludur. Windows güvenliği kapatılmamalıdır.' --repo $env:GITHUB_REPOSITORY
+            gh release create $tag OynaBak-QR-Otomatik-Yazici-1veya2.zip --title 'OynaBak QR Tam Otomatik Yazıcı – 1 veya 2 Yazıcı' --notes 'Resmi Node.js LTS gerektirir. İki Ethernet yazıcı ayrı IP ile kurulur. İki gerçek termal test fişi zorunludur. Windows güvenliği kapatılmamalıdır.' --repo $env:GITHUB_REPOSITORY
           }
           if ($LASTEXITCODE -ne 0) { throw "Release failed" }
