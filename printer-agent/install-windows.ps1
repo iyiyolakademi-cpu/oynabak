@@ -44,6 +44,12 @@ try {
  if(-not (Test-Path $source)){throw 'print-agent.mjs bulunamadi.'}
  $agent=Join-Path $root 'print-agent.mjs'
  Copy-Item -LiteralPath $source -Destination $agent -Force
+ $result=[System.Windows.Forms.MessageBox]::Show('Simdi yazicidan Turkce test fisi cikarmak ister misiniz?','OynaBak Yazici Testi','YesNo','Question')
+ if($result -eq [System.Windows.Forms.DialogResult]::Yes) {
+  $testOutput=& $node $agent --test-printer 2>&1
+  if($LASTEXITCODE -ne 0){throw ('Yazici testi basarisiz: '+($testOutput -join ' '))}
+  Info 'Test komutu tamamlandi. Yazicidan kagit ciktigini ve Turkce karakterlerin dogru oldugunu kontrol edin.'
+ }
  $launcher=Join-Path $root 'start-printer.ps1'
  $lines=@(
   '$ErrorActionPreference="Continue"',
