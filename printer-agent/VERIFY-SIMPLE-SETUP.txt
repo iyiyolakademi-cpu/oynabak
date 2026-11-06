@@ -1,1 +1,1 @@
-Windows CMD-free startup verification.
+Windows CMD-free startup verification. Run 2.
