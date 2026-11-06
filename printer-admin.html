@@ -20,13 +20,18 @@ pre{overflow:auto;background:#f7f9fc;padding:12px;border-radius:10px;white-space
 <div id="message" class="card">Güvenli oturum kontrol ediliyor…</div>
 <div id="content" hidden>
 <div class="card"><label>İşletme<select id="venue"></select></label></div>
+<div class="card"><h2 style="margin-top:0">Windows Hızlı Yazıcı Kurulumu</h2>
+<p>İşletmenin Windows bilgisayarına Node.js kurmadan tek programla yazıcı bağlayın. Yazıcı Ethernet kablosuyla aynı ağa bağlı olmalı.</p>
+<a href="https://github.com/iyiyolakademi-cpu/oynabak/releases" target="_blank" rel="noopener noreferrer" class="btn">Windows Kurulum Dosyasını Görüntüle</a>
+<p class="muted">GitHub sürümlerindeki <b>OynaBak-Yazici.exe</b> dosyasını kullanın. Derleme henüz yayımlanmadıysa GitHub sürümlerinde görünmez. Programı açın → Cihaz Eşleştir anahtarını yapıştırın → Yazıcıları Bul → Test Fişi → Kaydet.</p>
+</div>
 <div class="card"><h2 style="margin-top:0">Yazıcı ayarları</h2>
 <div class="notice">Gerçek yazıcı testi tamamlanmadan otomatik yazdırmayı etkinleştirmeyin. Cihaz eşleştirme ve test sonrası yalnızca İyi Yol Akademi yöneticisi etkinleştirebilir.</div>
 <form id="settings" style="margin-top:18px">
 <div class="grid">
-<label>Bağlantı türü<select name="connection_type"><option value="ethernet">Ethernet / Ağ</option><option value="usb">USB</option><option value="serial">Seri bağlantı</option><option value="bluetooth">Bluetooth</option></select></label>
+<label>Bağlantı türü<select name="connection_type"><option value="ethernet">Ethernet / Ağ</option></select></label>
 <label>Kağıt genişliği<select name="paper_width_mm"><option value="80">80 mm</option><option value="58">58 mm</option></select></label>
-<label>Fiş yönlendirmesi<select name="station"><option value="all">Tüm ürünler</option><option value="kitchen">Mutfak</option><option value="bar">Bar</option><option value="cashier">Kasa</option></select></label>
+<label>Fiş yönlendirmesi<select name="station"><option value="all">Tüm ürünler (QR siparişleri)</option></select></label>
 </div>
 <div class="notice" style="margin-top:14px">Gerçek yazıcıdan deneme fişi çıkmadan otomatik yazdırmayı açmayın. İşletme bilgisayarında KURULUM-BASLAT.cmd çalıştırıp kâğıt ve Türkçe karakterleri doğrulayın.</div>
 <div style="display:grid;gap:10px;margin:14px 0">
