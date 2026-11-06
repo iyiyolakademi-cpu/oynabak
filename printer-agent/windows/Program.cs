@@ -380,7 +380,7 @@ internal sealed class SetupForm : Form
         {
             if (string.IsNullOrWhiteSpace(printers.Text))
             {
-                SetStatus("Henüz yazıcı seçilmedi. Şu an yanında yazıcı yoksa 'Yazıcısız Demo' kullan.");
+                SetStatus("Henüz yazıcı seçilmedi. Yazıcıyı bağlayıp Yazıcıları Tara butonuna bas.");
                 return;
             }
             if (!IPAddress.TryParse(printers.Text.Trim(), out var ip) ||
@@ -452,7 +452,7 @@ internal sealed class SetupForm : Form
                 printers.SelectedIndex = 0;
                 SetStatus($"{printers.Items.Count} adet erişilebilir cihaz bulundu. Yazıcınızı seçin, test fişi alın.");
             }
-            else SetStatus("Ağda yazıcı bulunamadı. Yanında yazıcı yoksa bu normal; Yazıcısız Demo ile devam et.");
+            else SetStatus("Ağda yazıcı bulunamadı. Yazıcı açık, Ethernet kablosu bağlı ve aynı ağda olmalı.");
         }
         catch (Exception ex) { SetStatus("Arama başarısız: " + ex.Message); }
         finally { findButton.Enabled = true; }
