@@ -76,6 +76,34 @@ async function rpc(name,payload){
  if(!res.ok)throw Error('Sunucu HTTP '+res.status+': '+safeText(JSON.stringify(result),140));
  return result;
 }
+export function decodePrinterStatus(bytes){
+ if(!bytes||bytes.length<3)throw Error('Yazıcı durum yanıtı eksik');
+ const [offline,errors,paper]=bytes;
+ if((offline&0x04)!==0)throw Error('Yazıcının kapağı açık');
+ if((offline&0x40)!==0)throw Error('Yazıcı çevrimdışı veya arızalı');
+ if((errors&0x68)!==0)throw Error('Kesici veya yazıcı donanımı arızalı');
+ if((paper&0x60)!==0)throw Error('Yazıcıda kâğıt yok');
+ return true;
+}
+async function checkPrinterStatus(c){
+ // Rongta 80 Series DLE EOT 2/3/4; fail closed if device does not reply.
+ await new Promise((resolve,reject)=>{
+  const socket=net.createConnection({host:c.printer_host,port:c.printer_port});
+  let done=false;let received=Buffer.alloc(0);
+  const finish=err=>{if(done)return;done=true;clearTimeout(timer);socket.destroy();err?reject(err):resolve()};
+  const timer=setTimeout(()=>finish(new Error('Yazıcı sensör durumunu bildirmedi')),4000);
+  socket.once('error',finish);
+  socket.once('connect',()=>socket.write(Buffer.from([16,4,2,16,4,3,16,4,4])));
+  socket.on('data',part=>{
+   received=Buffer.concat([received,part]);
+   if(received.length>=3){
+    try{decodePrinterStatus(received.subarray(0,3));finish()}
+    catch(e){finish(e)}
+   }
+  });
+  socket.once('close',()=>{if(!done)finish(new Error('Yazıcı durum bağlantısı kesildi'))});
+ });
+}
 async function tcpWrite(c,bytes){
  await new Promise((resolve,reject)=>{
   let finished=false;
@@ -107,6 +135,7 @@ async function run(){
     try{
      if(job.paper_width_mm!==c.paper_width_mm)throw Error('Kağıt ölçüsü farklı');
      const bytes=receipt(job.payload,c.paper_width_mm,job.station);
+     await checkPrinterStatus(c);
      await tcpWrite(c,bytes);
      sent=true;
      const ok=await rpc('ob_print_finish',{p_token:c.device_token,p_job_id:job.id,p_claim_id:job.claim_id,p_outcome:'printed',p_error:''});
