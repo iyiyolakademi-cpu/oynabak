@@ -38,6 +38,10 @@ internal static class Agent
         return JsonDocument.Parse(body);
     }
 
+    // Device-scoped, read-only overview. The server resolves the venue from the token.
+    public static Task<JsonDocument> Overview(string token, CancellationToken ct)
+        => Rpc("ob_print_device_overview", new { p_token = token }, ct);
+
     private static bool Text(JsonElement el, string name, out string val)
     {
         val = "";
