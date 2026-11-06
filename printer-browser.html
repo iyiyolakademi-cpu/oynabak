@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src https://qacmubkcierbpxmdtsph.supabase.co; img-src 'self' data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'">
+<title>OynaBak Yazdırma Merkezi | Tarayıcı</title>
+<link rel="stylesheet" href="./printer-browser.css">
+</head>
+<body>
+<main class="app" id="app">
+  <header>
+    <div><div class="brand">OYNABAK <span>YAZDIRMA MERKEZİ</span></div>
+      <h1>İşletme yazdırma paneli</h1>
+      <p class="muted">Windows güvenliğini değiştirmeden, tarayıcı üzerinden gerçek siparişleri takip edin.</p></div>
+    <div class="top-actions"><span class="pill muted-pill" id="state">Bağlantı bekleniyor</span>
+      <a href="./printer-admin.html" target="_blank" rel="noopener">Yönetici paneli</a></div>
+  </header>
+  <div class="notice" role="note"><strong>Önemli:</strong> Bu tarayıcı sürümünde fişin gerçekten basıldığını işletme çalışanı onaylar. Tarayıcı tek başına tamamen otomatik, sessiz baskı garantisi vermez. Fiziksel test yapılmadan otomatik yazdırmaya güvenmeyin.</div>
+
+  <section class="panel login" id="pairing">
+    <h2>1. İşletmeyi bağla</h2>
+    <p>Yönetici panelinde <strong>Cihaz Eşleştir</strong> bölümünden aldığınız cihaz anahtarını yapıştırın. Anahtar yalnızca açık olan sekmede tutulur, tarayıcı hafızasına kaydedilmez.</p>
+    <label for="token">İşletme cihaz anahtarı</label>
+    <div class="input-row"><input id="token" type="password" spellcheck="false" autocomplete="off" placeholder="obp_…">
+      <button id="pair" class="primary">Güvenli bağlan</button></div>
+    <p class="small muted">Anahtarınız yoksa <a href="./printer-admin.html" target="_blank" rel="noopener">OynaBak Yazıcı Yönetimi</a> sayfasından oluşturabilirsiniz.</p>
+  </section>
+
+  <section id="business" hidden>
+    <div class="panel overview">
+      <div><p class="eyebrow">BAĞLI İŞLETME</p><h2 id="venue">—</h2><p class="muted" id="device">—</p></div>
+      <div class="side"><span class="pill" id="auto-state">—</span><button id="disconnect" class="light">Bağlantıyı kes</button></div>
+    </div>
+    <div class="metrics">
+      <article class="panel"><div class="number" id="printed">—</div><div class="muted">Bugün gönderilen fiş</div></article>
+      <article class="panel"><div class="number" id="pending">—</div><div class="muted">Bekleyen fiş</div></article>
+      <article class="panel"><div class="number" id="failed">—</div><div class="muted">Hatalı fiş</div></article>
+      <article class="panel"><div class="number" id="review">—</div><div class="muted">Kontrol gereken</div></article>
+    </div>
+    <div class="split">
+      <section class="panel">
+        <div class="panel-title"><div><h2>Son siparişler</h2><p class="muted small">Yalnızca eşleştirilmiş işletmeye ait gerçek kayıtlar</p></div><button id="refresh" class="light">Yenile</button></div>
+        <div class="tablewrap"><table><thead><tr><th>Zaman</th><th>Masa</th><th>Ürünler</th><th>Durum</th></tr></thead><tbody id="rows"><tr><td colspan="4">Henüz sipariş yok.</td></tr></tbody></table></div>
+        <p class="small muted" id="updated">Henüz güncellenmedi</p>
+      </section>
+      <aside class="panel controls">
+        <h2>Yazdırma işlemleri</h2>
+        <p class="muted">Bu bilgisayarda yazıcı sürücüsünü kurup Windows'ta varsayılan yazıcı olarak seçin.</p>
+        <button id="test" class="light wide">Fiziksel test fişi aç</button>
+        <button id="claim" class="primary wide">Sıradaki siparişi hazırla</button>
+        <p class="small muted">Önce test fişini Windows yazdırma penceresinden basın. Gerçek kâğıdı doğrulayın. Bir sipariş hazırlanırken sayfayı kapatmayın.</p>
+        <div class="divider"></div>
+        <p class="small" id="instructions">Siparişler ancak yönetici panelinden otomatik yazdırma/kuyruk etkinleştirildiğinde alınabilir. Bu tarayıcı yönteminde operatör onayı gerekir.</p>
+      </aside>
+    </div>
+  </section>
+  <p class="alert" id="alert" role="status" aria-live="polite"></p>
+</main>
+
+<div class="overlay" id="print-modal" hidden>
+  <div class="print-dialog">
+    <div class="dialog-header"><div><h2 id="print-heading">Yazdırılacak fiş</h2><p id="print-context" class="small muted">Gerçek basımı kontrol edin</p></div></div>
+    <div class="receipt" id="receipt"></div>
+    <div class="print-actions">
+      <button id="print-now" class="primary">Yazdırma penceresini aç</button>
+      <button id="confirm" class="success" hidden>Fiş kâğıda çıktı, onayla</button>
+      <button id="close-modal" class="light">Kapat</button>
+    </div>
+    <p id="print-warning" class="small muted"></p>
+  </div>
+</div>
+<script src="./printer-browser.js" defer></script>
+</body>
+</html>
