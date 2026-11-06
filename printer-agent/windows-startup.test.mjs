@@ -14,7 +14,7 @@ test('startup uses Windows Task Scheduler when permitted and does not run CMD',(
   assert.ok(create);
   assert.ok(create[1].includes('/it'));
   assert.ok(create[1].includes(taskName));
-  assert.ok(!calls.some(([exe,argv])=>exe==='reg.exe'&&argv.includes('/add')));
+  assert.ok(!calls.some(([exe,argv])=>exe==='reg.exe'&&argv.includes('add')));
  }
 });
 
@@ -26,7 +26,7 @@ test('blocked Task Scheduler falls back to HKCU Run; never uses .cmd',()=>{
   return {ok:true};
  }});
  assert.equal(result.method,process.env.USERNAME?'registry':'registry');
- const register=calls.find(([exe,argv])=>exe==='reg.exe'&&argv.includes('/add'));
+ const register=calls.find(([exe,argv])=>exe==='reg.exe'&&argv.includes('add'));
  assert.ok(register);
  assert.ok(register[1].includes(runName));
  const launch=register[1][register[1].indexOf('/d')+1];
