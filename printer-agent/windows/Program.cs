@@ -243,7 +243,6 @@ internal sealed class SetupForm : Form
         printers.Width = 408; printers.Height = 35;
         printers.DropDownStyle = ComboBoxStyle.DropDown;
         printers.Text = current.Host;
-        printers.PlaceholderText = "Yazıcı IP adresi";
         findButton.Width = 172;
         findButton.Text = "Yazıcıları Tara";
         printerRow.Controls.Add(printers);
