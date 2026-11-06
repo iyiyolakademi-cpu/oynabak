@@ -182,7 +182,7 @@ async function submit(fromRetry=false){
   const data=await rpc('ob_customer_order_submit',payload);
   pendingSubmit=null;last={...data,venue:venueId};cart=[];
   persist();render();
-  if(config?.direct_print){lastCheckAt=0;await check();inform('Siparişiniz mutfağa iletildi.')}else inform('Sipariş garson onayına gönderildi.');
+  if(config?.direct_print){lastCheckAt=0;await check();inform('Sipariş kaydedildi ve mutfak yazdırma kuyruğuna alındı.')}else inform('Sipariş garson onayına gönderildi.');
  }catch(err){
   const transient=!navigator.onLine||/fetch|network|timeout|bağlantı|connection|Failed to fetch/i.test(String(err.message));
   if(!transient)pendingSubmit=null;
