@@ -1,0 +1,1 @@
+Temporary Windows CI validation for one or two automatic QR receipt printers.
