@@ -1,0 +1,70 @@
+name: OynaBak Free Windows Printer Setup
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'printer-agent/kolay-kurulum.mjs'
+      - 'printer-agent/print-agent.mjs'
+      - 'printer-agent/print-agent.test.mjs'
+      - 'printer-agent/KURULUM-BASLAT.cmd'
+      - 'printer-agent/UCRETSIZ-KURULUM.md'
+      - '.github/workflows/printer-free-setup.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Syntax and receipt tests
+        shell: pwsh
+        run: |
+          node --check printer-agent/kolay-kurulum.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Setup syntax failed' }
+          node --check printer-agent/print-agent.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Print agent syntax failed' }
+          node --test printer-agent/print-agent.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Receipt tests failed' }
+          node printer-agent/kolay-kurulum.mjs --check
+          if ($LASTEXITCODE -ne 0) { throw 'Setup sanity check failed' }
+          node printer-agent/print-agent.mjs --sample
+          if ($LASTEXITCODE -ne 0) { throw 'Print sample failed' }
+
+      - name: Create clean ZIP with no EXE and no credentials
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path bundle | Out-Null
+          Copy-Item printer-agent/kolay-kurulum.mjs bundle/
+          Copy-Item printer-agent/print-agent.mjs bundle/
+          Copy-Item printer-agent/KURULUM-BASLAT.cmd bundle/
+          Copy-Item printer-agent/UCRETSIZ-KURULUM.md bundle/
+          Compress-Archive -Path bundle/* -DestinationPath OynaBak-Ucretsiz-Yazici-Kurulum.zip -Force
+          if (-not (Test-Path OynaBak-Ucretsiz-Yazici-Kurulum.zip)) { throw 'Bundle missing' }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: OynaBak-Ucretsiz-Yazici-Kurulum
+          path: OynaBak-Ucretsiz-Yazici-Kurulum.zip
+          retention-days: 30
+
+      - name: Publish free setup ZIP only after tests pass
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = 'printer-free-v1'
+          gh release view $tag --repo $env:GITHUB_REPOSITORY *> $null
+          if ($LASTEXITCODE -eq 0) {
+            gh release upload $tag OynaBak-Ucretsiz-Yazici-Kurulum.zip --clobber --repo $env:GITHUB_REPOSITORY
+          } else {
+            gh release create $tag OynaBak-Ucretsiz-Yazici-Kurulum.zip --title 'OynaBak - Ucretsiz QR Yazici Baglantisi' --notes 'Custom unsigned EXE yoktur. Windows bilgisayara resmi Node.js LTS kurulur, ZIP ayiklanir ve KURULUM-BASLAT.cmd acilir. Fiziksel RONGTA yazici testi zorunludur.' --repo $env:GITHUB_REPOSITORY
+          }
+          if ($LASTEXITCODE -ne 0) { throw 'Release ZIP upload failed' }
