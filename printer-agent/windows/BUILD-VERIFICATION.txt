@@ -1,1 +1,2 @@
 Build verification only. This branch validates Windows portable printer app in GitHub Actions.
+Re-run after workflow smoke test process-handling fix.
