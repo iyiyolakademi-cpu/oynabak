@@ -136,7 +136,11 @@ async function main(){
   ?ips[Number(answer)-1]:answer;
  if(!lanIP(host))throw Error('Yazıcı IP adresi yerel IPv4 olmalı.');
  if(!await reachable(host,9100,3500))throw Error('Yazıcıya erişilemiyor. Modem ve IP adresini kontrol et.');
- save({device_token:token,printer_host:host,printer_port:9100,paper_width_mm:80});
+ const paperInput=(await ask('Termal kağıt genişliği (80 veya 58, varsayılan 80): '))||'80';
+ if(!['80','58'].includes(paperInput))throw Error('Kağıt genişliği 80 veya 58 olmalı.');
+ const paperWidth=Number(paperInput);
+ console.log('OynaBak yönetici panelinde kağıt genişliği de '+paperWidth+' mm olmalı.');
+ save({device_token:token,printer_host:host,printer_port:9100,paper_width_mm:paperWidth});
  console.log('\nGüvenli bağlantı kaydedildi.');
  const doTest=(await ask('Şimdi test fişi çıksın mı? (E/h): ')).toLowerCase();
  if(doTest==='h'||doTest==='hayır'){
