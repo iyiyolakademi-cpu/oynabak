@@ -8,6 +8,7 @@ import {spawn,execFileSync} from 'node:child_process';
 import {createInterface,emitKeypressEvents} from 'node:readline';
 import {fileURLToPath} from 'node:url';
 import {lanIP} from './print-agent.mjs';
+import {configureStartup} from './windows-startup.mjs';
 const HOME=path.join(process.env.LOCALAPPDATA||path.join(os.homedir(),'AppData','Local'),'OynaBak');
 const CFG=path.join(HOME,'dual-printers.json');
 const DEST=path.join(HOME,'dual-agent.mjs');
@@ -86,9 +87,7 @@ function save(c){
  fs.copyFileSync(fileURLToPath(new URL('./dual-agent.mjs',import.meta.url)),DEST);
  fs.copyFileSync(fileURLToPath(new URL('./print-agent.mjs',import.meta.url)),SHARED);
  lock(DEST);lock(SHARED);
- fs.mkdirSync(path.dirname(STARTUP),{recursive:true});
- fs.writeFileSync(STARTUP,'@echo off\r\nstart "" /min '+quote(process.execPath)+' '+quote(DEST)+' --live\r\n','utf8');
- lock(STARTUP);
+
 }
 async function test(c){
  const child=spawn(process.execPath,[DEST,'--test-printer'],{stdio:'inherit'});
@@ -109,6 +108,7 @@ async function main(){
  if(process.argv.includes('--check')){
   fs.accessSync(new URL('./dual-agent.mjs',import.meta.url));
   fs.accessSync(new URL('./print-agent.mjs',import.meta.url));
+  fs.accessSync(new URL('./windows-startup.mjs',import.meta.url));
   console.log('Kasa ve mutfak kurulum paketleri hazır.');return;
  }
  console.log('\n================ OYNABAK OTOMATİK 2 YAZICI =================\n');
@@ -149,6 +149,8 @@ async function main(){
  try{if(fs.existsSync(oldStartup))fs.unlinkSync(oldStartup)}catch{}
  try{execFileSync('reg.exe',['delete','HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run',
   '/v','OynaBak Yazici','/f'],{windowsHide:true,stdio:'ignore'})}catch{}
+ const startMethod=configureStartup({nodePath:process.execPath,scriptPath:DEST,mode:'dual'});
+ console.log('Otomatik açılış: '+startMethod.description);
  launch();
  console.log('\nBAĞLANTI HAZIR: iki yazıcı otomatik sipariş kuyruğunu takip ediyor.');
  console.log('SON ADIM: https://oynabak.com/printer-admin.html');
