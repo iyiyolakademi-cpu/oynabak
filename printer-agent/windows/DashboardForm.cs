@@ -55,7 +55,7 @@ internal sealed class DashboardForm : Form
     public DashboardForm(bool backgroundMode)
     {
         background = backgroundMode;
-        Text = "OynaBak Yazıcı | İşletme Yazdırma Merkezi";
+        Text = "OynaBak Yazıcı Pro | İşletme Yazdırma Merkezi";
         Icon = SystemIcons.Application;
         Font = new Font("Segoe UI", 10);
         BackColor = Base; ForeColor = Ink;
@@ -426,6 +426,16 @@ internal sealed class DashboardForm : Form
         if (logs.TextLength > 7000) logs.Text = logs.Text[^4000..];
         logs.AppendText(entry);
         logs.SelectionStart = logs.TextLength; logs.ScrollToCaret();
+        try {
+            // Rotating operational log contains only activity text, never the device token.
+            var logPath = Path.Combine(Program.Folder, "printer-activity.log");
+            Directory.CreateDirectory(Program.Folder);
+            if (File.Exists(logPath) && new FileInfo(logPath).Length > 1024 * 1024)
+                File.Move(logPath, logPath + ".old", true);
+            File.AppendAllText(logPath, entry);
+        } catch {
+            // A read-only profile should not prevent live printing.
+        }
     }
 
     protected override void Dispose(bool disposing)
