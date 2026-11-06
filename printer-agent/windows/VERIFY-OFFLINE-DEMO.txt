@@ -1,0 +1,1 @@
+Verify original OynaBak Windows GUI with offline receipt preview and printer diagnostics.
