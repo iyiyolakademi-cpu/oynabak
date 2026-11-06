@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   publish-windows:
@@ -42,25 +42,13 @@ jobs:
           $test = Start-Process -FilePath $binary -ArgumentList '--self-test' -PassThru -Wait
           if ($test.ExitCode -ne 0) { throw "Receipt self-test failed with code $($test.ExitCode)" }
 
+      # This is intentionally unsigned and for developer tests only.
+      # Never offer it as a trusted end-user installer.
       - name: Upload downloadable build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: OynaBak-Yazici-Windows-x64
+          name: OynaBak-Yazici-UNSIGNED-TEST-ONLY
           path: dist/OynaBak-Yazici.exe
           if-no-files-found: error
           retention-days: 30
 
-      - name: Publish stable installer download
-        if: github.event_name != 'pull_request'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: pwsh
-        run: |
-          $tag = 'printer-windows-v1'
-          gh release view $tag --repo $env:GITHUB_REPOSITORY *> $null
-          if ($LASTEXITCODE -eq 0) {
-            gh release upload $tag 'dist/OynaBak-Yazici.exe' --clobber --repo $env:GITHUB_REPOSITORY
-          } else {
-            gh release create $tag 'dist/OynaBak-Yazici.exe' --title 'OynaBak Yazici - Windows Kurulum' --notes 'Tek dosyalik, .NET 8 self-contained Windows x64 termal yazici kurulum uygulamasi. Kurulumdan once printer-agent/windows/README.md dosyasini okuyun. Gercek RONGTA cihaz testi gereklidir.' --repo $env:GITHUB_REPOSITORY
-          }
-          if ($LASTEXITCODE -ne 0) { throw 'Release upload failed' }
