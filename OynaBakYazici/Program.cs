@@ -6,6 +6,19 @@ internal static class Program
  [STAThread]
  static void Main(string[] args)
  {
+  if(args.Contains("--self-test",StringComparer.OrdinalIgnoreCase))
+  {
+   try
+   {
+    byte[] b=PrinterProtocol.TestReceipt(80);
+    if(b.Length<50||b[0]!=27||b[1]!=64||!b.Contains((byte)152)||!b.Contains((byte)158))
+     throw new InvalidOperationException("CP857 / ESC-POS Türkçe test başarısız.");
+    if(b[^3]!=29||b[^2]!=86||b[^1]!=0)throw new InvalidOperationException("Kesme komutu eksik.");
+    Environment.ExitCode=0;
+   }
+   catch{Environment.ExitCode=3;}
+   return;
+  }
   ApplicationConfiguration.Initialize();
   if(args.Contains("--agent",StringComparer.OrdinalIgnoreCase))Application.Run(new AgentContext());
   else Application.Run(new SetupForm());
