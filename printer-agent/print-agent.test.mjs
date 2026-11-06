@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {receipt,lanIP,encodeCP857} from './print-agent.mjs';
+import {receipt,lanIP,encodeCP857,decodePrinterStatus} from './print-agent.mjs';
 
 const order={
  table_no:8,customer_note:'Şekersiz çay, çiğ köfte',
@@ -41,4 +41,11 @@ test('Only literal private LAN IPv4 allowed',()=>{
  assert.equal(lanIP('8.8.8.8'),false);
  assert.equal(lanIP('printer.example.org'),false);
  assert.equal(lanIP('127.0.0.1'),false);
+});
+test('Printer cover/error/paper sensors stop writing before receipt',()=>{
+ assert.equal(decodePrinterStatus(Buffer.from([0x12,0x12,0x12])),true);
+ assert.throws(()=>decodePrinterStatus(Buffer.from([0x16,0x12,0x12])),/kapağı/);
+ assert.throws(()=>decodePrinterStatus(Buffer.from([0x12,0x1a,0x12])),/arızalı/);
+ assert.throws(()=>decodePrinterStatus(Buffer.from([0x12,0x12,0x72])),/kâğıt/);
+ assert.throws(()=>decodePrinterStatus(Buffer.from([0x12])),/eksik/);
 });
