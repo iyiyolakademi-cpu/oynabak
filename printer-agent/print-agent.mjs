@@ -121,6 +121,14 @@ async function run(){
   console.log('Örnek fiş oluşturuldu, bayt:',bytes.length,'Türkçe kod sayfası: CP857 (29)');
   console.log('Önizleme:',sample);return;
  }
+ if(process.argv.includes('--test-printer')){
+  const c=cfg();
+  await checkPrinterStatus(c);
+  const bytes=receipt({...sample,customer_note:'TÜRKÇE KARAKTER: Ç Ğ İ Ö Ş Ü ç ğ ı ö ş ü'},c.paper_width_mm);
+  await tcpWrite(c,bytes);
+  console.log('Test fişi yazıcıya iletildi. Fiziksel kâğıdı ve Türkçe harfleri kontrol edin.');
+  return;
+ }
  if(!process.argv.includes('--live')){
   console.log('Yazıcı çalıştırılmadı. Örnek: node print-agent.mjs --sample');return;
  }
