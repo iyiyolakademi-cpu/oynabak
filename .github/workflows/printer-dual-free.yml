@@ -1,0 +1,81 @@
+name: OynaBak Dual Auto Printer Windows ZIP
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'printer-agent/dual-agent.mjs'
+      - 'printer-agent/dual-agent.test.mjs'
+      - 'printer-agent/print-agent.mjs'
+      - 'printer-agent/print-agent.test.mjs'
+      - 'printer-agent/kasa-mutfak-kurulum.mjs'
+      - 'printer-agent/KASA-MUTFAK-KURULUM.cmd'
+      - 'printer-agent/KASA-MUTFAK-README.md'
+      - '.github/workflows/printer-dual-free.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'printer-agent/dual-agent.mjs'
+      - 'printer-agent/dual-agent.test.mjs'
+      - 'printer-agent/print-agent.mjs'
+      - 'printer-agent/print-agent.test.mjs'
+      - 'printer-agent/kasa-mutfak-kurulum.mjs'
+      - 'printer-agent/KASA-MUTFAK-KURULUM.cmd'
+      - 'printer-agent/KASA-MUTFAK-README.md'
+      - '.github/workflows/printer-dual-free.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  windows-package:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check syntax and test two independent station receipts
+        shell: pwsh
+        run: |
+          node --check printer-agent/print-agent.mjs
+          if ($LASTEXITCODE -ne 0) { throw "Agent syntax failed" }
+          node --check printer-agent/dual-agent.mjs
+          if ($LASTEXITCODE -ne 0) { throw "Dual agent syntax failed" }
+          node --check printer-agent/kasa-mutfak-kurulum.mjs
+          if ($LASTEXITCODE -ne 0) { throw "Installer syntax failed" }
+          node --test printer-agent/print-agent.test.mjs printer-agent/dual-agent.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw "Print tests failed" }
+          node printer-agent/kasa-mutfak-kurulum.mjs --check
+          if ($LASTEXITCODE -ne 0) { throw "Windows installer check failed" }
+      - name: Build ZIP only from reviewed source files
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dual-package | Out-Null
+          Copy-Item printer-agent/dual-agent.mjs dual-package/
+          Copy-Item printer-agent/print-agent.mjs dual-package/
+          Copy-Item printer-agent/kasa-mutfak-kurulum.mjs dual-package/
+          Copy-Item printer-agent/KASA-MUTFAK-KURULUM.cmd dual-package/
+          Copy-Item printer-agent/KASA-MUTFAK-README.md dual-package/
+          Compress-Archive -Path dual-package/* -DestinationPath OynaBak-Kasa-Mutfak-Otomatik-Yazici.zip -Force
+          if (-not (Test-Path OynaBak-Kasa-Mutfak-Otomatik-Yazici.zip)) { throw "ZIP missing" }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: OynaBak-Kasa-Mutfak-Otomatik-Yazici
+          path: OynaBak-Kasa-Mutfak-Otomatik-Yazici.zip
+          retention-days: 30
+      - name: Publish user installer ZIP
+        if: github.event_name != 'pull_request'
+        shell: pwsh
+        env:
+          GH_TOKEN: \${{ github.token }}
+        run: |
+          $tag = 'printer-dual-free-v1'
+          gh release view $tag --repo $env:GITHUB_REPOSITORY *> $null
+          if ($LASTEXITCODE -eq 0) {
+            gh release upload $tag OynaBak-Kasa-Mutfak-Otomatik-Yazici.zip --clobber --repo $env:GITHUB_REPOSITORY
+          } else {
+            gh release create $tag OynaBak-Kasa-Mutfak-Otomatik-Yazici.zip --title 'OynaBak Kasa + Mutfak Tam Otomatik Yazıcı' --notes 'Resmi Node.js LTS gerektirir. İki Ethernet yazıcı ayrı IP ile kurulur. İki gerçek termal test fişi zorunludur. Windows güvenliği kapatılmamalıdır.' --repo $env:GITHUB_REPOSITORY
+          }
+          if ($LASTEXITCODE -ne 0) { throw "Release failed" }
