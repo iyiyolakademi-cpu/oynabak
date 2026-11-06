@@ -10,6 +10,11 @@ on:
       - 'printer-agent/KURULUM-BASLAT.cmd'
       - 'printer-agent/UCRETSIZ-KURULUM.md'
       - '.github/workflows/printer-free-setup.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'printer-agent/**'
+      - '.github/workflows/printer-free-setup.yml'
   workflow_dispatch:
 
 permissions:
@@ -56,6 +61,7 @@ jobs:
           retention-days: 30
 
       - name: Publish free setup ZIP only after tests pass
+        if: github.event_name != 'pull_request'
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
