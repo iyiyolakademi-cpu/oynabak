@@ -288,3 +288,4 @@
     event.returnValue = '';
   });
 })();
+// CI-only: verify that browser print console passes syntax and security assertions.
