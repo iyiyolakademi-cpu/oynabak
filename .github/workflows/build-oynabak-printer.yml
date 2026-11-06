@@ -26,8 +26,8 @@ jobs:
       - name: Verify Windows executable and Turkish ESC-POS self-test
         shell: pwsh
         run: |
-          & build/output/OynaBakYazici.exe --self-test
-          if ($LASTEXITCODE -ne 0) { throw "OynaBak Windows self-test failed: $LASTEXITCODE" }
+          $check = Start-Process -FilePath (Resolve-Path 'build/output/OynaBakYazici.exe') -ArgumentList '--self-test' -Wait -PassThru
+          if ($check.ExitCode -ne 0) { throw "OynaBak Windows self-test failed: $($check.ExitCode)" }
       - name: Upload Windows executable as workflow artifact
         uses: actions/upload-artifact@v4
         with:
