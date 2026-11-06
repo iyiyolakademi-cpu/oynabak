@@ -1,8 +1,9 @@
+import {fileURLToPath} from 'node:url';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {configureStartup,taskName,runName} from './windows-startup.mjs';
 
-const args={nodePath:process.execPath,scriptPath:new URL('./print-agent.mjs',import.meta.url).pathname,mode:'single',appData:'',platform:'win32'};
+const args={nodePath:process.execPath,scriptPath:fileURLToPath(new URL('./print-agent.mjs',import.meta.url)),mode:'single',appData:'',platform:'win32'};
 
 test('startup uses Windows Task Scheduler when permitted and does not run CMD',()=>{
  const calls=[];
