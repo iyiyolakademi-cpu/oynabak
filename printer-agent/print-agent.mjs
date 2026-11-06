@@ -32,7 +32,7 @@ function wrap(s,cols){
  for(let i=0;i<text.length;i+=cols)lines.push(text.slice(i,i+cols));
  return lines.length?lines:[''];
 }
-export function receipt(payload,width=80,station='all'){
+export function receipt(payload,width=80,station='all',displayStation=station){
  if(![58,80].includes(width)||!Array.isArray(payload?.items))throw Error('Fiş verisi geçersiz');
  const cols=width===58?30:42;
  const items=payload.items.filter(x=>station==='all'||station==='cashier'||x.station===station);
@@ -42,7 +42,7 @@ export function receipt(payload,width=80,station='all'){
  cmd(27,64);cmd(27,116,29); // RP330/Rongta page 29 = CP857 Turkish (verify per device)
  cmd(27,97,1);cmd(27,69,1);line('OYNABAK');cmd(27,69,0);line('SİPARİŞ FİŞİ');
  cmd(27,97,0);line('-'.repeat(cols));line('MASA '+safeText(payload.table_no,6));
- line('BÖLÜM '+station.toLocaleUpperCase('tr-TR'));line('-'.repeat(cols));
+ line('BÖLÜM '+safeText(displayStation,24).toLocaleUpperCase('tr-TR'));line('-'.repeat(cols));
  for(const it of items){
   const qty=Number(it.quantity);
   if(!Number.isInteger(qty)||qty<1||qty>999||!safeText(it.name))throw Error('Ürün geçersiz');
