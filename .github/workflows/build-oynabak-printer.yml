@@ -23,6 +23,11 @@ jobs:
           dotnet publish OynaBakYazici/OynaBakYazici.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true -p:PublishTrimmed=false -o build/output
           if (!(Test-Path build/output/OynaBakYazici.exe)) { throw 'Executable missing' }
           (Get-FileHash build/output/OynaBakYazici.exe -Algorithm SHA256).Hash | Set-Content build/output/OynaBakYazici.sha256.txt
+      - name: Verify Windows executable and Turkish ESC-POS self-test
+        shell: pwsh
+        run: |
+          & build/output/OynaBakYazici.exe --self-test
+          if ($LASTEXITCODE -ne 0) { throw "OynaBak Windows self-test failed: $LASTEXITCODE" }
       - name: Upload Windows executable as workflow artifact
         uses: actions/upload-artifact@v4
         with:
